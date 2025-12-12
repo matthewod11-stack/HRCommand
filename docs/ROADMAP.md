@@ -1,0 +1,350 @@
+# HR Command Center — Implementation Roadmap
+
+> **Purpose:** Actionable checklist for implementation across multiple sessions.
+> **Related Docs:** [SESSION_PROTOCOL.md](./SESSION_PROTOCOL.md) | [PROGRESS.md](./PROGRESS.md)
+> **Full Spec:** [HR-Command-Center-Roadmap.md](../HR-Command-Center-Roadmap.md)
+
+---
+
+## Session Management
+
+This is a **long-running, multi-session implementation**. Follow these rules:
+
+### Before Each Session
+```bash
+./scripts/dev-init.sh
+```
+
+### Single-Feature-Per-Session Rule
+> **CRITICAL:** Work on ONE checkbox item per session when possible. This prevents scope creep and ensures proper documentation.
+
+### After Each Session
+1. Run verification (build, type-check, tests)
+2. Update PROGRESS.md with session entry
+3. Update features.json status
+4. Check off completed tasks below
+5. Commit with descriptive message
+
+---
+
+## Phase Overview
+
+| Phase | Focus | Duration | Pause Points |
+|-------|-------|----------|--------------|
+| 0 | Pre-flight validation | 1 day | 0A: Tooling verified |
+| 1 | Foundation | 2 weeks | 1A: App runs, API works |
+| 2 | Context | 2 weeks | 2A: Context injection works |
+| 3 | Protection | 1 week | 3A: PII redaction works |
+| 4 | Polish | 2 weeks | 4A: Onboarding complete |
+| 5 | Launch | 1 week | 5A: Beta ready |
+
+---
+
+## Phase 0: Pre-Flight Validation
+
+**Goal:** Confirm tooling is ready and environment is set up
+
+### Tasks
+- [x] 0.1 Verify Rust toolchain installed (`rustc --version`) ✓ 1.92.0
+- [x] 0.2 Verify Node.js installed (`node --version`) ✓ v22.21.0
+- [x] 0.3 Verify Tauri CLI installed (`cargo tauri --version`) ✓ 2.9.6
+- [x] 0.4 Create empty Git repository with .gitignore
+- [x] 0.5 Document environment versions in PROGRESS.md
+
+### Pause Point 0A ✓ COMPLETE
+**Action Required:** Confirm all tooling works before proceeding — **VERIFIED**
+
+---
+
+## Phase 1: Foundation
+
+**Goal:** App opens, stores data locally, talks to Claude
+
+### 1.1 Project Scaffolding
+- [ ] 1.1.1 Initialize Tauri + React + Vite project
+- [ ] 1.1.2 Configure TypeScript
+- [ ] 1.1.3 Set up Tailwind CSS with design tokens
+- [ ] 1.1.4 Create basic folder structure per architecture doc
+- [ ] 1.1.5 Verify `npm run dev` launches app window
+
+### 1.2 SQLite Setup
+- [ ] 1.2.1 Add SQLx dependency to Cargo.toml
+- [ ] 1.2.2 Create initial migration (employees, conversations, company, settings, audit_log)
+- [ ] 1.2.3 Create FTS virtual table for conversation search
+- [ ] 1.2.4 Implement db.rs with connection management
+- [ ] 1.2.5 Verify database creates on first launch
+
+### 1.3 Basic Chat UI
+- [ ] 1.3.1 Create AppShell component (main layout)
+- [ ] 1.3.2 Create ChatInput component
+- [ ] 1.3.3 Create MessageBubble component (user/assistant variants)
+- [ ] 1.3.4 Create MessageList component with scroll
+- [ ] 1.3.5 Create TypingIndicator component
+- [ ] 1.3.6 Wire up basic message send/display flow
+
+### 1.4 Claude API Integration
+- [ ] 1.4.1 Add keyring dependency for macOS Keychain
+- [ ] 1.4.2 Implement keyring.rs for API key storage
+- [ ] 1.4.3 Create ApiKeyInput component with validation
+- [ ] 1.4.4 Implement chat.rs with Claude API call
+- [ ] 1.4.5 Add response streaming support
+- [ ] 1.4.6 Wire frontend to backend via Tauri invoke
+
+### 1.5 Network Detection
+- [ ] 1.5.1 Implement network check in Rust
+- [ ] 1.5.2 Create useNetwork hook in React
+- [ ] 1.5.3 Show offline indicator when disconnected
+
+### Pause Point 1A
+**Verification Required:**
+- [ ] App window opens
+- [ ] Can enter API key (validates against Claude)
+- [ ] Can send message and receive streamed response
+- [ ] Messages persist in SQLite
+- [ ] Network status displays correctly
+
+---
+
+## Phase 2: Context
+
+**Goal:** Claude knows about your company and remembers past conversations
+
+### 2.1 Employee Data
+- [ ] 2.1.1 Implement employees.rs CRUD operations
+- [ ] 2.1.2 Create FileDropzone component for CSV import
+- [ ] 2.1.3 Implement CSV parsing with merge-by-email logic
+- [ ] 2.1.4 Create EmployeePanel component (sidebar)
+- [ ] 2.1.5 Create EmployeeEdit component (modal)
+- [ ] 2.1.6 Create sample dataset ("Acme Corp" 5 employees)
+
+### 2.2 Company Profile
+- [ ] 2.2.1 Create CompanySetup component
+- [ ] 2.2.2 Implement company table operations
+- [ ] 2.2.3 Require name + state during onboarding
+- [ ] 2.2.4 Store company data in SQLite
+
+### 2.3 Context Builder
+- [ ] 2.3.1 Implement context.rs with retrieval logic
+- [ ] 2.3.2 Add employee name/department extraction from query
+- [ ] 2.3.3 Build system prompt template with company + state
+- [ ] 2.3.4 Add context to Claude API calls
+- [ ] 2.3.5 Implement context size trimming
+
+### 2.4 Cross-Conversation Memory
+- [ ] 2.4.1 Implement memory.rs for conversation summaries
+- [ ] 2.4.2 Generate summaries after conversations
+- [ ] 2.4.3 Implement summary search/retrieval
+- [ ] 2.4.4 Include relevant memories in context
+
+### 2.5 Conversation Management
+- [ ] 2.5.1 Create ConversationSidebar component
+- [ ] 2.5.2 Implement auto-title generation
+- [ ] 2.5.3 Create ConversationSearch component (FTS)
+- [ ] 2.5.4 Add "New conversation" action
+- [ ] 2.5.5 Wire sidebar to chat area
+
+### 2.6 Stickiness Features
+- [ ] 2.6.1 Create PromptSuggestions component
+- [ ] 2.6.2 Implement contextual prompt generation
+- [ ] 2.6.3 Create empty state guidance
+
+### Pause Point 2A
+**Verification Required:**
+- [ ] Can import CSV and see employees
+- [ ] Can edit individual employee
+- [ ] Asking "Who's been here longest?" returns correct answer
+- [ ] Asking about employee by name includes their context
+- [ ] Conversation sidebar shows history
+- [ ] Search finds past conversations
+- [ ] Memory references past discussions naturally
+
+---
+
+## Phase 3: Protection
+
+**Goal:** Users can't accidentally leak sensitive data
+
+### 3.1 PII Scanner
+- [ ] 3.1.1 Implement pii.rs with regex patterns
+- [ ] 3.1.2 Add SSN detection (XXX-XX-XXXX, XXXXXXXXX)
+- [ ] 3.1.3 Add credit card detection
+- [ ] 3.1.4 Add bank account detection (with context)
+- [ ] 3.1.5 Create unit tests for PII patterns
+
+### 3.2 Auto-Redaction
+- [ ] 3.2.1 Implement scan_and_redact function
+- [ ] 3.2.2 Replace PII with placeholders ([SSN_REDACTED], etc.)
+- [ ] 3.2.3 Return redaction list for notification
+
+### 3.3 Notification UI
+- [ ] 3.3.1 Create PIINotification component
+- [ ] 3.3.2 Show brief notification on redaction
+- [ ] 3.3.3 Auto-dismiss after 3 seconds
+
+### 3.4 Audit Logging
+- [ ] 3.4.1 Implement audit.rs
+- [ ] 3.4.2 Log redacted requests and responses
+- [ ] 3.4.3 Store context employee IDs used
+- [ ] 3.4.4 Add audit log export capability
+
+### 3.5 Error Handling
+- [ ] 3.5.1 Create ErrorState component
+- [ ] 3.5.2 Handle API errors gracefully
+- [ ] 3.5.3 Show "Retry" and "Copy Message" actions
+- [ ] 3.5.4 Implement read-only offline mode
+
+### Pause Point 3A
+**Verification Required:**
+- [ ] Pasting SSN auto-redacts before sending
+- [ ] Notification shows briefly
+- [ ] Audit log captures redacted content
+- [ ] Offline mode allows browsing but not chatting
+- [ ] API errors show friendly messages
+
+---
+
+## Phase 4: Polish
+
+**Goal:** Feels like a real product
+
+### 4.1 Onboarding Flow
+- [ ] 4.1.1 Create OnboardingFlow component
+- [ ] 4.1.2 Step 1: Welcome screen
+- [ ] 4.1.3 Step 2: API key setup (with Anthropic link)
+- [ ] 4.1.4 Step 3: Company profile (required)
+- [ ] 4.1.5 Step 4: Employee import (optional, sample data available)
+- [ ] 4.1.6 Step 5: Legal disclaimer acknowledgment
+- [ ] 4.1.7 Step 6: Telemetry opt-in choice
+- [ ] 4.1.8 Step 7: First conversation prompt
+
+### 4.2 Settings Panel
+- [ ] 4.2.1 Create SettingsPanel component
+- [ ] 4.2.2 API key management (change/remove)
+- [ ] 4.2.3 Company profile editing
+- [ ] 4.2.4 Data location display
+- [ ] 4.2.5 Telemetry toggle
+
+### 4.3 Data Export/Import
+- [ ] 4.3.1 Implement encrypted data export
+- [ ] 4.3.2 Implement data import from backup
+- [ ] 4.3.3 Add export/import to Settings panel
+
+### 4.4 Monday Digest
+- [ ] 4.4.1 Create MondayDigest component
+- [ ] 4.4.2 Query anniversaries from hire_date
+- [ ] 4.4.3 Query new hires (<90 days)
+- [ ] 4.4.4 Show on Monday mornings, dismissible
+
+### 4.5 Distribution
+- [ ] 4.5.1 Create app icon
+- [ ] 4.5.2 Configure macOS code signing
+- [ ] 4.5.3 Configure notarization
+- [ ] 4.5.4 Set up tauri-plugin-updater
+- [ ] 4.5.5 Configure GitHub Releases for updates
+
+### Pause Point 4A
+**Verification Required:**
+- [ ] Fresh install goes through onboarding smoothly
+- [ ] Can export and re-import data
+- [ ] Monday digest appears with correct data
+- [ ] App is signed and notarized
+- [ ] Auto-update works
+
+---
+
+## Phase 5: Launch
+
+**Goal:** Real users, real feedback
+
+### 5.1 License System
+- [ ] 5.1.1 Create license validation API endpoint
+- [ ] 5.1.2 Implement license check in app
+- [ ] 5.1.3 Store validation locally after success
+- [ ] 5.1.4 Add license input to onboarding
+
+### 5.2 Payment Integration
+- [ ] 5.2.1 Set up Stripe product ($99)
+- [ ] 5.2.2 Create checkout flow on website
+- [ ] 5.2.3 Implement license key generation
+- [ ] 5.2.4 Set up email delivery of keys
+
+### 5.3 Landing Page
+- [ ] 5.3.1 Update hrcommandcenter.com
+- [ ] 5.3.2 Add download links
+- [ ] 5.3.3 Add purchase button
+
+### 5.4 Beta Distribution
+- [ ] 5.4.1 Identify 5-10 beta users
+- [ ] 5.4.2 Distribute beta builds
+- [ ] 5.4.3 Set up feedback collection (in-app button)
+- [ ] 5.4.4 Triage and prioritize feedback
+
+### Pause Point 5A (Launch Ready)
+**Verification Required:**
+- [ ] Payment flow works end-to-end
+- [ ] License validation works
+- [ ] Beta users successfully using product
+- [ ] Critical feedback addressed
+
+---
+
+## Linear Checklist (All Tasks)
+
+Copy this to external tracking if needed:
+
+```
+PHASE 0 - PRE-FLIGHT
+[ ] 0.1 Verify Rust
+[ ] 0.2 Verify Node
+[ ] 0.3 Verify Tauri CLI
+[ ] 0.4 Create Git repo
+[ ] 0.5 Document versions
+[ ] PAUSE 0A: Tooling verified
+
+PHASE 1 - FOUNDATION
+[ ] 1.1.1-1.1.5 Project scaffolding (5 tasks)
+[ ] 1.2.1-1.2.5 SQLite setup (5 tasks)
+[ ] 1.3.1-1.3.6 Basic chat UI (6 tasks)
+[ ] 1.4.1-1.4.6 Claude API integration (6 tasks)
+[ ] 1.5.1-1.5.3 Network detection (3 tasks)
+[ ] PAUSE 1A: App runs, API works
+
+PHASE 2 - CONTEXT
+[ ] 2.1.1-2.1.6 Employee data (6 tasks)
+[ ] 2.2.1-2.2.4 Company profile (4 tasks)
+[ ] 2.3.1-2.3.5 Context builder (5 tasks)
+[ ] 2.4.1-2.4.4 Cross-conversation memory (4 tasks)
+[ ] 2.5.1-2.5.5 Conversation management (5 tasks)
+[ ] 2.6.1-2.6.3 Stickiness features (3 tasks)
+[ ] PAUSE 2A: Context injection works
+
+PHASE 3 - PROTECTION
+[ ] 3.1.1-3.1.5 PII scanner (5 tasks)
+[ ] 3.2.1-3.2.3 Auto-redaction (3 tasks)
+[ ] 3.3.1-3.3.3 Notification UI (3 tasks)
+[ ] 3.4.1-3.4.4 Audit logging (4 tasks)
+[ ] 3.5.1-3.5.4 Error handling (4 tasks)
+[ ] PAUSE 3A: PII redaction works
+
+PHASE 4 - POLISH
+[ ] 4.1.1-4.1.8 Onboarding flow (8 tasks)
+[ ] 4.2.1-4.2.5 Settings panel (5 tasks)
+[ ] 4.3.1-4.3.3 Data export/import (3 tasks)
+[ ] 4.4.1-4.4.4 Monday digest (4 tasks)
+[ ] 4.5.1-4.5.5 Distribution (5 tasks)
+[ ] PAUSE 4A: Onboarding complete
+
+PHASE 5 - LAUNCH
+[ ] 5.1.1-5.1.4 License system (4 tasks)
+[ ] 5.2.1-5.2.4 Payment integration (4 tasks)
+[ ] 5.3.1-5.3.3 Landing page (3 tasks)
+[ ] 5.4.1-5.4.4 Beta distribution (4 tasks)
+[ ] PAUSE 5A: Launch ready
+```
+
+**Total: ~100 discrete tasks across 5 phases**
+
+---
+
+*Last updated: December 2025*
+*Session tracking: See PROGRESS.md*

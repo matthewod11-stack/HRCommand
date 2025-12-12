@@ -1,0 +1,154 @@
+{
+  "$schema": "./features.schema.json",
+  "_meta": {
+    "description": "Feature tracking for HR Command Center. Status: not-started | in-progress | pass | fail | blocked",
+    "lastUpdated": "2025-12-12",
+    "project": "HR Command Center",
+    "totalFeatures": 27,
+    "passing": 0,
+    "failing": 0,
+    "inProgress": 0
+  },
+  "phase-0": {
+    "pre-flight-validation": {
+      "status": "not-started",
+      "notes": "Verify tooling: Rust, Node, Tauri CLI"
+    }
+  },
+  "phase-1": {
+    "project-scaffolding": {
+      "status": "not-started",
+      "notes": "Tauri + React + Vite + Tailwind"
+    },
+    "sqlite-setup": {
+      "status": "not-started",
+      "notes": "Schema with 5 tables, FTS for search"
+    },
+    "basic-chat-ui": {
+      "status": "not-started",
+      "notes": "AppShell, ChatInput, MessageBubble, MessageList"
+    },
+    "claude-api-integration": {
+      "status": "not-started",
+      "notes": "Keychain storage, streaming responses"
+    },
+    "network-detection": {
+      "status": "not-started",
+      "notes": "Online/offline status"
+    }
+  },
+  "phase-2": {
+    "employee-data": {
+      "status": "not-started",
+      "notes": "CSV import, CRUD, sample data"
+    },
+    "company-profile": {
+      "status": "not-started",
+      "notes": "Required: name + state"
+    },
+    "context-builder": {
+      "status": "not-started",
+      "notes": "Auto-retrieval, system prompt template"
+    },
+    "cross-conversation-memory": {
+      "status": "not-started",
+      "notes": "Summaries, memory retrieval"
+    },
+    "conversation-management": {
+      "status": "not-started",
+      "notes": "Sidebar, search, auto-titles"
+    },
+    "stickiness-features": {
+      "status": "not-started",
+      "notes": "Prompt suggestions, empty state guidance"
+    }
+  },
+  "phase-3": {
+    "pii-scanner": {
+      "status": "not-started",
+      "notes": "SSN, CC, bank account detection"
+    },
+    "auto-redaction": {
+      "status": "not-started",
+      "notes": "Replace PII with placeholders"
+    },
+    "pii-notification-ui": {
+      "status": "not-started",
+      "notes": "Brief notification on redaction"
+    },
+    "audit-logging": {
+      "status": "not-started",
+      "notes": "Log redacted content to SQLite"
+    },
+    "error-handling": {
+      "status": "not-started",
+      "notes": "Graceful errors, offline mode"
+    }
+  },
+  "phase-4": {
+    "onboarding-flow": {
+      "status": "not-started",
+      "notes": "7-step wizard, disclaimer, telemetry choice"
+    },
+    "settings-panel": {
+      "status": "not-started",
+      "notes": "API key, company, data location"
+    },
+    "data-export-import": {
+      "status": "not-started",
+      "notes": "Encrypted backup/restore"
+    },
+    "monday-digest": {
+      "status": "not-started",
+      "notes": "Anniversaries, new hire check-ins"
+    },
+    "distribution": {
+      "status": "not-started",
+      "notes": "Code signing, notarization, auto-update"
+    }
+  },
+  "phase-5": {
+    "license-system": {
+      "status": "not-started",
+      "notes": "One-time online validation"
+    },
+    "payment-integration": {
+      "status": "not-started",
+      "notes": "Stripe, $99, key generation"
+    },
+    "landing-page": {
+      "status": "not-started",
+      "notes": "hrcommandcenter.com updates"
+    },
+    "beta-distribution": {
+      "status": "not-started",
+      "notes": "5-10 users, feedback collection"
+    }
+  },
+  "verification": {
+    "pause-0a": {
+      "status": "not-started",
+      "notes": "Tooling verified"
+    },
+    "pause-1a": {
+      "status": "not-started",
+      "notes": "App runs, API works"
+    },
+    "pause-2a": {
+      "status": "not-started",
+      "notes": "Context injection works"
+    },
+    "pause-3a": {
+      "status": "not-started",
+      "notes": "PII redaction works"
+    },
+    "pause-4a": {
+      "status": "not-started",
+      "notes": "Onboarding complete"
+    },
+    "pause-5a": {
+      "status": "not-started",
+      "notes": "Launch ready"
+    }
+  }
+}

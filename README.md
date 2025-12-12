@@ -1,0 +1,106 @@
+# HR Command Center
+
+> Your company's HR brain—private, always in context, always ready to help.
+
+A desktop AI assistant for HR professionals that keeps your employee data local while providing intelligent, context-aware guidance.
+
+---
+
+## What It Does
+
+- **Knows Your Company** — Import employee data once, get answers that understand your specific context
+- **Remembers Conversations** — References past discussions naturally ("I remember we discussed Sarah's performance in March...")
+- **Protects Sensitive Data** — Auto-redacts SSNs and financial data before anything leaves your machine
+- **Works Offline** — Browse employees and past conversations even without internet
+
+## Who It's For
+
+| Persona | Pain Point |
+|---------|------------|
+| Founder without HR | Wants to do right by people, no time to learn HR |
+| Accidental HR person | Got the job by default, figuring it out as they go |
+| Solo HR hero | 1 person, 200 employees, needs leverage not headcount |
+
+## Tech Stack
+
+- **Framework:** [Tauri](https://tauri.app/) — 5MB bundle, native performance
+- **Frontend:** React + Vite + TypeScript + Tailwind CSS
+- **Backend:** Rust with SQLite (local database)
+- **AI:** Anthropic Claude API
+- **Platform:** macOS (V1)
+
+## Project Status
+
+| Phase | Status | Description |
+|-------|--------|-------------|
+| 0. Pre-flight | 🔜 Next | Verify tooling |
+| 1. Foundation | ⏳ Planned | App opens, talks to Claude |
+| 2. Context | ⏳ Planned | AI knows your company |
+| 3. Protection | ⏳ Planned | PII auto-redaction |
+| 4. Polish | ⏳ Planned | Onboarding, export, digest |
+| 5. Launch | ⏳ Planned | Beta users, payment |
+
+**Current:** Planning complete. Ready to begin Phase 0.
+
+## Key Features (Planned)
+
+- [x] Architecture designed
+- [x] Decisions locked (18 architectural decisions)
+- [ ] Chat interface with streaming responses
+- [ ] Employee CSV import with merge support
+- [ ] Conversation sidebar with search
+- [ ] Cross-conversation memory
+- [ ] Smart prompt suggestions
+- [ ] Monday digest (anniversaries, check-ins)
+- [ ] Encrypted data export/backup
+- [ ] Auto-updates via GitHub Releases
+
+## Development
+
+```bash
+# Start a development session
+./scripts/dev-init.sh
+
+# After Phase 1 scaffolding:
+npm run dev        # Start dev server
+npm run build      # Production build
+cargo tauri dev    # Run Tauri app
+```
+
+## Documentation
+
+| Document | Purpose |
+|----------|---------|
+| `CLAUDE.md` | Instructions for Claude Code sessions |
+| `HR-Command-Center-Roadmap.md` | Full product roadmap |
+| `HR-Command-Center-Design-Architecture.md` | Technical specification |
+| `docs/ROADMAP.md` | Implementation checklist |
+| `docs/PROGRESS.md` | Session-by-session log |
+| `docs/SESSION_PROTOCOL.md` | Multi-session workflow |
+| `docs/KNOWN_ISSUES.md` | Blockers and decisions |
+
+## Business Model
+
+- **Price:** $99 one-time purchase
+- **Includes:** App + lifetime updates
+- **Not included:** AI API costs (~$2-8/month, paid to Anthropic)
+- **No:** Subscriptions, per-seat fees, enterprise tiers
+
+## Privacy
+
+- All data stored locally in SQLite
+- API keys stored in macOS Keychain
+- PII auto-redacted before sending to AI
+- Audit log of all AI interactions
+- No telemetry without explicit opt-in
+
+---
+
+## License
+
+Proprietary. See LICENSE file for details.
+
+---
+
+*Last updated: December 2025*
+*Status: Planning complete, implementation starting*
