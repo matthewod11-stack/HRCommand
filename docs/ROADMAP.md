@@ -60,12 +60,12 @@ This is a **long-running, multi-session implementation**. Follow these rules:
 
 **Goal:** App opens, stores data locally, talks to Claude
 
-### 1.1 Project Scaffolding
-- [ ] 1.1.1 Initialize Tauri + React + Vite project
-- [ ] 1.1.2 Configure TypeScript
-- [ ] 1.1.3 Set up Tailwind CSS with design tokens
-- [ ] 1.1.4 Create basic folder structure per architecture doc
-- [ ] 1.1.5 Verify `npm run dev` launches app window
+### 1.1 Project Scaffolding ✓ COMPLETE
+- [x] 1.1.1 Initialize Tauri + React + Vite project
+- [x] 1.1.2 Configure TypeScript
+- [x] 1.1.3 Set up Tailwind CSS with design tokens
+- [x] 1.1.4 Create basic folder structure per architecture doc
+- [x] 1.1.5 Verify `npm run dev` launches app window
 
 ### 1.2 SQLite Setup
 - [ ] 1.2.1 Add SQLx dependency to Cargo.toml
