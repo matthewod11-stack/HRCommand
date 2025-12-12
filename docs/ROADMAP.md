@@ -67,12 +67,12 @@ This is a **long-running, multi-session implementation**. Follow these rules:
 - [x] 1.1.4 Create basic folder structure per architecture doc
 - [x] 1.1.5 Verify `npm run dev` launches app window
 
-### 1.2 SQLite Setup
-- [ ] 1.2.1 Add SQLx dependency to Cargo.toml
-- [ ] 1.2.2 Create initial migration (employees, conversations, company, settings, audit_log)
-- [ ] 1.2.3 Create FTS virtual table for conversation search
-- [ ] 1.2.4 Implement db.rs with connection management
-- [ ] 1.2.5 Verify database creates on first launch
+### 1.2 SQLite Setup (IN PROGRESS)
+- [x] 1.2.1 Add SQLx dependency to Cargo.toml
+- [x] 1.2.2 Create initial migration (employees, conversations, company, settings, audit_log)
+- [x] 1.2.3 Create FTS virtual table for conversation search
+- [x] 1.2.4 Implement db.rs with connection management
+- [ ] 1.2.5 Verify database creates on first launch (needs fresh test)
 
 ### 1.3 Basic Chat UI
 - [ ] 1.3.1 Create AppShell component (main layout)
