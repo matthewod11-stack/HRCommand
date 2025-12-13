@@ -30,7 +30,7 @@
     },
     "claude-api-integration": {
       "status": "pass",
-      "notes": "1.4.1-1.4.4, 1.4.6 complete. Chat works with Claude API. 1.4.5 streaming optional."
+      "notes": "All tasks complete (1.4.1-1.4.6). Streaming responses working."
     },
     "network-detection": {
       "status": "not-started",

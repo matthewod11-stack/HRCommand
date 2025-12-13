@@ -55,13 +55,24 @@ fn validate_api_key_format(api_key: String) -> bool {
 // Chat Commands
 // ============================================================================
 
-/// Send a message to Claude and get a response
+/// Send a message to Claude and get a response (non-streaming)
 #[tauri::command]
 async fn send_chat_message(
     messages: Vec<chat::ChatMessage>,
     system_prompt: Option<String>,
 ) -> Result<chat::ChatResponse, chat::ChatError> {
     chat::send_message(messages, system_prompt).await
+}
+
+/// Send a message to Claude with streaming response
+/// Emits "chat-stream" events as response chunks arrive
+#[tauri::command]
+async fn send_chat_message_streaming(
+    app: tauri::AppHandle,
+    messages: Vec<chat::ChatMessage>,
+    system_prompt: Option<String>,
+) -> Result<(), chat::ChatError> {
+    chat::send_message_streaming(app, messages, system_prompt).await
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -75,7 +86,8 @@ pub fn run() {
             has_api_key,
             delete_api_key,
             validate_api_key_format,
-            send_chat_message
+            send_chat_message,
+            send_chat_message_streaming
         ])
         .setup(|app| {
             let handle = app.handle().clone();

@@ -1,8 +1,10 @@
 // HR Command Center - Claude API Integration
 // Handles communication with the Anthropic Messages API
 
+use futures::StreamExt;
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
+use tauri::{AppHandle, Emitter};
 use thiserror::Error;
 
 use crate::keyring;
@@ -62,6 +64,8 @@ pub struct MessageRequest {
     pub messages: Vec<Message>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub system: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub stream: Option<bool>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -107,6 +111,55 @@ pub struct ApiErrorDetail {
 }
 
 // ============================================================================
+// Streaming Event Types (SSE)
+// ============================================================================
+
+#[derive(Debug, Deserialize)]
+#[serde(tag = "type")]
+pub enum StreamEvent {
+    #[serde(rename = "message_start")]
+    MessageStart { message: StreamMessageStart },
+    #[serde(rename = "content_block_start")]
+    ContentBlockStart { index: u32, content_block: ContentBlock },
+    #[serde(rename = "content_block_delta")]
+    ContentBlockDelta { index: u32, delta: TextDelta },
+    #[serde(rename = "content_block_stop")]
+    ContentBlockStop { index: u32 },
+    #[serde(rename = "message_delta")]
+    MessageDelta { delta: MessageDeltaData, usage: Option<UsageDelta> },
+    #[serde(rename = "message_stop")]
+    MessageStop,
+    #[serde(rename = "ping")]
+    Ping,
+    #[serde(rename = "error")]
+    Error { error: ApiErrorDetail },
+}
+
+#[derive(Debug, Deserialize)]
+pub struct StreamMessageStart {
+    pub id: String,
+    pub model: String,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct TextDelta {
+    #[serde(rename = "type")]
+    pub delta_type: String,
+    #[serde(default)]
+    pub text: String,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct MessageDeltaData {
+    pub stop_reason: Option<String>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct UsageDelta {
+    pub output_tokens: u32,
+}
+
+// ============================================================================
 // Simplified types for frontend communication
 // ============================================================================
 
@@ -121,6 +174,13 @@ pub struct ChatResponse {
     pub content: String,
     pub input_tokens: u32,
     pub output_tokens: u32,
+}
+
+/// Event emitted to frontend during streaming
+#[derive(Debug, Clone, Serialize)]
+pub struct StreamChunk {
+    pub chunk: String,
+    pub done: bool,
 }
 
 // ============================================================================
@@ -147,6 +207,7 @@ pub async fn send_message(
             })
             .collect(),
         system: system_prompt,
+        stream: None,
     };
 
     // Create HTTP client and send request
@@ -205,6 +266,102 @@ pub async fn send_message(
         input_tokens: api_response.usage.input_tokens,
         output_tokens: api_response.usage.output_tokens,
     })
+}
+
+/// Send a message to Claude with streaming response
+/// Emits "chat-stream" events to the frontend as chunks arrive
+pub async fn send_message_streaming(
+    app: AppHandle,
+    messages: Vec<ChatMessage>,
+    system_prompt: Option<String>,
+) -> Result<(), ChatError> {
+    // Get API key
+    let api_key = keyring::get_api_key()?;
+
+    // Build the request with streaming enabled
+    let request = MessageRequest {
+        model: MODEL.to_string(),
+        max_tokens: MAX_TOKENS,
+        messages: messages
+            .into_iter()
+            .map(|m| Message {
+                role: m.role,
+                content: m.content,
+            })
+            .collect(),
+        system: system_prompt,
+        stream: Some(true),
+    };
+
+    // Create HTTP client and send request
+    let client = Client::new();
+    let response = client
+        .post(ANTHROPIC_API_URL)
+        .header("x-api-key", &api_key)
+        .header("anthropic-version", ANTHROPIC_VERSION)
+        .header("content-type", "application/json")
+        .json(&request)
+        .send()
+        .await?;
+
+    // Check for HTTP errors
+    let status = response.status();
+    if !status.is_success() {
+        let error_text = response.text().await.unwrap_or_default();
+        if let Ok(api_error) = serde_json::from_str::<ApiErrorResponse>(&error_text) {
+            return Err(ChatError::ApiError(format!(
+                "{}: {}",
+                api_error.error.error_type, api_error.error.message
+            )));
+        }
+        return Err(ChatError::ApiError(format!("HTTP {}: {}", status.as_u16(), error_text)));
+    }
+
+    // Process SSE stream
+    let mut stream = response.bytes_stream();
+    let mut buffer = String::new();
+
+    while let Some(chunk_result) = stream.next().await {
+        let chunk = chunk_result.map_err(|e| ChatError::RequestError(e.to_string()))?;
+        let chunk_str = String::from_utf8_lossy(&chunk);
+        buffer.push_str(&chunk_str);
+
+        // Process complete SSE events (lines ending with \n\n)
+        while let Some(pos) = buffer.find("\n\n") {
+            let event_data = buffer[..pos].to_string();
+            buffer = buffer[pos + 2..].to_string();
+
+            // Parse SSE event
+            for line in event_data.lines() {
+                if let Some(data) = line.strip_prefix("data: ") {
+                    if let Ok(event) = serde_json::from_str::<StreamEvent>(data) {
+                        match event {
+                            StreamEvent::ContentBlockDelta { delta, .. } => {
+                                // Emit text chunk to frontend
+                                let _ = app.emit("chat-stream", StreamChunk {
+                                    chunk: delta.text,
+                                    done: false,
+                                });
+                            }
+                            StreamEvent::MessageStop => {
+                                // Signal completion
+                                let _ = app.emit("chat-stream", StreamChunk {
+                                    chunk: String::new(),
+                                    done: true,
+                                });
+                            }
+                            StreamEvent::Error { error } => {
+                                return Err(ChatError::ApiError(error.message));
+                            }
+                            _ => {} // Ignore other events
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    Ok(())
 }
 
 #[cfg(test)]

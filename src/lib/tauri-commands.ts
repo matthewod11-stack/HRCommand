@@ -60,7 +60,7 @@ export interface ChatResponse {
 }
 
 /**
- * Send messages to Claude and get a response
+ * Send messages to Claude and get a response (non-streaming)
  * @param messages Array of conversation messages
  * @param systemPrompt Optional system prompt for context
  */
@@ -72,6 +72,28 @@ export async function sendChatMessage(
     messages,
     systemPrompt: systemPrompt ?? null
   });
+}
+
+/**
+ * Send messages to Claude with streaming response
+ * Listen for "chat-stream" events for response chunks
+ * @param messages Array of conversation messages
+ * @param systemPrompt Optional system prompt for context
+ */
+export async function sendChatMessageStreaming(
+  messages: ChatMessage[],
+  systemPrompt?: string
+): Promise<void> {
+  return invoke('send_chat_message_streaming', {
+    messages,
+    systemPrompt: systemPrompt ?? null
+  });
+}
+
+/** Event payload for streaming chunks */
+export interface StreamChunk {
+  chunk: string;
+  done: boolean;
 }
 
 // =============================================================================
