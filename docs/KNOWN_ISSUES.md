@@ -108,6 +108,26 @@ These decisions were explicitly deferred to V1.1 or later:
 **Context:** Financial PII only (SSN, CC, bank) to reduce false positives.
 **Revisit When:** Users report accidentally sending medical/immigration data
 
+### Interactive Analytics Panel (Natural Language → Charts)
+**Status:** Deferred to V2
+**Decision Date:** 2025-12-13
+**Context:** A collapsible analytics panel that renders beautiful, interactive charts/graphs in response to natural language queries in the chat. Examples:
+- "Show me employee breakdown by department" → pie/bar chart appears
+- "What's the gender breakdown on the engineering team?" → chart updates
+- "Now show me by tenure" → drills deeper, chart animates to new view
+- "Compare marketing vs sales headcount over time" → line chart
+
+**Implementation Ideas:**
+- Use a charting library (Recharts, Chart.js, or D3) for rich visualizations
+- Claude extracts structured data intent from natural language
+- Charts live in a dedicated panel (possibly replacing or alongside context panel)
+- Smooth animations between chart states for "conversational" feel
+- Export charts as images for reports
+
+**Complexity:** High — requires structured data extraction, chart rendering, state management
+**Value:** Very high — transforms the app from Q&A tool to visual analytics assistant
+**Revisit When:** Core V1 features stable; could be flagship V2 feature
+
 ---
 
 ## Edge Cases to Handle
