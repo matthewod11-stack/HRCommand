@@ -74,13 +74,13 @@ This is a **long-running, multi-session implementation**. Follow these rules:
 - [x] 1.2.4 Implement db.rs with connection management
 - [x] 1.2.5 Verify database creates on first launch
 
-### 1.3 Basic Chat UI
+### 1.3 Basic Chat UI ✓ COMPLETE
 - [x] 1.3.1 Create AppShell component (main layout)
-- [ ] 1.3.2 Create ChatInput component
-- [ ] 1.3.3 Create MessageBubble component (user/assistant variants)
-- [ ] 1.3.4 Create MessageList component with scroll
-- [ ] 1.3.5 Create TypingIndicator component
-- [ ] 1.3.6 Wire up basic message send/display flow
+- [x] 1.3.2 Create ChatInput component
+- [x] 1.3.3 Create MessageBubble component (user/assistant variants)
+- [x] 1.3.4 Create MessageList component with scroll
+- [x] 1.3.5 Create TypingIndicator component
+- [x] 1.3.6 Wire up basic message send/display flow
 
 ### 1.4 Claude API Integration
 - [ ] 1.4.1 Add keyring dependency for macOS Keychain

@@ -10,6 +10,61 @@
 Most recent session should be first.
 -->
 
+## Session 2025-12-13 (Phase 1.3 Complete)
+
+**Phase:** 1.3 — Basic Chat UI
+**Focus:** Complete all chat UI components (1.3.2-1.3.6)
+
+### Completed
+- [x] 1.3.2 Create ChatInput component
+- [x] 1.3.3 Create MessageBubble component (user/assistant variants)
+- [x] 1.3.4 Create MessageList component with scroll
+- [x] 1.3.5 Create TypingIndicator component
+- [x] 1.3.6 Wire up basic message send/display flow
+
+### Files Created
+```
+src/components/chat/ChatInput.tsx       - Auto-resize textarea, Enter to submit
+src/components/chat/MessageBubble.tsx   - User (teal) / Assistant (stone) variants
+src/components/chat/MessageList.tsx     - Scrollable list with smart spacing, empty state
+src/components/chat/TypingIndicator.tsx - Animated bouncing dots
+src/components/chat/index.ts            - Barrel exports
+```
+
+### Files Modified
+```
+src/App.tsx - ChatArea with full message state management
+```
+
+### Features Implemented
+- **ChatInput:** Auto-resizing textarea, Enter/Shift+Enter handling, disabled state
+- **MessageBubble:** Right-aligned teal (user), left-aligned stone (assistant), timestamps
+- **MessageList:** Smart spacing (16px same speaker, 24px different), auto-scroll, empty state with prompt suggestions
+- **TypingIndicator:** Animated dots with staggered bounce delays
+- **Message Flow:** Full send/display loop with simulated assistant responses
+
+### Design Patterns
+- Functional components with TypeScript interfaces
+- Named + default exports
+- Tailwind utility classes with template literals
+- Proper accessibility (aria-labels, role attributes)
+- "Warm Editorial" aesthetic maintained throughout
+
+### Verified
+- [x] TypeScript compiles without errors
+- [x] Build succeeds
+- [x] All chat components render correctly
+- [x] Message send/receive flow works
+- [x] Auto-scroll to new messages
+- [x] Typing indicator animates
+
+### Next Session Should
+- Start with: Phase 1.4 — Claude API Integration
+- First task: 1.4.1 Add keyring dependency for macOS Keychain
+- Be aware of: Chat UI is complete with mock responses; needs real API integration
+
+---
+
 ## Session 2025-12-13 (Phase 1.3.1)
 
 **Phase:** 1.3 — Basic Chat UI

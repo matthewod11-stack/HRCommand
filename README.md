@@ -34,13 +34,13 @@ A desktop AI assistant for HR professionals that keeps your employee data local 
 | Phase | Status | Description |
 |-------|--------|-------------|
 | 0. Pre-flight | ✅ Done | Tooling verified |
-| 1. Foundation | 🔨 In Progress | App scaffolded, SQLite ready, Chat UI next |
+| 1. Foundation | 🔨 In Progress | App scaffolded, SQLite ready, Chat UI complete |
 | 2. Context | ⏳ Planned | AI knows your company |
 | 3. Protection | ⏳ Planned | PII auto-redaction |
 | 4. Polish | ⏳ Planned | Onboarding, export, digest |
 | 5. Launch | ⏳ Planned | Beta users, payment |
 
-**Current:** Phase 1.3.1 complete (AppShell). Next: Phase 1.3.2 (ChatInput).
+**Current:** Phase 1.3 complete (Basic Chat UI). Next: Phase 1.4 (Claude API Integration).
 
 ## Key Features (Planned)
 
@@ -103,4 +103,4 @@ Proprietary. See LICENSE file for details.
 ---
 
 *Last updated: December 2025*
-*Status: Phase 1.3.1 complete (AppShell layout)*
+*Status: Phase 1.3 complete (Basic Chat UI)*
