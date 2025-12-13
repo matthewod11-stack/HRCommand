@@ -73,9 +73,9 @@ HR professionals and founders shouldn't need to re-explain their company every t
 **Goal:** App opens, stores data locally, talks to Claude.
 
 ### Tasks
-- [ ] Scaffold Tauri + React + Vite project
-- [ ] Create SQLite schema (employees, conversations, settings, audit_log)
-- [ ] Build basic chat UI (input, messages, scroll)
+- [x] Scaffold Tauri + React + Vite project
+- [x] Create SQLite schema (employees, conversations, settings, audit_log)
+- [x] Build basic chat UI (input, messages, scroll)
 - [ ] Implement Claude API integration with streaming
 - [ ] Store API key securely (macOS Keychain)
 - [ ] API key validation on entry (test call, show Valid ✓ or Invalid ✗)

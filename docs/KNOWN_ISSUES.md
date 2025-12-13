@@ -58,7 +58,7 @@ These decisions were made during planning and should NOT be revisited during imp
 
 ## Open Issues
 
-*(No issues yet - project in planning phase)*
+*(No issues yet - project currently in Phase 1 implementation)*
 
 ---
 
@@ -117,12 +117,61 @@ These decisions were explicitly deferred to V1.1 or later:
 - "Now show me by tenure" → drills deeper, chart animates to new view
 - "Compare marketing vs sales headcount over time" → line chart
 
+**Why This Is Compelling (Product):**
+- Turns “answers” into **artifacts** (charts you can reference, export, and share)
+- Reduces back-and-forth: users can **iterate visually** (“filter to active”, “only CA”, “compare vs last quarter”)
+- Makes the app feel like an **HR cockpit**, not just a chat box (potential flagship differentiator)
+
+**UX Principles (So It Stays Chat-First):**
+- **Chat remains the control surface.** The panel is a *result view*, not a separate workflow.
+- **One chart at a time (MVP).** No dashboards, no multi-widget layouts.
+- **Conversational continuity:** updates should feel like “the same chart evolving,” not page navigation.
+- **Graceful fallback:** if a query can’t be charted, respond in text only (avoid empty/awkward panel states).
+- **Explainability:** show a small “Filters applied / Data used” caption (e.g., “Active employees • Dept = Eng”).
+
+**MVP Slice (Good V2.0 Candidate):**
+- Supported charts:
+  - Headcount by department (bar)
+  - Headcount by status (pie or bar)
+  - Tenure buckets (bar)
+- Supported interactions:
+  - Filter (department, status, work_state)
+  - Group-by switch (department ↔ status ↔ tenure)
+  - Limited compare (“Compare Sales vs Marketing headcount”) as a two-series bar
+- Quick actions:
+  - Export chart (PNG)
+  - Copy text summary (for email/Slack)
+
 **Implementation Ideas:**
 - Use a charting library (Recharts, Chart.js, or D3) for rich visualizations
 - Claude extracts structured data intent from natural language
 - Charts live in a dedicated panel (possibly replacing or alongside context panel)
 - Smooth animations between chart states for "conversational" feel
 - Export charts as images for reports
+
+**Suggested Technical Contract (Keep It Deterministic):**
+- Avoid “Claude generates the numbers.” Prefer:
+  - Claude emits a **structured analytics request** (intent + filters + grouping)
+  - Rust runs a deterministic SQLite query and returns **dataset + applied filters**
+  - React renders from a small **chart spec + dataset**
+- Conceptual flow:
+  - User: “Show headcount by department, only active”
+  - Claude → `AnalyticsQuery { metric: headcount, group_by: department, filters: { status: active } }`
+  - Rust → `{ rows: [{ department: "Eng", count: 12 }, ...], applied_filters: ... }`
+  - UI → chart + caption (“Active employees”)
+
+**Risks / Guardrails:**
+- **Hallucinated data:** prevent by sourcing all aggregates from SQLite and displaying “filters applied.”
+- **Schema/vocabulary creep:** keep an explicit allow-list for group-by fields and filters.
+- **Dashboard creep:** enforce “one chart object” until after V2 proves value.
+- **Privacy / PII:** analytics queries should respect the same redaction + audit approach as chat.
+- **Performance:** design for 1k+ employees; aggregates are cheap, but add indexes if queries expand.
+
+**Where It Fits in Layout:**
+- Likely the current right-side panel becomes a **mode switch**:
+  - Context (who/what was included)
+  - Analytics (chart view)
+  - Later: Pinned/Saved charts
 
 **Complexity:** High — requires structured data extraction, chart rendering, state management
 **Value:** Very high — transforms the app from Q&A tool to visual analytics assistant
