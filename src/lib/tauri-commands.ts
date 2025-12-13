@@ -11,13 +11,45 @@ export async function greet(name: string): Promise<string> {
 }
 
 // =============================================================================
+// Phase 1.4 - API Key Management
+// =============================================================================
+
+/**
+ * Store the Anthropic API key in macOS Keychain
+ * @throws Error if key format is invalid or Keychain access fails
+ */
+export async function storeApiKey(apiKey: string): Promise<void> {
+  return invoke('store_api_key', { apiKey });
+}
+
+/**
+ * Check if an API key exists in the Keychain
+ */
+export async function hasApiKey(): Promise<boolean> {
+  return invoke('has_api_key');
+}
+
+/**
+ * Delete the API key from the Keychain
+ */
+export async function deleteApiKey(): Promise<void> {
+  return invoke('delete_api_key');
+}
+
+/**
+ * Validate API key format without storing it
+ * Returns true if the key has the correct prefix and length
+ */
+export async function validateApiKeyFormat(apiKey: string): Promise<boolean> {
+  return invoke('validate_api_key_format', { apiKey });
+}
+
+// =============================================================================
 // Commands to be implemented in later phases:
 // =============================================================================
 
-// Phase 1.4 - Claude API Integration
+// Phase 1.4 - Claude API Integration (remaining)
 // export async function sendMessage(message: string): Promise<ChatResponse>
-// export async function validateApiKey(key: string): Promise<ValidationResult>
-// export async function storeApiKey(key: string): Promise<void>
 
 // Phase 1.5 - Network Detection
 // export async function checkNetwork(): Promise<boolean>

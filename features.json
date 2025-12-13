@@ -7,7 +7,7 @@
     "totalFeatures": 27,
     "passing": 4,
     "failing": 0,
-    "inProgress": 0
+    "inProgress": 1
   },
   "phase-0": {
     "pre-flight-validation": {
@@ -29,8 +29,8 @@
       "notes": "All components complete: AppShell, ChatInput, MessageBubble, MessageList, TypingIndicator"
     },
     "claude-api-integration": {
-      "status": "not-started",
-      "notes": "Keychain storage, streaming responses"
+      "status": "in-progress",
+      "notes": "1.4.1-1.4.3 complete: Keychain storage + ApiKeyInput. Remaining: Claude API call + streaming"
     },
     "network-detection": {
       "status": "not-started",

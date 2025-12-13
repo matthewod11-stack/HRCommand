@@ -27,6 +27,9 @@ uuid = { version = "1", features = ["v4", "serde"] }
 chrono = { version = "0.4", features = ["serde"] }
 thiserror = "1"
 
+# Secure storage (macOS Keychain)
+keyring = "3"
+
 [profile.release]
 panic = "abort"
 codegen-units = 1

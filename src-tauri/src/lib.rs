@@ -4,6 +4,7 @@
 use tauri::Manager;
 
 mod db;
+mod keyring;
 
 use db::Database;
 
@@ -21,11 +22,46 @@ fn check_db(state: tauri::State<'_, Database>) -> bool {
     true
 }
 
+// ============================================================================
+// API Key Management Commands
+// ============================================================================
+
+/// Store the Anthropic API key in macOS Keychain
+#[tauri::command]
+fn store_api_key(api_key: String) -> Result<(), keyring::KeyringError> {
+    keyring::store_api_key(&api_key)
+}
+
+/// Check if an API key exists in the Keychain
+#[tauri::command]
+fn has_api_key() -> bool {
+    keyring::has_api_key()
+}
+
+/// Delete the API key from the Keychain
+#[tauri::command]
+fn delete_api_key() -> Result<(), keyring::KeyringError> {
+    keyring::delete_api_key()
+}
+
+/// Validate an API key format (does not store it)
+#[tauri::command]
+fn validate_api_key_format(api_key: String) -> bool {
+    api_key.starts_with("sk-ant-") && api_key.len() > 20
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_shell::init())
-        .invoke_handler(tauri::generate_handler![greet, check_db])
+        .invoke_handler(tauri::generate_handler![
+            greet,
+            check_db,
+            store_api_key,
+            has_api_key,
+            delete_api_key,
+            validate_api_key_format
+        ])
         .setup(|app| {
             let handle = app.handle().clone();
 

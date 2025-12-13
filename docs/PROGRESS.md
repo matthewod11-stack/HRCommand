@@ -10,6 +10,52 @@
 Most recent session should be first.
 -->
 
+## Session 2025-12-13 (Phase 1.4 Partial)
+
+**Phase:** 1.4 — Claude API Integration
+**Focus:** API key storage with macOS Keychain (1.4.1-1.4.3)
+
+### Completed
+- [x] 1.4.1 Add keyring dependency for macOS Keychain
+- [x] 1.4.2 Implement keyring.rs for API key storage
+- [x] 1.4.3 Create ApiKeyInput component with validation
+
+### Files Created
+```
+src-tauri/src/keyring.rs              - Keychain storage (store/get/delete/has)
+src/components/settings/ApiKeyInput.tsx - React component with validation UI
+src/components/settings/index.ts      - Barrel export
+```
+
+### Files Modified
+```
+src-tauri/Cargo.toml        - Added keyring = "3"
+src-tauri/src/lib.rs        - Added 4 Tauri commands for API key ops
+src/lib/tauri-commands.ts   - Added TypeScript wrappers
+src/App.tsx                 - Integrated gated API key setup flow
+```
+
+### Features Implemented
+- **Keyring module:** Store/retrieve/delete API keys in macOS Keychain
+- **Format validation:** Keys must start with `sk-ant-` and be >20 chars
+- **ApiKeyInput component:** Password input with live validation, save/remove buttons
+- **Gated entry flow:** App shows setup screen until API key is configured
+- **Configured state:** Shows green badge with "Remove" option when key exists
+
+### Verified
+- [x] TypeScript compiles without errors
+- [x] Rust compiles without errors
+- [x] Build succeeds
+- [x] API key saves to Keychain
+- [x] App transitions to chat UI after key saved
+
+### Next Session Should
+- Start with: 1.4.4 Implement chat.rs with Claude API call
+- Then: 1.4.5 Add response streaming support, 1.4.6 Wire frontend to backend
+- Be aware of: API key is now stored; next step connects chat to real Claude API
+
+---
+
 ## Session 2025-12-13 (Phase 1.3 Complete)
 
 **Phase:** 1.3 — Basic Chat UI

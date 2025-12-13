@@ -83,9 +83,9 @@ This is a **long-running, multi-session implementation**. Follow these rules:
 - [x] 1.3.6 Wire up basic message send/display flow
 
 ### 1.4 Claude API Integration
-- [ ] 1.4.1 Add keyring dependency for macOS Keychain
-- [ ] 1.4.2 Implement keyring.rs for API key storage
-- [ ] 1.4.3 Create ApiKeyInput component with validation
+- [x] 1.4.1 Add keyring dependency for macOS Keychain
+- [x] 1.4.2 Implement keyring.rs for API key storage
+- [x] 1.4.3 Create ApiKeyInput component with validation
 - [ ] 1.4.4 Implement chat.rs with Claude API call
 - [ ] 1.4.5 Add response streaming support
 - [ ] 1.4.6 Wire frontend to backend via Tauri invoke
