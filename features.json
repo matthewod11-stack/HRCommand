@@ -2,27 +2,27 @@
   "$schema": "./features.schema.json",
   "_meta": {
     "description": "Feature tracking for HR Command Center. Status: not-started | in-progress | pass | fail | blocked",
-    "lastUpdated": "2025-12-12",
+    "lastUpdated": "2025-12-13",
     "project": "HR Command Center",
     "totalFeatures": 27,
-    "passing": 0,
+    "passing": 3,
     "failing": 0,
     "inProgress": 0
   },
   "phase-0": {
     "pre-flight-validation": {
-      "status": "not-started",
-      "notes": "Verify tooling: Rust, Node, Tauri CLI"
+      "status": "pass",
+      "notes": "Rust 1.92, Node 22.21, Tauri CLI 2.9.6 verified"
     }
   },
   "phase-1": {
     "project-scaffolding": {
-      "status": "not-started",
-      "notes": "Tauri + React + Vite + Tailwind"
+      "status": "pass",
+      "notes": "Tauri 2.9.5 + React 18 + Vite 6 + Tailwind 3.x"
     },
     "sqlite-setup": {
-      "status": "not-started",
-      "notes": "Schema with 5 tables, FTS for search"
+      "status": "pass",
+      "notes": "6 tables, 3 triggers, 7 indexes created"
     },
     "basic-chat-ui": {
       "status": "not-started",

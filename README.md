@@ -33,14 +33,14 @@ A desktop AI assistant for HR professionals that keeps your employee data local 
 
 | Phase | Status | Description |
 |-------|--------|-------------|
-| 0. Pre-flight | 🔜 Next | Verify tooling |
-| 1. Foundation | ⏳ Planned | App opens, talks to Claude |
+| 0. Pre-flight | ✅ Done | Tooling verified |
+| 1. Foundation | 🔨 In Progress | App scaffolded, SQLite ready, Chat UI next |
 | 2. Context | ⏳ Planned | AI knows your company |
 | 3. Protection | ⏳ Planned | PII auto-redaction |
 | 4. Polish | ⏳ Planned | Onboarding, export, digest |
 | 5. Launch | ⏳ Planned | Beta users, payment |
 
-**Current:** Planning complete. Ready to begin Phase 0.
+**Current:** Phase 1.2 complete. Next: Phase 1.3 (Basic Chat UI).
 
 ## Key Features (Planned)
 
@@ -103,4 +103,4 @@ Proprietary. See LICENSE file for details.
 ---
 
 *Last updated: December 2025*
-*Status: Planning complete, implementation starting*
+*Status: Phase 1.2 complete (SQLite setup verified)*
