@@ -7,7 +7,7 @@
     "totalFeatures": 27,
     "passing": 3,
     "failing": 0,
-    "inProgress": 0
+    "inProgress": 1
   },
   "phase-0": {
     "pre-flight-validation": {
@@ -25,8 +25,8 @@
       "notes": "6 tables, 3 triggers, 7 indexes created"
     },
     "basic-chat-ui": {
-      "status": "not-started",
-      "notes": "AppShell, ChatInput, MessageBubble, MessageList"
+      "status": "in-progress",
+      "notes": "AppShell complete. Next: ChatInput, MessageBubble, MessageList"
     },
     "claude-api-integration": {
       "status": "not-started",

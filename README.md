@@ -40,7 +40,7 @@ A desktop AI assistant for HR professionals that keeps your employee data local 
 | 4. Polish | ⏳ Planned | Onboarding, export, digest |
 | 5. Launch | ⏳ Planned | Beta users, payment |
 
-**Current:** Phase 1.2 complete. Next: Phase 1.3 (Basic Chat UI).
+**Current:** Phase 1.3.1 complete (AppShell). Next: Phase 1.3.2 (ChatInput).
 
 ## Key Features (Planned)
 
@@ -103,4 +103,4 @@ Proprietary. See LICENSE file for details.
 ---
 
 *Last updated: December 2025*
-*Status: Phase 1.2 complete (SQLite setup verified)*
+*Status: Phase 1.3.1 complete (AppShell layout)*

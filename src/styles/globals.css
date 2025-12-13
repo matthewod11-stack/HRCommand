@@ -3,6 +3,13 @@
 @tailwind utilities;
 
 /* Base styles following design spec */
+html, body, #root {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
 html {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
   font-size: 16px;
@@ -10,9 +17,9 @@ html {
 }
 
 body {
-  margin: 0;
   background-color: #FAFAF9; /* stone-50 */
   color: #44403C; /* stone-700 */
+  overflow: hidden;
 }
 
 /* Prevent text selection during drag operations */

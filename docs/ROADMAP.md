@@ -75,7 +75,7 @@ This is a **long-running, multi-session implementation**. Follow these rules:
 - [x] 1.2.5 Verify database creates on first launch
 
 ### 1.3 Basic Chat UI
-- [ ] 1.3.1 Create AppShell component (main layout)
+- [x] 1.3.1 Create AppShell component (main layout)
 - [ ] 1.3.2 Create ChatInput component
 - [ ] 1.3.3 Create MessageBubble component (user/assistant variants)
 - [ ] 1.3.4 Create MessageList component with scroll

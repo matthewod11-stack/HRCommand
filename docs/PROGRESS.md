@@ -10,6 +10,54 @@
 Most recent session should be first.
 -->
 
+## Session 2025-12-13 (Phase 1.3.1)
+
+**Phase:** 1.3 — Basic Chat UI
+**Focus:** Create AppShell component (main layout)
+
+### Completed
+- [x] 1.3.1 Create AppShell component (main layout)
+
+### Design Direction
+Implemented "Warm Editorial" aesthetic:
+- **Typography:** Fraunces (display) + DM Sans (body) via Google Fonts
+- **Palette:** Warm stone neutrals with teal accents
+- **Details:** Soft shadows, subtle gradients, refined transitions
+
+### Files Created
+```
+src/components/layout/AppShell.tsx   - Three-panel layout with collapsible sidebars
+src/contexts/LayoutContext.tsx       - Panel state management (sidebar, context panel)
+```
+
+### Files Modified
+```
+index.html              - Added Google Fonts (Fraunces + DM Sans)
+tailwind.config.js      - Added font-display family
+src/styles/globals.css  - Fixed height chain for Tauri webview
+src/App.tsx             - Integrated AppShell with placeholder content
+```
+
+### Bug Fix
+**Issue:** App rendered blank in Tauri webview.
+**Cause:** `h-screen` (100vh) requires explicit `height: 100%` on html/body/#root chain in Tauri.
+**Fix:** Added height/width rules to globals.css.
+
+### Verified
+- [x] TypeScript compiles without errors
+- [x] Build succeeds
+- [x] App launches with three-panel layout
+- [x] Sidebar collapse/expand works
+- [x] Context panel collapse/expand works
+- [x] Custom fonts render correctly
+
+### Next Session Should
+- Start with: 1.3.2 Create ChatInput component
+- Then: 1.3.3 MessageBubble, 1.3.4 MessageList, 1.3.5 TypingIndicator
+- Be aware of: Placeholder content already shows input UI — need to make it functional
+
+---
+
 ## Session 2025-12-13 (Phase 1.2 Complete)
 
 **Phase:** 1.2 — SQLite Setup (Final Verification)
