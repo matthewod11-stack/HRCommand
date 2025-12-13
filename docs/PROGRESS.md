@@ -10,6 +10,45 @@
 Most recent session should be first.
 -->
 
+## Session 2025-12-13 (Phase 1.2 Complete)
+
+**Phase:** 1.2 — SQLite Setup (Final Verification)
+**Focus:** Fix migration parser and verify database creation
+
+### Completed
+- [x] 1.2.5 Verified database creates on first launch
+
+### Bug Fix
+**Issue:** Migration parser incorrectly split SQL at semicolons inside `BEGIN...END` trigger blocks.
+
+**Solution:** Added `inside_begin_block` flag to track when parser is inside a trigger definition. Semicolons are only treated as statement terminators when outside of BEGIN...END blocks.
+
+### Verification Results
+| Component | Status |
+|-----------|--------|
+| Tables (6) | ✓ employees, conversations, company, settings, audit_log, conversations_fts |
+| Triggers (3) | ✓ conversations_ai, conversations_ad, conversations_au |
+| Indexes (7) | ✓ All performance indexes created |
+
+### Files Modified
+```
+src-tauri/src/db.rs  - Fixed run_migrations() to handle BEGIN...END blocks
+```
+
+### Verified
+- [x] Cargo check passes
+- [x] App launches and prints "Database initialized successfully"
+- [x] All 6 tables exist in SQLite
+- [x] All 3 FTS sync triggers created
+- [x] All 7 indexes created
+
+### Next Session Should
+- Start with: Phase 1.3 — Basic Chat UI
+- First task: 1.3.1 Create AppShell component (main layout)
+- Be aware of: Design tokens already configured in tailwind.config.js
+
+---
+
 ## Session 2025-12-12 (Phase 1.2)
 
 **Phase:** 1.2 — SQLite Setup

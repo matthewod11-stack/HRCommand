@@ -54,11 +54,14 @@ async fn run_migrations(pool: &DbPool) -> DbResult<()> {
     // Read and execute the initial migration
     let migration_sql = include_str!("../migrations/001_initial.sql");
 
-    // Parse statements more carefully - handle multi-line statements
+    // Parse statements carefully - handle BEGIN...END blocks (triggers)
+    // These blocks contain semicolons that shouldn't split the statement
     let mut current_statement = String::new();
+    let mut inside_begin_block = false;
 
     for line in migration_sql.lines() {
         let trimmed = line.trim();
+        let upper = trimmed.to_uppercase();
 
         // Skip empty lines and comments
         if trimmed.is_empty() || trimmed.starts_with("--") {
@@ -68,8 +71,22 @@ async fn run_migrations(pool: &DbPool) -> DbResult<()> {
         current_statement.push_str(line);
         current_statement.push('\n');
 
+        // Track BEGIN...END blocks (used in triggers)
+        if upper.contains(" BEGIN") || upper.ends_with(" BEGIN") {
+            inside_begin_block = true;
+        }
+
         // Check if this line ends a statement
-        if trimmed.ends_with(';') {
+        let is_end_of_block = upper.starts_with("END;") || upper == "END";
+
+        if is_end_of_block && inside_begin_block {
+            inside_begin_block = false;
+        }
+
+        // Only execute when we have a complete statement:
+        // - Line ends with semicolon AND
+        // - We're not inside a BEGIN...END block
+        if trimmed.ends_with(';') && !inside_begin_block {
             let stmt = current_statement.trim();
             if !stmt.is_empty() {
                 // Remove trailing semicolon for SQLx
