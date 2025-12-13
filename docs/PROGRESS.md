@@ -10,6 +10,55 @@
 Most recent session should be first.
 -->
 
+## Session 2025-12-13 (Phase 1.4 — Claude API Working)
+
+**Phase:** 1.4 — Claude API Integration
+**Focus:** Complete Claude API call and wire frontend (1.4.4, 1.4.6)
+
+### Completed
+- [x] 1.4.4 Implement chat.rs with Claude API call
+- [x] 1.4.6 Wire frontend to backend via Tauri invoke
+
+### Files Created
+```
+src-tauri/src/chat.rs              - Claude Messages API client with error handling
+```
+
+### Files Modified
+```
+src-tauri/Cargo.toml               - Added reqwest + futures for HTTP
+src-tauri/src/lib.rs               - Added send_chat_message Tauri command
+src-tauri/src/keyring.rs           - Switched to file-based storage (keyring crate issues)
+src/lib/tauri-commands.ts          - Added sendChatMessage TypeScript wrapper
+src/App.tsx                        - Wired real Claude API to chat UI
+```
+
+### Bug Fix
+**Issue:** keyring crate stored entries in format that couldn't be retrieved.
+**Solution:** Switched to file-based storage in app data directory with 600 permissions.
+API key stored at: `~/Library/Application Support/com.hrcommandcenter.app/.api_key`
+
+### Features Implemented
+- **chat.rs:** Full Claude Messages API integration (model: claude-sonnet-4-20250514)
+- **Error handling:** API errors displayed in chat UI
+- **Conversation history:** Full message history sent with each request
+- **System prompt:** Basic HR assistant context (enhanced in Phase 2)
+
+### Verified
+- [x] TypeScript compiles without errors
+- [x] Rust compiles without errors
+- [x] Build succeeds
+- [x] API key stores and retrieves correctly
+- [x] Chat messages sent to Claude API
+- [x] Responses displayed in UI
+
+### Next Session Should
+- Start with: 1.4.5 Add response streaming support (optional enhancement)
+- Or skip to: 1.5 Network Detection
+- Be aware of: Non-streaming API works fully; streaming improves UX but not required for MVP
+
+---
+
 ## Session 2025-12-13 (Phase 1.4 Partial)
 
 **Phase:** 1.4 — Claude API Integration

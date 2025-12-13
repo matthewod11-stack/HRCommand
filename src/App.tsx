@@ -4,7 +4,7 @@ import { AppShell } from './components/layout/AppShell';
 import { ChatInput, MessageList } from './components/chat';
 import { ApiKeyInput } from './components/settings';
 import { Message } from './lib/types';
-import { hasApiKey } from './lib/tauri-commands';
+import { hasApiKey, sendChatMessage, ChatMessage } from './lib/tauri-commands';
 
 function ChatArea() {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -22,7 +22,7 @@ function ChatArea() {
     setHasKey(true);
   }, []);
 
-  const handleSubmit = useCallback((content: string) => {
+  const handleSubmit = useCallback(async (content: string) => {
     // Add user message
     const userMessage: Message = {
       id: crypto.randomUUID(),
@@ -31,21 +31,42 @@ function ChatArea() {
       timestamp: new Date().toISOString(),
     };
     setMessages((prev) => [...prev, userMessage]);
-
-    // TODO: Wire to Claude API in task 1.4
-    // For now, simulate an assistant response
     setIsLoading(true);
-    setTimeout(() => {
+
+    try {
+      // Build message history for API (convert to ChatMessage format)
+      const apiMessages: ChatMessage[] = [...messages, userMessage].map((m) => ({
+        role: m.role,
+        content: m.content,
+      }));
+
+      // System prompt for HR context (will be enhanced in Phase 2)
+      const systemPrompt = `You are an AI assistant for HR Command Center, helping HR professionals manage employee information and answer HR-related questions. Be helpful, professional, and concise.`;
+
+      // Call Claude API
+      const response = await sendChatMessage(apiMessages, systemPrompt);
+
+      // Add assistant response
       const assistantMessage: Message = {
         id: crypto.randomUUID(),
         role: 'assistant',
-        content: `I received your message: "${content}"\n\nThis is a placeholder response. Claude API integration coming in Phase 1.4!`,
+        content: response.content,
         timestamp: new Date().toISOString(),
       };
       setMessages((prev) => [...prev, assistantMessage]);
+    } catch (error) {
+      // Handle error by adding an error message
+      const errorMessage: Message = {
+        id: crypto.randomUUID(),
+        role: 'assistant',
+        content: `Sorry, I encountered an error: ${error instanceof Error ? error.message : String(error)}\n\nPlease check your API key and try again.`,
+        timestamp: new Date().toISOString(),
+      };
+      setMessages((prev) => [...prev, errorMessage]);
+    } finally {
       setIsLoading(false);
-    }, 1500);
-  }, []);
+    }
+  }, [messages]);
 
   const handlePromptClick = useCallback(
     (prompt: string) => {

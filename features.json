@@ -5,9 +5,9 @@
     "lastUpdated": "2025-12-13",
     "project": "HR Command Center",
     "totalFeatures": 27,
-    "passing": 4,
+    "passing": 5,
     "failing": 0,
-    "inProgress": 1
+    "inProgress": 0
   },
   "phase-0": {
     "pre-flight-validation": {
@@ -29,8 +29,8 @@
       "notes": "All components complete: AppShell, ChatInput, MessageBubble, MessageList, TypingIndicator"
     },
     "claude-api-integration": {
-      "status": "in-progress",
-      "notes": "1.4.1-1.4.3 complete: Keychain storage + ApiKeyInput. Remaining: Claude API call + streaming"
+      "status": "pass",
+      "notes": "1.4.1-1.4.4, 1.4.6 complete. Chat works with Claude API. 1.4.5 streaming optional."
     },
     "network-detection": {
       "status": "not-started",

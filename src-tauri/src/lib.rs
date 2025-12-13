@@ -3,6 +3,7 @@
 
 use tauri::Manager;
 
+mod chat;
 mod db;
 mod keyring;
 
@@ -50,6 +51,19 @@ fn validate_api_key_format(api_key: String) -> bool {
     api_key.starts_with("sk-ant-") && api_key.len() > 20
 }
 
+// ============================================================================
+// Chat Commands
+// ============================================================================
+
+/// Send a message to Claude and get a response
+#[tauri::command]
+async fn send_chat_message(
+    messages: Vec<chat::ChatMessage>,
+    system_prompt: Option<String>,
+) -> Result<chat::ChatResponse, chat::ChatError> {
+    chat::send_message(messages, system_prompt).await
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -60,7 +74,8 @@ pub fn run() {
             store_api_key,
             has_api_key,
             delete_api_key,
-            validate_api_key_format
+            validate_api_key_format,
+            send_chat_message
         ])
         .setup(|app| {
             let handle = app.handle().clone();

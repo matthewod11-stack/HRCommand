@@ -45,11 +45,38 @@ export async function validateApiKeyFormat(apiKey: string): Promise<boolean> {
 }
 
 // =============================================================================
-// Commands to be implemented in later phases:
+// Phase 1.4 - Chat Commands
 // =============================================================================
 
-// Phase 1.4 - Claude API Integration (remaining)
-// export async function sendMessage(message: string): Promise<ChatResponse>
+export interface ChatMessage {
+  role: 'user' | 'assistant';
+  content: string;
+}
+
+export interface ChatResponse {
+  content: string;
+  input_tokens: number;
+  output_tokens: number;
+}
+
+/**
+ * Send messages to Claude and get a response
+ * @param messages Array of conversation messages
+ * @param systemPrompt Optional system prompt for context
+ */
+export async function sendChatMessage(
+  messages: ChatMessage[],
+  systemPrompt?: string
+): Promise<ChatResponse> {
+  return invoke('send_chat_message', {
+    messages,
+    systemPrompt: systemPrompt ?? null
+  });
+}
+
+// =============================================================================
+// Commands to be implemented in later phases:
+// =============================================================================
 
 // Phase 1.5 - Network Detection
 // export async function checkNetwork(): Promise<boolean>
