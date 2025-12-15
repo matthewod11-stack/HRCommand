@@ -2,10 +2,10 @@
   "$schema": "./features.schema.json",
   "_meta": {
     "description": "Feature tracking for HR Command Center. Status: not-started | in-progress | pass | fail | blocked",
-    "lastUpdated": "2025-12-13",
+    "lastUpdated": "2025-12-15",
     "project": "HR Command Center",
     "totalFeatures": 27,
-    "passing": 5,
+    "passing": 6,
     "failing": 0,
     "inProgress": 0
   },
@@ -33,8 +33,8 @@
       "notes": "All tasks complete (1.4.1-1.4.6). Streaming responses working."
     },
     "network-detection": {
-      "status": "not-started",
-      "notes": "Online/offline status"
+      "status": "pass",
+      "notes": "Hybrid detection (browser events + API check), amber indicator in header"
     }
   },
   "phase-2": {

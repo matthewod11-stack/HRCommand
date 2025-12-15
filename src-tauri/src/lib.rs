@@ -6,6 +6,7 @@ use tauri::Manager;
 mod chat;
 mod db;
 mod keyring;
+mod network;
 
 use db::Database;
 
@@ -75,6 +76,22 @@ async fn send_chat_message_streaming(
     chat::send_message_streaming(app, messages, system_prompt).await
 }
 
+// ============================================================================
+// Network Status Commands
+// ============================================================================
+
+/// Check if the network and Anthropic API are reachable
+#[tauri::command]
+async fn check_network_status() -> network::NetworkStatus {
+    network::check_network().await
+}
+
+/// Quick check if online (returns just a boolean)
+#[tauri::command]
+async fn is_online() -> bool {
+    network::is_online().await
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -87,7 +104,9 @@ pub fn run() {
             delete_api_key,
             validate_api_key_format,
             send_chat_message,
-            send_chat_message_streaming
+            send_chat_message_streaming,
+            check_network_status,
+            is_online
         ])
         .setup(|app| {
             let handle = app.handle().clone();

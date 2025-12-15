@@ -90,10 +90,10 @@ This is a **long-running, multi-session implementation**. Follow these rules:
 - [x] 1.4.5 Add response streaming support
 - [x] 1.4.6 Wire frontend to backend via Tauri invoke
 
-### 1.5 Network Detection
-- [ ] 1.5.1 Implement network check in Rust
-- [ ] 1.5.2 Create useNetwork hook in React
-- [ ] 1.5.3 Show offline indicator when disconnected
+### 1.5 Network Detection ✓ COMPLETE
+- [x] 1.5.1 Implement network check in Rust
+- [x] 1.5.2 Create useNetwork hook in React
+- [x] 1.5.3 Show offline indicator when disconnected
 
 ### Pause Point 1A
 **Verification Required:**

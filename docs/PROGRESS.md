@@ -10,6 +10,57 @@
 Most recent session should be first.
 -->
 
+## Session 2025-12-15 (Phase 1.5 Complete)
+
+**Phase:** 1.5 — Network Detection
+**Focus:** Implement network status detection with responsive UI
+
+### Completed
+- [x] 1.5.1 Implement network check in Rust
+- [x] 1.5.2 Create useNetwork hook in React
+- [x] 1.5.3 Show offline indicator when disconnected
+
+### Files Created
+```
+src-tauri/src/network.rs          - Network detection module with API reachability check
+src/hooks/useNetwork.ts           - Reactive hook with browser events + periodic checks
+src/hooks/index.ts                - Hooks barrel export
+src/components/shared/OfflineIndicator.tsx - Amber offline indicator component
+src/components/shared/index.ts    - Shared components barrel export
+```
+
+### Files Modified
+```
+src-tauri/src/lib.rs              - Added check_network_status and is_online commands
+src/lib/tauri-commands.ts         - Added NetworkStatus type and wrapper functions
+src/components/layout/AppShell.tsx - Integrated OfflineIndicator in header
+tailwind.config.js                - Added fade-in animation keyframes
+```
+
+### Features Implemented
+- **Rust network check:** HEAD request to api.anthropic.com with 3s timeout
+- **Hybrid detection:** Browser online/offline events + periodic API verification (30s)
+- **Responsive UI:** Instant feedback on network change, amber indicator in header
+- **Retry button:** Manual network check with loading spinner
+
+### Design Decisions
+- Check Anthropic API specifically (not just internet) since app requires Claude
+- Use browser events for instant UI feedback + periodic checks for accuracy
+- Amber color for offline (warning, not error) with subtle animation
+
+### Verified
+- [x] TypeScript compiles without errors
+- [x] Rust compiles without errors
+- [x] Build succeeds
+- [x] Offline indicator appears only when offline
+
+### Next Session Should
+- Start with: Pause Point 1A verification (all Phase 1 requirements)
+- Verify: App window opens, API key works, chat streaming works, offline indicator works
+- Then: Begin Phase 2.1 — Employee Data (CSV import, CRUD)
+
+---
+
 ## Session 2025-12-13 (Phase 1.4 Complete)
 
 **Phase:** 1.4 — Claude API Integration

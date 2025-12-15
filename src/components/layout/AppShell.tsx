@@ -1,5 +1,7 @@
 import { type ReactNode } from 'react';
 import { useLayout } from '../../contexts/LayoutContext';
+import { useNetwork } from '../../hooks';
+import { OfflineIndicator } from '../shared';
 
 interface AppShellProps {
   sidebar?: ReactNode;
@@ -68,6 +70,7 @@ function IconButton({
 
 export function AppShell({ sidebar, children, contextPanel }: AppShellProps) {
   const { sidebarOpen, contextPanelOpen, toggleSidebar, toggleContextPanel } = useLayout();
+  const { isOnline, errorMessage, checkNow, isChecking } = useNetwork();
 
   return (
     <div className="h-screen flex flex-col bg-stone-50 overflow-hidden">
@@ -93,6 +96,14 @@ export function AppShell({ sidebar, children, contextPanel }: AppShellProps) {
             HR Command Center
           </h1>
         </div>
+
+        {/* Network status indicator */}
+        <OfflineIndicator
+          isOffline={!isOnline}
+          errorMessage={errorMessage}
+          onRetry={checkNow}
+          isChecking={isChecking}
+        />
 
         <div className="flex items-center gap-1">
           {/* Help button */}

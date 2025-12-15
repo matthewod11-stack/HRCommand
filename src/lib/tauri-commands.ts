@@ -97,11 +97,40 @@ export interface StreamChunk {
 }
 
 // =============================================================================
-// Commands to be implemented in later phases:
+// Phase 1.5 - Network Detection
 // =============================================================================
 
-// Phase 1.5 - Network Detection
-// export async function checkNetwork(): Promise<boolean>
+/**
+ * Network status result from the Rust backend
+ */
+export interface NetworkStatus {
+  /** Whether the network is available */
+  is_online: boolean;
+  /** Whether the Anthropic API is specifically reachable */
+  api_reachable: boolean;
+  /** Optional error message if offline */
+  error_message: string | null;
+}
+
+/**
+ * Check network connectivity and Anthropic API availability
+ * Returns detailed status including error messages
+ */
+export async function checkNetworkStatus(): Promise<NetworkStatus> {
+  return invoke('check_network_status');
+}
+
+/**
+ * Quick check if online (returns just a boolean)
+ * Use for simple online/offline checks
+ */
+export async function isOnline(): Promise<boolean> {
+  return invoke('is_online');
+}
+
+// =============================================================================
+// Commands to be implemented in later phases:
+// =============================================================================
 
 // Phase 2.1 - Employee Data
 // export async function getEmployees(): Promise<Employee[]>
