@@ -95,13 +95,13 @@ This is a **long-running, multi-session implementation**. Follow these rules:
 - [x] 1.5.2 Create useNetwork hook in React
 - [x] 1.5.3 Show offline indicator when disconnected
 
-### Pause Point 1A
+### Pause Point 1A ✓ VERIFIED
 **Verification Required:**
-- [ ] App window opens
-- [ ] Can enter API key (validates against Claude)
-- [ ] Can send message and receive streamed response
-- [ ] Messages persist in SQLite
-- [ ] Network status displays correctly
+- [x] App window opens
+- [x] Can enter API key (validates against Claude)
+- [x] Can send message and receive streamed response
+- [x] Messages persist in SQLite
+- [x] Network status displays correctly
 
 ---
 

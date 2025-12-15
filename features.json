@@ -131,8 +131,8 @@
       "notes": "Tooling verified"
     },
     "pause-1a": {
-      "status": "not-started",
-      "notes": "App runs, API works"
+      "status": "pass",
+      "notes": "Phase 1 complete: App runs, API key works, streaming chat, network detection"
     },
     "pause-2a": {
       "status": "not-started",
