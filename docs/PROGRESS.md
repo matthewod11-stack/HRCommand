@@ -10,6 +10,76 @@
 Most recent session should be first.
 -->
 
+## Session 2025-12-16 (Phase 2.1.D Session 1 — Test Data Generator Infrastructure)
+
+**Phase:** 2.1 — Employee & Performance Data
+**Focus:** Create test data generator infrastructure and generate 100 Acme Corp employees
+
+### Completed
+- [x] 2.1.18 Create test data generator script infrastructure
+- [x] 2.1.19 Generate "Acme Corp" dataset (100 employees with manager hierarchy)
+
+### Files Created
+```
+scripts/generate-test-data.ts           - CLI entry point (Session 1 implementation)
+scripts/generators/registry.ts          - EmployeeRegistry class (source of truth)
+scripts/generators/employees.ts         - Employee generation with hierarchy
+scripts/generators/review-cycles.ts     - Review cycle generation
+scripts/generators/names.ts             - Name generation utilities
+scripts/data/first-names.json           - 120+ diverse first names (M/F/neutral)
+scripts/data/last-names.json            - 130+ diverse last names
+scripts/generated/                      - Output directory (gitignored)
+tsconfig.scripts.json                   - TypeScript config for scripts
+```
+
+### Files Modified
+```
+package.json                - Added tsx, @types/node, generate-test-data script
+.gitignore                  - Added scripts/generated/ exclusion
+```
+
+### Generated Data (Session 1 Output)
+```
+scripts/generated/registry.json         - EmployeeRegistry snapshot (56KB)
+scripts/generated/employees.json        - 100 employees (39KB)
+scripts/generated/review-cycles.json    - 3 review cycles
+```
+
+### Data Distribution Achieved
+| Metric | Target | Actual |
+|--------|--------|--------|
+| Total employees | 100 | 100 ✓ |
+| Active | 82 | 82 ✓ |
+| Terminated | 12 | 12 ✓ |
+| On Leave | 6 | 6 ✓ |
+
+### Special Case Employees (10 total)
+| Name | Role | Special Attribute |
+|------|------|-------------------|
+| Sarah Chen | Marketing Manager | High performer, declining eNPS |
+| Marcus Johnson | Sales Rep | Underperformer (two cycles < 2.5) |
+| Elena Rodriguez | Senior Engineer | 4.5+ ratings, 6 years tenure |
+| James Park | Junior Engineer | New hire (3 months), struggling |
+| Lisa Thompson | Operations | Dec 20, 2020 anniversary |
+| Robert Kim | Finance | 12 years tenure (longest) |
+| Amanda Foster | Sales | Terminated Nov 2024 (voluntary) |
+| David Nguyen | Engineering | On parental leave since Nov |
+| Jennifer Walsh | Engineering Manager | Low team eNPS |
+| Michael Brown | Remote Engineer | CA resident |
+
+### Key Decisions
+- Used `tsx` instead of `ts-node` for ESM compatibility
+- EmployeeRegistry is the single source of truth for all IDs
+- Deterministic generation using seeded random (reproducible data)
+- Manager hierarchy: CEO → VPs/Directors → Managers → ICs
+
+### Next Session Should
+- Implement Session 2: Performance data generation (2.1.20)
+- Load registry.json and generate ~280 ratings + reviews per cycle
+- Implement Session 3: eNPS data generation (2.1.21)
+
+---
+
 ## Session 2025-12-16 (Phase 2.1.C — Employee UI Components)
 
 **Phase:** 2.1 — Employee & Performance Data

@@ -140,8 +140,8 @@ This is a **long-running, multi-session implementation**. Follow these rules:
 > **Implementation Plan:** [PLAN_2.1.D_TEST_DATA.md](./PLAN_2.1.D_TEST_DATA.md)
 > **Sessions Required:** 2-3 | **Est. LOC:** ~1,050 TypeScript
 
-- [ ] 2.1.18 Create test data generator script infrastructure
-- [ ] 2.1.19 Generate "Acme Corp" dataset (100 employees)
+- [x] 2.1.18 Create test data generator script infrastructure
+- [x] 2.1.19 Generate "Acme Corp" dataset (100 employees)
 - [ ] 2.1.20 Generate 3 review cycles with ratings + reviews
 - [ ] 2.1.21 Generate 3 eNPS survey responses per employee
 

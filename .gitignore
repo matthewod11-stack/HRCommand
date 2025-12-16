@@ -47,3 +47,6 @@ coverage/
 .DS_Store
 .AppleDouble
 .LSOverride
+
+# Generated test data (regenerate with npm run generate-test-data)
+scripts/generated/
