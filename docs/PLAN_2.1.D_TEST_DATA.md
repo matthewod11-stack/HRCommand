@@ -12,6 +12,144 @@ Generate a realistic "Acme Corp" dataset with 100 employees, 3 review cycles, pe
 
 ---
 
+## Data Relationships (Critical)
+
+All data is **relational** — every record references real entities from other tables:
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                         DATA DEPENDENCY GRAPH                               │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  ┌──────────────────┐                                                       │
+│  │  REVIEW_CYCLES   │ ◄─── Generated FIRST (no dependencies)                │
+│  │  (3 cycles)      │                                                       │
+│  └────────┬─────────┘                                                       │
+│           │                                                                 │
+│           │ referenced by                                                   │
+│           ▼                                                                 │
+│  ┌──────────────────┐      ┌──────────────────┐                             │
+│  │    EMPLOYEES     │ ◄────│  manager_id      │ (self-referential)          │
+│  │  (100 employees) │      │  references      │                             │
+│  │                  │      │  another employee│                             │
+│  └────────┬─────────┘      └──────────────────┘                             │
+│           │                                                                 │
+│           │ employee_id + review_cycle_id + reviewer_id                     │
+│           ▼                                                                 │
+│  ┌──────────────────┐      ┌──────────────────┐                             │
+│  │ PERF_RATINGS     │      │ PERF_REVIEWS     │                             │
+│  │ (~280 ratings)   │      │ (~280 reviews)   │                             │
+│  │                  │      │                  │                             │
+│  │ • employee_id ───┼──────┼─► same employee  │                             │
+│  │ • cycle_id ──────┼──────┼─► same cycle     │                             │
+│  │ • reviewer_id ───┼──────┼─► employee's mgr │                             │
+│  └──────────────────┘      └──────────────────┘                             │
+│                                                                             │
+│           │ employee_id                                                     │
+│           ▼                                                                 │
+│  ┌──────────────────┐                                                       │
+│  │ ENPS_RESPONSES   │                                                       │
+│  │ (~246 responses) │ ◄─── Only for ACTIVE employees at survey time         │
+│  │                  │                                                       │
+│  │ • employee_id ───┼─► same 100 employees                                  │
+│  └──────────────────┘                                                       │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### Generation Order (Strict)
+
+| Step | Entity | Dependencies | Notes |
+|------|--------|--------------|-------|
+| 1 | Review Cycles | None | 3 cycles with known IDs |
+| 2 | Employees (Executives) | None | CEO + VPs/Directors first |
+| 3 | Employees (Managers) | Executives exist | Reference executive as manager |
+| 4 | Employees (Individual Contributors) | Managers exist | Reference manager as manager |
+| 5 | Performance Ratings | Employees + Cycles | reviewer_id = employee's manager_id |
+| 6 | Performance Reviews | Employees + Cycles | reviewer_id = employee's manager_id |
+| 7 | eNPS Responses | Employees | Only employees active at survey date |
+
+### Shared ID Registry
+
+A central `EmployeeRegistry` maintains all generated employee IDs:
+
+```typescript
+interface EmployeeRegistry {
+  // Maps email → generated UUID (stable across all tables)
+  byEmail: Map<string, string>;
+
+  // Maps name → employee for special case lookups
+  byName: Map<string, GeneratedEmployee>;
+
+  // Manager lookup (employee_id → manager_id)
+  managerOf: Map<string, string>;
+
+  // Department members (dept → employee_ids[])
+  byDepartment: Map<string, string[]>;
+}
+
+// Special case employees have KNOWN emails for stable references
+const SPECIAL_EMPLOYEES = {
+  SARAH_CHEN: 'sarah.chen@acmecorp.com',
+  MARCUS_JOHNSON: 'marcus.johnson@acmecorp.com',
+  // ... etc
+};
+```
+
+### Relationship Integrity Rules
+
+| Rule | Enforcement |
+|------|-------------|
+| Every employee's `manager_id` references a real employee | Generate managers before reports |
+| Every rating's `reviewer_id` = the employee's `manager_id` | Lookup from registry |
+| Terminated employees have NO ratings/reviews after termination_date | Filter by date |
+| On-leave employees have ratings up to leave start date | Filter by date |
+| eNPS only for employees who were active on survey_date | Check status + dates |
+| Review cycle must exist before any ratings reference it | Generate cycles first |
+
+### Example: Sarah Chen's Complete Data
+
+```typescript
+// 1. Employee record
+{
+  id: "emp_sarah_001",           // Generated UUID, stored in registry
+  email: "sarah.chen@acmecorp.com",
+  full_name: "Sarah Chen",
+  department: "Marketing",
+  manager_id: "emp_dir_marketing", // Director of Marketing's ID
+  hire_date: "2021-03-15",
+  status: "active",
+  // ...
+}
+
+// 2. Her ratings (references her ID + her manager as reviewer)
+{
+  employee_id: "emp_sarah_001",      // ← Same ID
+  review_cycle_id: "rc_2024_annual", // ← Real cycle ID
+  reviewer_id: "emp_dir_marketing",  // ← Her manager's ID
+  overall_rating: 4.5,
+  // ...
+}
+
+// 3. Her reviews (same references)
+{
+  employee_id: "emp_sarah_001",      // ← Same ID
+  review_cycle_id: "rc_2024_annual", // ← Same cycle
+  reviewer_id: "emp_dir_marketing",  // ← Same manager
+  strengths: "Exceptional campaign performance...",
+  // ...
+}
+
+// 4. Her eNPS (declining pattern: 9 → 7 → 6)
+[
+  { employee_id: "emp_sarah_001", survey_date: "2024-06-15", score: 9 },
+  { employee_id: "emp_sarah_001", survey_date: "2024-12-15", score: 7 },
+  { employee_id: "emp_sarah_001", survey_date: "2025-03-15", score: 6 },
+]
+```
+
+---
+
 ## Task Breakdown
 
 | Task | Description | Session | Est. LOC |
@@ -285,63 +423,199 @@ const feedbackByScore = {
 
 ## Implementation Steps
 
-### Session 1: Infrastructure + Employees
+### Session 1: Infrastructure + Employees (2.1.18 + 2.1.19)
+
+**Goal:** Create the foundation that ALL other data depends on.
 
 **Task 2.1.18: Script infrastructure**
 ```bash
 # Files to create:
-scripts/generate-test-data.ts          # CLI entry point
-scripts/generators/employees.ts        # Employee generator
-scripts/generators/names.ts            # Name utilities
-scripts/data/first-names.json          # Name data
-scripts/data/last-names.json           # Name data
+scripts/generate-test-data.ts              # CLI entry point
+scripts/generators/registry.ts             # EmployeeRegistry (CRITICAL)
+scripts/generators/employees.ts            # Employee generator
+scripts/generators/names.ts                # Name utilities
+scripts/data/first-names.json              # Name data
+scripts/data/last-names.json               # Name data
 ```
 
-**Task 2.1.19: Employee generation**
-1. Create name pools (diverse first/last names)
-2. Implement department assignment with manager hierarchy
-3. Implement tenure distribution
-4. Create the 10 special case employees first (known IDs)
-5. Generate remaining 90 employees with distributions
-6. Output to `scripts/generated/employees.json`
-7. Test import via existing `import_employees` endpoint
+**The EmployeeRegistry is the source of truth:**
+```typescript
+// registry.ts - Created FIRST, used by ALL generators
+export class EmployeeRegistry {
+  private employees: Map<string, GeneratedEmployee> = new Map();
 
-### Session 2: Performance Data
+  // Register an employee and get their stable ID
+  register(employee: GeneratedEmployee): string;
 
-**Task 2.1.20: Review cycles + ratings + reviews**
+  // Lookup methods for other generators
+  getById(id: string): GeneratedEmployee;
+  getByEmail(email: string): GeneratedEmployee;
+  getManagerId(employeeId: string): string;
+  getEmployeesByDepartment(dept: string): GeneratedEmployee[];
+  getActiveOnDate(date: string): GeneratedEmployee[];
+
+  // Serialize for downstream generators
+  toJSON(): string;
+  static fromJSON(json: string): EmployeeRegistry;
+}
+```
+
+**Task 2.1.19: Employee generation (strict order)**
+
+```
+Step 1: Generate Review Cycles FIRST
+        ↓ (no dependencies, but needed for date validation)
+Step 2: Generate CEO (no manager_id)
+        ↓
+Step 3: Generate Executives (VP, Directors) - manager_id = CEO
+        ↓
+Step 4: Generate Managers - manager_id = their Executive
+        ↓
+Step 5: Generate ICs - manager_id = their Manager
+        ↓
+Step 6: Save EmployeeRegistry to disk (for Session 2)
+```
+
+**Output artifacts:**
+```
+scripts/generated/
+├── registry.json           # ← EmployeeRegistry snapshot (REQUIRED for Session 2)
+├── review-cycles.json      # 3 cycles
+└── employees.json          # 100 employees with valid manager_ids
+```
+
+### Session 2: Performance Data (2.1.20)
+
+**Prerequisite:** `registry.json` from Session 1 must exist.
+
+**Task 2.1.20: Ratings + Reviews**
 ```bash
 # Files to create:
-scripts/generators/review-cycles.ts    # Cycle generator
-scripts/generators/performance.ts      # Ratings + reviews
-scripts/data/review-templates.json     # Review text templates
+scripts/generators/performance.ts          # Ratings + reviews generator
+scripts/data/review-templates.json         # Review text templates
 ```
 
-1. Create 3 review cycles
-2. Generate ratings for each employee per cycle (respecting rules)
-3. Generate narrative reviews with templated text
-4. Output to `scripts/generated/`
-5. Test import via existing endpoints
+**Generation flow:**
+```typescript
+// 1. Load the registry from Session 1
+const registry = EmployeeRegistry.fromJSON(
+  fs.readFileSync('scripts/generated/registry.json')
+);
 
-### Session 3: eNPS + Integration Test
+// 2. For each employee, for each cycle they should have data for:
+for (const employee of registry.getAllEmployees()) {
+  for (const cycle of cycles) {
+    // Skip if employee wasn't active during this cycle
+    if (!wasActiveduringCycle(employee, cycle)) continue;
+
+    // Get their manager from the registry
+    const reviewerId = registry.getManagerId(employee.id);
+
+    // Generate rating + review with proper foreign keys
+    generateRating({
+      employee_id: employee.id,        // ← From registry
+      review_cycle_id: cycle.id,       // ← From cycles
+      reviewer_id: reviewerId,         // ← From registry
+      overall_rating: calculateRating(employee),
+    });
+
+    generateReview({
+      employee_id: employee.id,
+      review_cycle_id: cycle.id,
+      reviewer_id: reviewerId,
+      // ... templated narrative
+    });
+  }
+}
+```
+
+**Special case handling:**
+| Employee | Cycle Logic |
+|----------|-------------|
+| James Park (new hire) | Only 2024 Annual + Q1 2025 (hired Sept 2024) |
+| Amanda Foster (terminated) | 2023 + 2024 only (terminated Nov 2024) |
+| David Nguyen (on leave) | All 3 cycles (leave started after Q1 2025 review) |
+
+**Output artifacts:**
+```
+scripts/generated/
+├── registry.json           # (from Session 1)
+├── review-cycles.json      # (from Session 1)
+├── employees.json          # (from Session 1)
+├── ratings.json            # NEW: ~280 ratings with valid FKs
+└── reviews.json            # NEW: ~280 reviews with valid FKs
+```
+
+### Session 3: eNPS + Integration Test (2.1.21)
+
+**Prerequisite:** `registry.json` from Session 1 must exist.
 
 **Task 2.1.21: eNPS generation**
 ```bash
 # Files to create:
-scripts/generators/enps.ts             # eNPS generator
-scripts/data/enps-feedback.json        # Feedback templates
+scripts/generators/enps.ts                 # eNPS generator
+scripts/data/enps-feedback.json            # Feedback templates
 ```
 
-1. Generate 3 surveys
-2. Generate 3 responses per active employee
-3. Apply score patterns for special cases
-4. Output and import
+**Generation flow:**
+```typescript
+// 1. Load registry
+const registry = EmployeeRegistry.fromJSON(...);
 
-**Integration verification:**
-- [ ] "Who's been here longest?" → Robert Kim
-- [ ] "Who's underperforming?" → Marcus Johnson
-- [ ] "What's our eNPS?" → ~+10
-- [ ] "Tell me about Sarah Chen" → Shows declining engagement
-- [ ] Employee panel shows 100 employees with filters working
+// 2. Define surveys with dates
+const surveys = [
+  { name: 'Q2 2024 Pulse', date: '2024-06-15' },
+  { name: 'Q4 2024 Pulse', date: '2024-12-15' },
+  { name: 'Q1 2025 Pulse', date: '2025-03-15' },
+];
+
+// 3. For each survey, generate responses for active employees
+for (const survey of surveys) {
+  const activeEmployees = registry.getActiveOnDate(survey.date);
+
+  for (const employee of activeEmployees) {
+    generateEnpsResponse({
+      employee_id: employee.id,  // ← From registry
+      survey_date: survey.date,
+      survey_name: survey.name,
+      score: calculateScore(employee, survey),
+      feedback_text: getTemplateFeedback(score),
+    });
+  }
+}
+```
+
+**Output artifacts:**
+```
+scripts/generated/
+├── registry.json           # (from Session 1)
+├── review-cycles.json      # (from Session 1)
+├── employees.json          # (from Session 1)
+├── ratings.json            # (from Session 2)
+├── reviews.json            # (from Session 2)
+└── enps.json               # NEW: ~246 responses with valid employee_ids
+```
+
+### Integration Verification Checklist
+
+After all data is imported, verify these queries:
+
+**Relational integrity:**
+- [ ] Every `performance_ratings.employee_id` exists in `employees.id`
+- [ ] Every `performance_ratings.reviewer_id` exists in `employees.id`
+- [ ] Every `performance_ratings.review_cycle_id` exists in `review_cycles.id`
+- [ ] Every `performance_reviews.employee_id` exists in `employees.id`
+- [ ] Every `enps_responses.employee_id` exists in `employees.id`
+- [ ] Every `employees.manager_id` (except CEO) exists in `employees.id`
+
+**Business logic:**
+- [ ] "Who's been here longest?" → Robert Kim (12 years)
+- [ ] "Who's underperforming?" → Marcus Johnson (< 2.5 two cycles)
+- [ ] "What's our eNPS?" → ~+10 (35% promoters - 25% detractors)
+- [ ] "Tell me about Sarah Chen" → High performer + declining eNPS
+- [ ] "Who might leave?" → Sarah Chen (high perf, declining engagement)
+- [ ] Amanda Foster has NO Q1 2025 data (terminated Nov 2024)
+- [ ] David Nguyen shows as "on leave" with all performance data
 
 ---
 
