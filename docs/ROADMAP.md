@@ -142,8 +142,8 @@ This is a **long-running, multi-session implementation**. Follow these rules:
 
 - [x] 2.1.18 Create test data generator script infrastructure
 - [x] 2.1.19 Generate "Acme Corp" dataset (100 employees)
-- [ ] 2.1.20 Generate 3 review cycles with ratings + reviews
-- [ ] 2.1.21 Generate 3 eNPS survey responses per employee
+- [x] 2.1.20 Generate 3 review cycles with ratings + reviews
+- [x] 2.1.21 Generate 3 eNPS survey responses per employee
 
 ### 2.2 Company Profile
 - [ ] 2.2.1 Create CompanySetup component

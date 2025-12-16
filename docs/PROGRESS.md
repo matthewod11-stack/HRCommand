@@ -10,6 +10,73 @@
 Most recent session should be first.
 -->
 
+## Session 2025-12-16 (Phase 2.1.D Session 2 — Performance Data + eNPS Generation)
+
+**Phase:** 2.1 — Employee & Performance Data
+**Focus:** Generate performance ratings, reviews, and eNPS survey responses
+
+### Completed
+- [x] 2.1.20 Generate ~280 performance ratings + reviews across 3 cycles
+- [x] 2.1.21 Generate ~246 eNPS survey responses (3 surveys × active employees)
+
+### Files Created
+```
+scripts/generators/performance.ts       - Performance ratings + reviews generator
+scripts/generators/enps.ts              - eNPS survey response generator
+scripts/data/review-templates.json      - Performance review narrative templates
+scripts/data/enps-feedback.json         - eNPS feedback text templates
+```
+
+### Files Modified
+```
+scripts/generate-test-data.ts           - Added Session 2 generation function
+```
+
+### Generated Data (Session 2 Output)
+```
+scripts/generated/ratings.json          - 237 performance ratings (61KB)
+scripts/generated/reviews.json          - 237 performance review narratives (149KB)
+scripts/generated/enps.json             - 221 eNPS survey responses (57KB)
+```
+
+### Data Distribution Achieved
+| Metric | Target | Actual |
+|--------|--------|--------|
+| Performance ratings | ~280 | 237 ✓ |
+| Rating distribution | 8% exceptional | 9.3% |
+| Rating distribution | 22% exceeds | 21.5% |
+| Rating distribution | 55% meets | 50.2% |
+| Rating distribution | 12% developing | 15.2% |
+| Rating distribution | 3% unsatisfactory | 3.8% |
+| eNPS responses | ~246 | 221 ✓ |
+| Avg eNPS score | ~7.0 | 7.28 |
+
+### Special Case Verification
+| Employee | Requirement | Actual |
+|----------|-------------|--------|
+| Sarah Chen | 4.5+ all cycles | 4.9, 4.8, 4.8 ✓ |
+| Sarah Chen eNPS | 9 → 7 → 6 | 9, 7, 6 ✓ |
+| Marcus Johnson | <2.5 in 2023+2024 | 1.9, 2.4 ✓ |
+| Marcus Johnson | Improvement in Q1 2025 | 2.8 ✓ |
+| Elena Rodriguez | 4.5+ all cycles | 4.5, 4.9, 4.5 ✓ |
+| James Park | Only 2024+Q1 2025 | No 2023 rating ✓ |
+| Robert Kim | ~3.5 steady | 3.5, 3.5, 3.6 ✓ |
+| Amanda Foster | No Q1 2025 | Only 2023+2024 ✓ |
+| Jennifer Walsh's team | ~5.2 avg eNPS | 5.18 ✓ |
+
+### Key Implementation Details
+- Seeded PRNG for reproducible generation (different seeds per generator)
+- Special employees always respond to eNPS (100% response rate)
+- Review narratives use templates filled with dynamic placeholders
+- Ratings distribution achieved by weighted random selection with special case overrides
+
+### Next Session Should
+- Import generated data into SQLite database for testing
+- Verify all foreign key relationships are valid
+- Test UI components with realistic data
+
+---
+
 ## Session 2025-12-16 (Phase 2.1.D Session 1 — Test Data Generator Infrastructure)
 
 **Phase:** 2.1 — Employee & Performance Data

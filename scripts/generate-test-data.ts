@@ -16,9 +16,11 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { fileURLToPath } from 'url';
-import { EmployeeRegistry } from './generators/registry.js';
+import { EmployeeRegistry, SPECIAL_EMPLOYEE_EMAILS } from './generators/registry.js';
 import { generateReviewCycles } from './generators/review-cycles.js';
 import { generateEmployees, getSpecialEmployeeIds } from './generators/employees.js';
+import { generatePerformanceData, getPerformanceStats } from './generators/performance.js';
+import { generateEnpsData, getEnpsStats } from './generators/enps.js';
 
 // ESM-compatible __dirname
 const __filename = fileURLToPath(import.meta.url);
@@ -118,6 +120,108 @@ function generateSession1(): void {
 }
 
 /**
+ * Session 2: Generate performance data (ratings + reviews + eNPS)
+ * Prerequisite: registry.json from Session 1
+ * Output: ratings.json, reviews.json, enps.json
+ */
+function generateSession2(): void {
+  console.log('\n=== Session 2: Performance Data + eNPS ===\n');
+
+  // Load registry from Session 1
+  console.log('Loading registry from Session 1...');
+  const registryPath = path.join(OUTPUT_DIR, 'registry.json');
+
+  if (!fs.existsSync(registryPath)) {
+    console.error('ERROR: registry.json not found. Run Session 1 first (--session1)');
+    process.exit(1);
+  }
+
+  const registry = EmployeeRegistry.load(OUTPUT_DIR);
+  console.log(`Loaded ${registry.count} employees, ${registry.getAllCycles().length} review cycles`);
+
+  // Task 2.1.20: Generate performance ratings + reviews
+  console.log('\nTask 2.1.20: Generating performance ratings + reviews...');
+  const { ratings, reviews } = generatePerformanceData(registry);
+  writeJson('ratings.json', ratings);
+  writeJson('reviews.json', reviews);
+
+  // Performance stats
+  const perfStats = getPerformanceStats(ratings);
+  console.log('\n=== Performance Data Stats ===');
+  console.log(`Total ratings: ${perfStats.totalRatings}`);
+  console.log(`Average rating: ${perfStats.averageRating}`);
+  console.log('Rating distribution:');
+  const distPct = perfStats.distributionPercent as Record<string, string>;
+  for (const [band, pct] of Object.entries(distPct)) {
+    console.log(`  ${band}: ${pct}`);
+  }
+  console.log('Ratings per cycle:');
+  const byCycle = perfStats.byCycle as Record<string, number>;
+  for (const [cycle, count] of Object.entries(byCycle)) {
+    console.log(`  ${cycle}: ${count}`);
+  }
+
+  // Task 2.1.21: Generate eNPS responses
+  console.log('\nTask 2.1.21: Generating eNPS survey responses...');
+  const enpsResponses = generateEnpsData(registry);
+  writeJson('enps.json', enpsResponses);
+
+  // eNPS stats
+  const enpsStats = getEnpsStats(enpsResponses, registry);
+  console.log('\n=== eNPS Stats ===');
+  console.log(`Total responses: ${enpsStats.totalResponses}`);
+  console.log(`Average score: ${enpsStats.averageScore}`);
+  console.log(`Feedback rate: ${enpsStats.feedbackRate}`);
+  console.log('eNPS by survey:');
+  const enpsPerSurvey = enpsStats.enpsPerSurvey as Record<string, number>;
+  for (const [survey, enps] of Object.entries(enpsPerSurvey)) {
+    console.log(`  ${survey}: ${enps > 0 ? '+' : ''}${enps}`);
+  }
+
+  // Special case verifications
+  console.log('\n=== Special Case Verification ===');
+
+  // Sarah Chen scores
+  const sarahScores = enpsStats.sarahChenScores as Array<{ survey: string; score: number }>;
+  console.log('Sarah Chen eNPS scores (should be 9 → 7 → 6):');
+  for (const s of sarahScores) {
+    console.log(`  ${s.survey}: ${s.score}`);
+  }
+
+  // Jennifer Walsh team average
+  console.log(`Jennifer Walsh's team avg eNPS (target ~5.2): ${enpsStats.jenniferWalshTeamAvg}`);
+
+  // Verify special employee ratings
+  console.log('\nSpecial employee ratings verification:');
+  const specialEmployees = [
+    { key: 'SARAH_CHEN', expected: '4.5+ all cycles' },
+    { key: 'MARCUS_JOHNSON', expected: '<2.5 in 2023+2024' },
+    { key: 'ELENA_RODRIGUEZ', expected: '4.5+ all cycles' },
+    { key: 'JAMES_PARK', expected: '~2.8, only 2024+Q1 2025' },
+    { key: 'ROBERT_KIM', expected: '~3.5 steady' },
+    { key: 'AMANDA_FOSTER', expected: 'no Q1 2025 rating' },
+  ];
+
+  for (const spec of specialEmployees) {
+    const email = SPECIAL_EMPLOYEE_EMAILS[spec.key as keyof typeof SPECIAL_EMPLOYEE_EMAILS];
+    const emp = registry.getByEmail(email);
+    if (emp) {
+      const empRatings = ratings.filter(r => r.employee_id === emp.id);
+      const ratingsStr = empRatings.map(r => `${r.review_cycle_id.replace('rc_', '')}: ${r.overall_rating}`).join(', ');
+      console.log(`  ${emp.full_name}: ${ratingsStr}`);
+      console.log(`    Expected: ${spec.expected}`);
+    }
+  }
+
+  console.log('\n=== Session 2 Complete ===');
+  console.log('Output files:');
+  console.log('  - scripts/generated/ratings.json');
+  console.log('  - scripts/generated/reviews.json');
+  console.log('  - scripts/generated/enps.json');
+  console.log('\nAll test data generation complete!');
+}
+
+/**
  * Main entry point
  */
 function main(): void {
@@ -136,20 +240,21 @@ function main(): void {
   }
 
   if (args.includes('--performance') || args.includes('--session2')) {
-    console.log('Session 2 (performance data) - Not yet implemented');
-    console.log('Will be implemented in Phase 2.1.D Session 2');
+    generateSession2();
     return;
   }
 
-  if (args.includes('--enps') || args.includes('--session3')) {
-    console.log('Session 3 (eNPS data) - Not yet implemented');
-    console.log('Will be implemented in Phase 2.1.D Session 2-3');
+  if (args.includes('--enps')) {
+    // eNPS is now included in Session 2, but support standalone for flexibility
+    console.log('eNPS generation is included in Session 2 (--session2)');
+    console.log('Running Session 2 to generate all performance + eNPS data...');
+    generateSession2();
     return;
   }
 
   if (args.includes('--all')) {
     generateSession1();
-    // Session 2 and 3 would be called here once implemented
+    generateSession2();
     return;
   }
 
@@ -159,12 +264,13 @@ HR Command Center - Test Data Generator
 
 Usage:
   npx ts-node scripts/generate-test-data.ts [options]
+  npm run generate-test-data -- [options]
 
 Options:
   --employees, --session1    Generate employees + review cycles (Session 1)
-  --performance, --session2  Generate performance ratings/reviews (Session 2)
-  --enps, --session3         Generate eNPS responses (Session 3)
-  --all                      Generate all test data
+  --performance, --session2  Generate ratings, reviews, eNPS (Session 2)
+  --enps                     Alias for --session2 (eNPS included in Session 2)
+  --all                      Generate all test data (Session 1 + 2)
   --clear                    Clear all generated files
 
 Output:
@@ -175,12 +281,17 @@ Session 1 outputs:
   - employees.json       100 employees with hierarchy
   - review-cycles.json   3 review cycles
 
-Session 2 outputs (coming):
-  - ratings.json         ~280 performance ratings
-  - reviews.json         ~280 performance reviews
+Session 2 outputs:
+  - ratings.json         ~280 performance ratings (3 cycles)
+  - reviews.json         ~280 performance review narratives
+  - enps.json            ~246 eNPS survey responses (3 surveys)
 
-Session 3 outputs (coming):
-  - enps.json           ~246 eNPS survey responses
+Special Cases Tracked:
+  - Sarah Chen: High performer (4.5+), declining eNPS (9→7→6)
+  - Marcus Johnson: Underperformer (<2.5 in two cycles)
+  - James Park: New hire (only 2024 Annual + Q1 2025)
+  - Amanda Foster: Terminated (no Q1 2025 data)
+  - Jennifer Walsh's team: Low eNPS (~5.2 avg)
 `);
 }
 
