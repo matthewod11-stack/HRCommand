@@ -7,6 +7,7 @@ import { ChatInput, MessageList } from './components/chat';
 import { ApiKeyInput } from './components/settings';
 import { EmployeePanel, EmployeeDetail, EmployeeEdit } from './components/employees';
 import { ImportWizard } from './components/import';
+import { TestDataImporter } from './components/dev/TestDataImporter';
 import { useEmployees } from './contexts/EmployeeContext';
 import { Message } from './lib/types';
 import { hasApiKey, sendChatMessageStreaming, ChatMessage, StreamChunk } from './lib/tauri-commands';
@@ -182,7 +183,61 @@ function ImportWizardModal() {
   );
 }
 
+// Developer modal for test data import (Cmd+Shift+T)
+function TestDataModal({
+  isOpen,
+  onClose,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+}) {
+  const { refreshEmployees } = useEmployees();
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
+      <div
+        className="absolute inset-0 bg-black/50"
+        onClick={() => {
+          onClose();
+          refreshEmployees();
+        }}
+      />
+      <div className="relative bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[80vh] overflow-auto">
+        <button
+          onClick={() => {
+            onClose();
+            refreshEmployees();
+          }}
+          className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
+        >
+          <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+        <TestDataImporter />
+      </div>
+    </div>
+  );
+}
+
 function App() {
+  const [isTestDataModalOpen, setIsTestDataModalOpen] = useState(false);
+
+  // Keyboard shortcut: Cmd+Shift+T to open test data importer
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.metaKey && e.shiftKey && e.key === 't') {
+        e.preventDefault();
+        setIsTestDataModalOpen(prev => !prev);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   return (
     <LayoutProvider>
       <EmployeeProvider>
@@ -194,6 +249,10 @@ function App() {
         </AppShell>
         <EmployeeEditModal />
         <ImportWizardModal />
+        <TestDataModal
+          isOpen={isTestDataModalOpen}
+          onClose={() => setIsTestDataModalOpen(false)}
+        />
       </EmployeeProvider>
     </LayoutProvider>
   );

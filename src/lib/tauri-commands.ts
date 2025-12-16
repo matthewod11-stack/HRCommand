@@ -568,3 +568,151 @@ export async function readFileAsBytes(file: File): Promise<Uint8Array> {
   const buffer = await file.arrayBuffer();
   return new Uint8Array(buffer);
 }
+
+// =============================================================================
+// Bulk Import Commands (Test Data)
+// =============================================================================
+
+/**
+ * Result from bulk import operations
+ */
+export interface BulkImportResult {
+  inserted: number;
+  errors: string[];
+}
+
+/**
+ * Result from data integrity verification
+ */
+export interface IntegrityCheckResult {
+  check_name: string;
+  passed: boolean;
+  expected: number;
+  actual: number;
+  details: string | null;
+}
+
+/**
+ * Employee import record (with explicit ID for FK preservation)
+ * Note: Uses null union types to match JSON data from generators
+ */
+export interface ImportEmployee {
+  id: string;
+  email: string;
+  full_name: string;
+  department?: string | null;
+  job_title?: string | null;
+  manager_id?: string | null;
+  hire_date?: string | null;
+  work_state?: string | null;
+  status?: string | null;
+  date_of_birth?: string | null;
+  gender?: string | null;
+  ethnicity?: string | null;
+  termination_date?: string | null;
+  termination_reason?: string | null;
+}
+
+/**
+ * Review cycle import record (with explicit ID)
+ */
+export interface ImportReviewCycle {
+  id: string;
+  name: string;
+  cycle_type: string;
+  start_date: string;
+  end_date: string;
+  status: string;
+}
+
+/**
+ * Performance rating import record (with explicit ID)
+ */
+export interface ImportRating {
+  id: string;
+  employee_id: string;
+  review_cycle_id: string;
+  reviewer_id?: string;
+  overall_rating: number;
+  goals_rating?: number;
+  competency_rating?: number;
+  submitted_at?: string;
+}
+
+/**
+ * Performance review import record (with explicit ID)
+ */
+export interface ImportReview {
+  id: string;
+  employee_id: string;
+  review_cycle_id: string;
+  reviewer_id?: string;
+  strengths?: string;
+  areas_for_improvement?: string;
+  accomplishments?: string;
+  manager_comments?: string;
+  submitted_at?: string;
+}
+
+/**
+ * eNPS import record (with explicit ID)
+ * Note: Uses null union types to match JSON data from generators
+ */
+export interface ImportEnps {
+  id: string;
+  employee_id: string;
+  survey_date: string;
+  survey_name: string;
+  score: number;
+  feedback_text?: string | null;
+  submitted_at?: string | null;
+}
+
+/**
+ * Clear all data from the database (for test data reset)
+ */
+export async function bulkClearData(): Promise<void> {
+  return invoke('bulk_clear_data');
+}
+
+/**
+ * Bulk import review cycles with predefined IDs
+ */
+export async function bulkImportReviewCycles(cycles: ImportReviewCycle[]): Promise<BulkImportResult> {
+  return invoke('bulk_import_review_cycles', { cycles });
+}
+
+/**
+ * Bulk import employees with predefined IDs
+ */
+export async function bulkImportEmployees(employees: ImportEmployee[]): Promise<BulkImportResult> {
+  return invoke('bulk_import_employees', { employees });
+}
+
+/**
+ * Bulk import performance ratings with predefined IDs
+ */
+export async function bulkImportRatings(ratings: ImportRating[]): Promise<BulkImportResult> {
+  return invoke('bulk_import_ratings', { ratings });
+}
+
+/**
+ * Bulk import performance reviews with predefined IDs
+ */
+export async function bulkImportReviews(reviews: ImportReview[]): Promise<BulkImportResult> {
+  return invoke('bulk_import_reviews', { reviews });
+}
+
+/**
+ * Bulk import eNPS responses with predefined IDs
+ */
+export async function bulkImportEnps(responses: ImportEnps[]): Promise<BulkImportResult> {
+  return invoke('bulk_import_enps', { responses });
+}
+
+/**
+ * Verify data integrity after import
+ */
+export async function verifyDataIntegrity(): Promise<IntegrityCheckResult[]> {
+  return invoke('verify_data_integrity');
+}

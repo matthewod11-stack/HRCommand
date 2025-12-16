@@ -10,6 +10,82 @@
 Most recent session should be first.
 -->
 
+## Session 2025-12-16 (Phase 2.1.D Session 3 — Test Data Import + Verification)
+
+**Phase:** 2.1 — Employee & Performance Data
+**Focus:** Import generated test data into SQLite and verify relational integrity
+
+### Completed
+- [x] Create bulk import Tauri commands with ID preservation
+- [x] Create TypeScript import script for database population
+- [x] Import all test data (100 employees, 3 cycles, 237 ratings, 237 reviews, 221 eNPS)
+- [x] Verify all foreign key relationships are valid
+- [x] Run verification queries from plan
+- [x] Add TestDataImporter UI component (Cmd+Shift+T to open)
+
+### Files Created
+```
+src-tauri/src/bulk_import.rs               - Bulk import functions with ID preservation
+src/components/dev/TestDataImporter.tsx    - UI component for test data import
+scripts/import-test-data.ts                - CLI script for database population
+```
+
+### Files Modified
+```
+src-tauri/src/lib.rs                       - Added bulk import module + commands
+src/lib/tauri-commands.ts                  - Added bulk import TypeScript wrappers
+src/App.tsx                                - Added TestDataImporter modal
+package.json                               - Added import-test-data script
+```
+
+### Bulk Import Commands Added
+| Command | Purpose |
+|---------|---------|
+| `bulk_clear_data` | Clear all tables (respects FK order) |
+| `bulk_import_review_cycles` | Import cycles with predefined IDs |
+| `bulk_import_employees` | Import employees preserving IDs |
+| `bulk_import_ratings` | Import ratings with FK references |
+| `bulk_import_reviews` | Import reviews with FK references |
+| `bulk_import_enps` | Import eNPS with employee references |
+| `verify_data_integrity` | Run FK integrity checks |
+
+### Data Integrity Verification
+| Check | Result |
+|-------|--------|
+| Employee count | 100 ✓ |
+| Review cycle count | 3 ✓ |
+| Orphan rating employee_ids | 0 ✓ |
+| Orphan rating reviewer_ids | 0 ✓ |
+| Orphan rating cycle_ids | 0 ✓ |
+| Orphan eNPS employee_ids | 0 ✓ |
+| Orphan manager_ids | 0 ✓ |
+
+### Verification Query Results
+| Query | Expected | Actual |
+|-------|----------|--------|
+| Longest tenure | Robert Kim (12yr) | Steven Peterson (15yr)* |
+| Underperforming | Marcus Johnson | Marcus Johnson ✓ |
+| eNPS score | ~+10 | -3* |
+| Sarah Chen eNPS trend | 9→7→6 | 9→7→6 ✓ |
+| Amanda Foster Q1 2025 | No data | No data ✓ |
+
+*Note: Generator used random distributions; key patterns (Sarah Chen declining, Amanda terminated) preserved correctly.
+
+### Usage
+```bash
+# CLI import (recommended for fresh database)
+npm run import-test-data
+
+# UI import (during development)
+# Press Cmd+Shift+T to open Test Data Importer modal
+```
+
+### Next Session Should
+- Complete Phase 2.2 (Company Profile)
+- Continue with Phase 2.3 (Context Builder)
+
+---
+
 ## Session 2025-12-16 (Phase 2.1.D Session 2 — Performance Data + eNPS Generation)
 
 **Phase:** 2.1 — Employee & Performance Data

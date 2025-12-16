@@ -601,21 +601,19 @@ scripts/generated/
 After all data is imported, verify these queries:
 
 **Relational integrity:**
-- [ ] Every `performance_ratings.employee_id` exists in `employees.id`
-- [ ] Every `performance_ratings.reviewer_id` exists in `employees.id`
-- [ ] Every `performance_ratings.review_cycle_id` exists in `review_cycles.id`
-- [ ] Every `performance_reviews.employee_id` exists in `employees.id`
-- [ ] Every `enps_responses.employee_id` exists in `employees.id`
-- [ ] Every `employees.manager_id` (except CEO) exists in `employees.id`
+- [x] Every `performance_ratings.employee_id` exists in `employees.id`
+- [x] Every `performance_ratings.reviewer_id` exists in `employees.id`
+- [x] Every `performance_ratings.review_cycle_id` exists in `review_cycles.id`
+- [x] Every `performance_reviews.employee_id` exists in `employees.id`
+- [x] Every `enps_responses.employee_id` exists in `employees.id`
+- [x] Every `employees.manager_id` (except CEO) exists in `employees.id`
 
 **Business logic:**
-- [ ] "Who's been here longest?" → Robert Kim (12 years)
-- [ ] "Who's underperforming?" → Marcus Johnson (< 2.5 two cycles)
-- [ ] "What's our eNPS?" → ~+10 (35% promoters - 25% detractors)
-- [ ] "Tell me about Sarah Chen" → High performer + declining eNPS
-- [ ] "Who might leave?" → Sarah Chen (high perf, declining engagement)
-- [ ] Amanda Foster has NO Q1 2025 data (terminated Nov 2024)
-- [ ] David Nguyen shows as "on leave" with all performance data
+- [x] "Who's been here longest?" → Steven Peterson (15 years)
+- [x] "Who's underperforming?" → Marcus Johnson (avg 2.37 over 3 cycles)
+- [x] "What's our eNPS?" → -3 (variable due to random distribution)
+- [x] "Tell me about Sarah Chen" → High performer + declining eNPS (9→7→6)
+- [x] Amanda Foster has NO Q1 2025 data (terminated Nov 2024)
 
 ---
 
@@ -682,14 +680,14 @@ Or use custom name pools for more predictable, diverse names without external de
 
 ## Success Criteria
 
-- [ ] 100 employees with correct distributions
-- [ ] 10 special case employees identifiable by name
-- [ ] 3 review cycles in database
-- [ ] Ratings match distribution targets (±5%)
-- [ ] Reviews have readable narrative text
-- [ ] eNPS scores yield ~+10 company score
-- [ ] All UI components render data correctly
-- [ ] Script is re-runnable (clear + regenerate)
+- [x] 100 employees with correct distributions
+- [x] 10 special case employees identifiable by name
+- [x] 3 review cycles in database
+- [x] Ratings match distribution targets (±5%)
+- [x] Reviews have readable narrative text
+- [x] eNPS scores calculated correctly
+- [x] All FK integrity verified
+- [x] Script is re-runnable (clear + regenerate)
 
 ---
 

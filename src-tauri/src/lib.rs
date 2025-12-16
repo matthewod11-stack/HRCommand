@@ -3,6 +3,7 @@
 
 use tauri::Manager;
 
+mod bulk_import;
 mod chat;
 mod db;
 mod employees;
@@ -459,6 +460,71 @@ async fn get_latest_enps_for_employee(
 }
 
 // ============================================================================
+// Bulk Import Commands (Test Data)
+// ============================================================================
+
+/// Clear all data from the database (for test data reset)
+#[tauri::command]
+async fn bulk_clear_data(
+    state: tauri::State<'_, Database>,
+) -> Result<(), bulk_import::ImportError> {
+    bulk_import::clear_all_data(&state.pool).await
+}
+
+/// Bulk import review cycles with predefined IDs
+#[tauri::command]
+async fn bulk_import_review_cycles(
+    state: tauri::State<'_, Database>,
+    cycles: Vec<bulk_import::ImportReviewCycle>,
+) -> Result<bulk_import::BulkImportResult, bulk_import::ImportError> {
+    bulk_import::import_review_cycles(&state.pool, cycles).await
+}
+
+/// Bulk import employees with predefined IDs
+#[tauri::command]
+async fn bulk_import_employees(
+    state: tauri::State<'_, Database>,
+    employees: Vec<bulk_import::ImportEmployee>,
+) -> Result<bulk_import::BulkImportResult, bulk_import::ImportError> {
+    bulk_import::import_employees_bulk(&state.pool, employees).await
+}
+
+/// Bulk import performance ratings with predefined IDs
+#[tauri::command]
+async fn bulk_import_ratings(
+    state: tauri::State<'_, Database>,
+    ratings: Vec<bulk_import::ImportRating>,
+) -> Result<bulk_import::BulkImportResult, bulk_import::ImportError> {
+    bulk_import::import_ratings_bulk(&state.pool, ratings).await
+}
+
+/// Bulk import performance reviews with predefined IDs
+#[tauri::command]
+async fn bulk_import_reviews(
+    state: tauri::State<'_, Database>,
+    reviews: Vec<bulk_import::ImportReview>,
+) -> Result<bulk_import::BulkImportResult, bulk_import::ImportError> {
+    bulk_import::import_reviews_bulk(&state.pool, reviews).await
+}
+
+/// Bulk import eNPS responses with predefined IDs
+#[tauri::command]
+async fn bulk_import_enps(
+    state: tauri::State<'_, Database>,
+    responses: Vec<bulk_import::ImportEnps>,
+) -> Result<bulk_import::BulkImportResult, bulk_import::ImportError> {
+    bulk_import::import_enps_bulk(&state.pool, responses).await
+}
+
+/// Verify data integrity after import
+#[tauri::command]
+async fn verify_data_integrity(
+    state: tauri::State<'_, Database>,
+) -> Result<Vec<bulk_import::IntegrityCheckResult>, bulk_import::ImportError> {
+    bulk_import::verify_integrity(&state.pool).await
+}
+
+// ============================================================================
 // File Parser Commands
 // ============================================================================
 
@@ -583,7 +649,15 @@ pub fn run() {
             is_supported_file,
             map_employee_columns,
             map_rating_columns,
-            map_enps_columns
+            map_enps_columns,
+            // Bulk import (test data)
+            bulk_clear_data,
+            bulk_import_review_cycles,
+            bulk_import_employees,
+            bulk_import_ratings,
+            bulk_import_reviews,
+            bulk_import_enps,
+            verify_data_integrity
         ])
         .setup(|app| {
             let handle = app.handle().clone();
