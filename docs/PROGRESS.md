@@ -10,6 +10,67 @@
 Most recent session should be first.
 -->
 
+## Session 2025-12-16 (Phase 2.2 — Company Profile)
+
+**Phase:** 2.2 — Company Profile
+**Focus:** Implement company profile feature with HQ state (legal jurisdiction)
+
+### Completed
+- [x] 2.2.1 Create CompanySetup component with name + state form
+- [x] 2.2.2 Implement company table operations (company.rs)
+- [x] 2.2.3 Require name + state during onboarding (gated flow)
+- [x] 2.2.4 Store company data in SQLite
+
+### Files Created
+```
+src-tauri/src/company.rs                   - Company CRUD (has, get, upsert) + state validation
+src/components/company/CompanySetup.tsx    - React form component with state dropdown
+src/components/company/index.ts            - Barrel export
+```
+
+### Files Modified
+```
+src-tauri/src/lib.rs               - Added company module + 4 Tauri commands
+src/lib/types.ts                   - Added UpsertCompany, StateCount, EmployeeStatesSummary
+src/lib/tauri-commands.ts          - Added company command wrappers
+src/App.tsx                        - Integrated CompanySetup into gated onboarding flow
+```
+
+### Design Decision: State Field
+| Concept | Implementation |
+|---------|----------------|
+| Company HQ State | Single state (state of incorporation) stored in company.state |
+| Employee Work States | Per-employee field in employees.work_state (already exists) |
+| Operational Footprint | Derived from employees table via getEmployeeWorkStates() |
+
+### Tauri Commands Added (4)
+| Command | Purpose |
+|---------|---------|
+| `has_company` | Check if company profile exists (for gating) |
+| `get_company` | Get company profile |
+| `upsert_company` | Create or update company profile |
+| `get_employee_work_states` | Derive operational states from employees |
+
+### Features
+- **US State Validation:** All 50 state codes validated in Rust
+- **State Dropdown:** UI uses dropdown (not free text) to prevent typos
+- **Gated Flow:** App requires company profile before showing chat
+- **Edit Mode:** CompanySetup supports both initial setup and later editing
+- **Compact Mode:** Settings panel can show configured state with edit option
+
+### Verified
+- [x] TypeScript compiles without errors
+- [x] Rust compiles without errors
+- [x] Build succeeds (66 modules, 525KB JS)
+- [x] Company profile gates chat access
+
+### Next Session Should
+- Start with: Phase 2.3 — Context Builder
+- First task: 2.3.1 Implement context.rs with retrieval logic
+- Be aware of: Company profile now available for context injection
+
+---
+
 ## Session 2025-12-16 (Phase 2.1.D Session 3 — Test Data Import + Verification)
 
 **Phase:** 2.1 — Employee & Performance Data

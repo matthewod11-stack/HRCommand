@@ -2,7 +2,7 @@
 // All Tauri invoke calls go through here for type safety
 
 import { invoke } from '@tauri-apps/api/core';
-import type { Employee, ReviewCycle, PerformanceRating, PerformanceReview, EnpsResponse, ParseResult, ParsePreview, ColumnMapping } from './types';
+import type { Employee, ReviewCycle, PerformanceRating, PerformanceReview, EnpsResponse, ParseResult, ParsePreview, ColumnMapping, Company, UpsertCompany, EmployeeStatesSummary } from './types';
 
 /**
  * Test command - will be replaced with actual commands in Phase 1.4
@@ -127,6 +127,43 @@ export async function checkNetworkStatus(): Promise<NetworkStatus> {
  */
 export async function isOnline(): Promise<boolean> {
   return invoke('is_online');
+}
+
+// =============================================================================
+// Phase 2.2 - Company Profile
+// =============================================================================
+
+/**
+ * Check if a company profile has been set up
+ * Used to gate the app until company profile is configured
+ */
+export async function hasCompany(): Promise<boolean> {
+  return invoke('has_company');
+}
+
+/**
+ * Get the company profile
+ * @throws Error if company profile doesn't exist
+ */
+export async function getCompany(): Promise<Company> {
+  return invoke('get_company');
+}
+
+/**
+ * Create or update the company profile (upsert)
+ * @param input Company name, state (2-letter code), and optional industry
+ */
+export async function upsertCompany(input: UpsertCompany): Promise<Company> {
+  return invoke('upsert_company', { input });
+}
+
+/**
+ * Get summary of employee work states (operational footprint)
+ * Derived from employees table, not company profile
+ * Useful for understanding where employees are located
+ */
+export async function getEmployeeWorkStates(): Promise<EmployeeStatesSummary> {
+  return invoke('get_employee_work_states');
 }
 
 // =============================================================================

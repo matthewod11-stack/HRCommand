@@ -49,9 +49,30 @@ export interface Message {
 export interface Company {
   id: string;
   name: string;
-  state: string;
+  state: string; // HQ/incorporation state (2-letter code)
   industry?: string;
   created_at: string;
+}
+
+/** Input for creating or updating the company profile */
+export interface UpsertCompany {
+  name: string;
+  state: string; // 2-letter US state code (e.g., CA, NY, TX)
+  industry?: string;
+}
+
+/** Count of employees in a specific state */
+export interface StateCount {
+  state: string;
+  count: number;
+}
+
+/** Summary of states where employees work (operational footprint) */
+export interface EmployeeStatesSummary {
+  /** List of state codes with employees */
+  states: string[];
+  /** Breakdown by state with counts */
+  counts: StateCount[];
 }
 
 export interface Settings {

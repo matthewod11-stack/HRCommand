@@ -5,28 +5,43 @@ import { EmployeeProvider } from './contexts/EmployeeContext';
 import { AppShell } from './components/layout/AppShell';
 import { ChatInput, MessageList } from './components/chat';
 import { ApiKeyInput } from './components/settings';
+import { CompanySetup } from './components/company';
 import { EmployeePanel, EmployeeDetail, EmployeeEdit } from './components/employees';
 import { ImportWizard } from './components/import';
 import { TestDataImporter } from './components/dev/TestDataImporter';
 import { useEmployees } from './contexts/EmployeeContext';
-import { Message } from './lib/types';
-import { hasApiKey, sendChatMessageStreaming, ChatMessage, StreamChunk } from './lib/tauri-commands';
+import { Message, Company } from './lib/types';
+import { hasApiKey, hasCompany, sendChatMessageStreaming, ChatMessage, StreamChunk } from './lib/tauri-commands';
 
 function ChatArea() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [hasKey, setHasKey] = useState<boolean | null>(null);
+  const [hasCompanyProfile, setHasCompanyProfile] = useState<boolean | null>(null);
   const streamingMessageId = useRef<string | null>(null);
 
-  // Check for API key on mount
+  // Check for API key and company profile on mount
   useEffect(() => {
     hasApiKey()
       .then(setHasKey)
       .catch(() => setHasKey(false));
   }, []);
 
+  // Check company profile after API key is confirmed
+  useEffect(() => {
+    if (hasKey === true) {
+      hasCompany()
+        .then(setHasCompanyProfile)
+        .catch(() => setHasCompanyProfile(false));
+    }
+  }, [hasKey]);
+
   const handleApiKeySaved = useCallback(() => {
     setHasKey(true);
+  }, []);
+
+  const handleCompanySaved = useCallback((_company: Company) => {
+    setHasCompanyProfile(true);
   }, []);
 
   const handleSubmit = useCallback(async (content: string) => {
@@ -134,6 +149,39 @@ function ChatArea() {
             Enter your Anthropic API key to get started.
           </p>
           <ApiKeyInput onSave={handleApiKeySaved} />
+        </div>
+      </div>
+    );
+  }
+
+  // Show loading while checking company profile
+  if (hasCompanyProfile === null) {
+    return (
+      <div className="h-full flex items-center justify-center">
+        <div className="text-stone-400 text-sm">Checking company profile...</div>
+      </div>
+    );
+  }
+
+  // Show company setup if not configured
+  if (!hasCompanyProfile) {
+    return (
+      <div className="h-full flex flex-col items-center justify-center p-8">
+        <div className="w-full max-w-lg">
+          <div className="mb-8 text-center">
+            <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-primary-100 flex items-center justify-center">
+              <svg className="w-8 h-8 text-primary-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+              </svg>
+            </div>
+            <h2 className="font-display text-2xl text-stone-800 mb-2">
+              Set Up Your Company
+            </h2>
+            <p className="text-stone-600">
+              This helps Claude provide context-aware HR guidance.
+            </p>
+          </div>
+          <CompanySetup onSave={handleCompanySaved} />
         </div>
       </div>
     );

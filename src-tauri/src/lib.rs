@@ -5,6 +5,7 @@ use tauri::Manager;
 
 mod bulk_import;
 mod chat;
+mod company;
 mod db;
 mod employees;
 mod enps;
@@ -97,6 +98,43 @@ async fn check_network_status() -> network::NetworkStatus {
 #[tauri::command]
 async fn is_online() -> bool {
     network::is_online().await
+}
+
+// ============================================================================
+// Company Profile Commands
+// ============================================================================
+
+/// Check if a company profile exists
+#[tauri::command]
+async fn has_company(
+    state: tauri::State<'_, Database>,
+) -> Result<bool, company::CompanyError> {
+    company::has_company(&state.pool).await
+}
+
+/// Get the company profile
+#[tauri::command]
+async fn get_company(
+    state: tauri::State<'_, Database>,
+) -> Result<company::Company, company::CompanyError> {
+    company::get_company(&state.pool).await
+}
+
+/// Create or update the company profile
+#[tauri::command]
+async fn upsert_company(
+    state: tauri::State<'_, Database>,
+    input: company::UpsertCompany,
+) -> Result<company::Company, company::CompanyError> {
+    company::upsert_company(&state.pool, input).await
+}
+
+/// Get summary of states where employees work (operational footprint)
+#[tauri::command]
+async fn get_employee_work_states(
+    state: tauri::State<'_, Database>,
+) -> Result<company::EmployeeStatesSummary, company::CompanyError> {
+    company::get_employee_work_states(&state.pool).await
 }
 
 // ============================================================================
@@ -598,6 +636,11 @@ pub fn run() {
             send_chat_message_streaming,
             check_network_status,
             is_online,
+            // Company profile
+            has_company,
+            get_company,
+            upsert_company,
+            get_employee_work_states,
             // Employee management
             create_employee,
             get_employee,

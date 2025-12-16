@@ -145,11 +145,11 @@ This is a **long-running, multi-session implementation**. Follow these rules:
 - [x] 2.1.20 Generate 3 review cycles with ratings + reviews
 - [x] 2.1.21 Generate 3 eNPS survey responses per employee
 
-### 2.2 Company Profile
-- [ ] 2.2.1 Create CompanySetup component
-- [ ] 2.2.2 Implement company table operations
-- [ ] 2.2.3 Require name + state during onboarding
-- [ ] 2.2.4 Store company data in SQLite
+### 2.2 Company Profile ✓ COMPLETE
+- [x] 2.2.1 Create CompanySetup component
+- [x] 2.2.2 Implement company table operations
+- [x] 2.2.3 Require name + state during onboarding
+- [x] 2.2.4 Store company data in SQLite
 
 ### 2.3 Context Builder
 > **Reference:** [HR_PERSONA.md](./HR_PERSONA.md) for Claude's HR leader persona
