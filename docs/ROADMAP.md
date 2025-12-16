@@ -109,13 +109,38 @@ This is a **long-running, multi-session implementation**. Follow these rules:
 
 **Goal:** Claude knows about your company and remembers past conversations
 
-### 2.1 Employee Data
-- [ ] 2.1.1 Implement employees.rs CRUD operations
-- [ ] 2.1.2 Create FileDropzone component for CSV import
-- [ ] 2.1.3 Implement CSV parsing with merge-by-email logic
-- [ ] 2.1.4 Create EmployeePanel component (sidebar)
-- [ ] 2.1.5 Create EmployeeEdit component (modal)
-- [ ] 2.1.6 Create sample dataset ("Acme Corp" 5 employees)
+### 2.1 Employee & Performance Data
+> **Expanded Scope:** Full HR Suite schema with performance ratings, reviews, eNPS, and demographics.
+> **Reference:** [SCHEMA_EXPANSION_V1.md](./SCHEMA_EXPANSION_V1.md)
+
+#### 2.1.A Schema & Backend
+- [x] 2.1.1 Create migration 002_performance_enps.sql (new tables + employee fields)
+- [x] 2.1.2 Update employees.rs with demographics + termination fields
+- [x] 2.1.3 Create review_cycles.rs CRUD operations
+- [x] 2.1.4 Create performance_ratings.rs CRUD operations
+- [x] 2.1.5 Create performance_reviews.rs CRUD operations (+ FTS triggers)
+- [x] 2.1.6 Create enps.rs CRUD operations
+
+#### 2.1.B File Ingestion
+- [x] 2.1.7 Add calamine dependency for Excel parsing
+- [x] 2.1.8 Create unified file parser (CSV, XLSX, TSV)
+- [x] 2.1.9 Create FileDropzone component (multi-format)
+- [x] 2.1.10 Implement employee import with merge-by-email
+- [x] 2.1.11 Implement performance ratings import
+- [x] 2.1.12 Implement performance reviews import
+- [x] 2.1.13 Implement eNPS import
+
+#### 2.1.C UI Components ✓ COMPLETE
+- [x] 2.1.14 Create EmployeePanel component (sidebar with performance summary)
+- [x] 2.1.15 Create EmployeeDetail component (full profile view)
+- [x] 2.1.16 Create EmployeeEdit component (modal)
+- [x] 2.1.17 Create ImportWizard component (guides through data import)
+
+#### 2.1.D Test Data
+- [ ] 2.1.18 Create test data generator script
+- [ ] 2.1.19 Generate "Acme Corp" dataset (100 employees)
+- [ ] 2.1.20 Generate 3 review cycles with ratings + reviews
+- [ ] 2.1.21 Generate 3 eNPS survey responses per employee
 
 ### 2.2 Company Profile
 - [ ] 2.2.1 Create CompanySetup component
@@ -124,11 +149,14 @@ This is a **long-running, multi-session implementation**. Follow these rules:
 - [ ] 2.2.4 Store company data in SQLite
 
 ### 2.3 Context Builder
+> **Reference:** [HR_PERSONA.md](./HR_PERSONA.md) for Claude's HR leader persona
+
 - [ ] 2.3.1 Implement context.rs with retrieval logic
 - [ ] 2.3.2 Add employee name/department extraction from query
-- [ ] 2.3.3 Build system prompt template with company + state
-- [ ] 2.3.4 Add context to Claude API calls
-- [ ] 2.3.5 Implement context size trimming
+- [ ] 2.3.3 Build system prompt with HR persona ("Alex") + company context
+- [ ] 2.3.4 Include performance/eNPS data in employee context
+- [ ] 2.3.5 Add context to Claude API calls
+- [ ] 2.3.6 Implement context size trimming
 
 ### 2.4 Cross-Conversation Memory
 - [ ] 2.4.1 Implement memory.rs for conversation summaries
@@ -150,10 +178,14 @@ This is a **long-running, multi-session implementation**. Follow these rules:
 
 ### Pause Point 2A
 **Verification Required:**
-- [ ] Can import CSV and see employees
+- [ ] Can import employee CSV/Excel and see employees with demographics
+- [ ] Can import performance ratings and reviews
+- [ ] Can import eNPS survey data
 - [ ] Can edit individual employee
 - [ ] Asking "Who's been here longest?" returns correct answer
-- [ ] Asking about employee by name includes their context
+- [ ] Asking "Who's underperforming?" uses ratings data
+- [ ] Asking "What's our eNPS?" calculates correctly
+- [ ] Asking about employee by name includes their performance context
 - [ ] Conversation sidebar shows history
 - [ ] Search finds past conversations
 - [ ] Memory references past discussions naturally

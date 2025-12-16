@@ -10,6 +10,221 @@
 Most recent session should be first.
 -->
 
+## Session 2025-12-16 (Phase 2.1.C — Employee UI Components)
+
+**Phase:** 2.1 — Employee & Performance Data
+**Focus:** Complete all UI components for employee management
+
+### Completed
+- [x] 2.1.14 Create EmployeePanel component (sidebar with performance summary)
+- [x] 2.1.15 Create EmployeeDetail component (full profile view)
+- [x] 2.1.16 Create EmployeeEdit component (modal)
+- [x] 2.1.17 Create ImportWizard component (guides through data import)
+
+### Files Created
+```
+src/contexts/EmployeeContext.tsx         - State management for employees, selection, modals
+src/components/employees/EmployeePanel.tsx   - Left sidebar with search, filters, employee cards
+src/components/employees/EmployeeDetail.tsx  - Right panel with full profile + performance data
+src/components/employees/EmployeeEdit.tsx    - Modal form for editing employee data
+src/components/employees/index.ts            - Barrel export
+src/components/import/ImportWizard.tsx       - Step-by-step wizard for data import
+```
+
+### Files Modified
+```
+src/App.tsx                    - Integrated EmployeeProvider, panels, and modals
+src/lib/tauri-commands.ts      - Added getReviewsForEmployee, getEnpsForEmployee, getLatestEnpsForEmployee
+src/components/import/index.ts - Added ImportWizard export
+```
+
+### Features Implemented
+- **EmployeePanel:** Search, status filters (All/Active/Left/Leave), employee cards with ratings
+- **EmployeeDetail:** Full profile, demographics, performance ratings history, eNPS responses
+- **EmployeeEdit:** Modal form with all employee fields, conditional termination section
+- **ImportWizard:** Data type selection → file upload → import → success screen
+- **Context state:** Selection tracking, modal states, optimistic updates
+
+### TypeScript Wrappers Added (3)
+| Command | Description |
+|---------|-------------|
+| `getReviewsForEmployee` | Get all performance reviews for an employee |
+| `getEnpsForEmployee` | Get all eNPS responses for an employee |
+| `getLatestEnpsForEmployee` | Get most recent eNPS for an employee |
+
+### Verified
+- [x] TypeScript compiles without errors
+- [x] Build succeeds (58 modules, 247KB JS)
+- [x] All UI components render correctly
+
+### Next Session Should
+- Start with: 2.1.18 Create test data generator script
+- Then: 2.1.19-2.1.21 Generate Acme Corp dataset
+- Or: Phase 2.2 Company Profile
+- Be aware of: Phase 2.1.C complete; employee UI fully functional, needs test data
+
+---
+
+## Session 2025-12-15 (Phase 2.1.B — File Ingestion UI)
+
+**Phase:** 2.1 — Employee & Performance Data
+**Focus:** Add file parsing backend + UI components for import workflow
+
+### Completed
+- [x] 2.1.7 Add calamine dependency for Excel parsing
+- [x] 2.1.8 Create unified file parser (CSV, XLSX, TSV)
+- [x] 2.1.9 Create FileDropzone component (multi-format)
+- [x] 2.1.10 Implement employee import with merge-by-email
+- [x] 2.1.11 Implement performance ratings import
+- [x] 2.1.12 Implement performance reviews import
+- [x] 2.1.13 Implement eNPS import
+
+### Files Created
+```
+src-tauri/src/file_parser.rs            - Unified file parser (CSV, TSV, XLSX, XLS)
+src/components/import/FileDropzone.tsx  - Drag-and-drop file upload component
+src/components/import/ImportPreview.tsx - Preview parsed data with column mapping
+src/components/import/EmployeeImport.tsx - Complete employee import workflow
+src/components/import/RatingsImport.tsx  - Performance ratings import with cycle selection
+src/components/import/ReviewsImport.tsx  - Performance reviews import workflow
+src/components/import/EnpsImport.tsx     - eNPS survey response import
+src/components/import/index.ts          - Barrel export
+```
+
+### Files Modified
+```
+src-tauri/Cargo.toml           - Added csv + calamine dependencies
+src-tauri/src/lib.rs           - Added file_parser module + 7 Tauri commands
+src/lib/types.ts               - Added ParseResult, ParsePreview, ColumnMapping types
+src/lib/tauri-commands.ts      - Added file parsing command wrappers
+```
+
+### Features Implemented
+- **Format detection:** Automatic format detection from file extension
+- **CSV/TSV parsing:** Using csv crate with flexible row handling
+- **Excel parsing:** Using calamine for .xlsx/.xls files
+- **Header normalization:** Consistent snake_case conversion for column matching
+- **Column mapping:** Auto-mapping of common column names to standard fields
+- **Preview support:** Parse first N rows for UI preview before full import
+
+### Tauri Commands Added (7)
+| Command | Description |
+|---------|-------------|
+| `parse_file` | Parse file and return all rows |
+| `parse_file_preview` | Parse file and return first N rows |
+| `get_supported_extensions` | List supported file extensions |
+| `is_supported_file` | Check if file is supported |
+| `map_employee_columns` | Auto-map headers to employee fields |
+| `map_rating_columns` | Auto-map headers to rating fields |
+| `map_enps_columns` | Auto-map headers to eNPS fields |
+
+### Column Mapping Support
+The parser includes smart column mapping for common HR data formats:
+- **Employee:** email, first_name, last_name, department, title, hire_date, work_state, etc.
+- **Ratings:** employee_email, rating, cycle_name, rated_at, notes
+- **eNPS:** employee_email, score, survey_name, responded_at, comment
+
+### Verified
+- [x] TypeScript compiles without errors
+- [x] Rust compiles without errors (14 warnings, no errors)
+- [x] Build succeeds
+
+### Next Session Should
+- Start with: 2.1.14 Create EmployeePanel component (sidebar with performance summary)
+- Then: 2.1.15-2.1.17 Employee detail views and edit modal
+- Or: 2.1.18-2.1.21 Test data generation
+- Be aware of: Phase 2.1.B File Ingestion complete; all import workflows ready for testing
+
+---
+
+## Session 2025-12-15 (Phase 2.1.A Complete — All Backend CRUD)
+
+**Phase:** 2.1 — Employee & Performance Data
+**Focus:** Complete all backend CRUD modules for HR data
+
+### Completed
+- [x] 2.1.1 Create migration 002_performance_enps.sql
+- [x] 2.1.2 Create employees.rs with demographics + termination fields
+- [x] 2.1.3 Create review_cycles.rs CRUD operations
+- [x] 2.1.4 Create performance_ratings.rs CRUD operations
+- [x] 2.1.5 Create performance_reviews.rs CRUD operations (+ FTS)
+- [x] 2.1.6 Create enps.rs CRUD operations
+
+### Files Created
+```
+src-tauri/migrations/002_performance_enps.sql  - Full HR Suite schema expansion
+src-tauri/src/employees.rs                     - Employee CRUD (9 commands)
+src-tauri/src/review_cycles.rs                 - Review cycle CRUD (7 commands)
+src-tauri/src/performance_ratings.rs           - Ratings CRUD + analytics (9 commands)
+src-tauri/src/performance_reviews.rs           - Reviews CRUD + FTS search (7 commands)
+src-tauri/src/enps.rs                          - eNPS CRUD + score calculation (7 commands)
+```
+
+### Files Modified
+```
+src-tauri/src/db.rs           - Migration runner for multiple files + idempotent ALTER TABLE
+src-tauri/src/lib.rs          - Added 5 modules + 39 Tauri commands
+src/lib/types.ts              - TypeScript interfaces for all new entities
+src/lib/tauri-commands.ts     - TypeScript wrappers (employees + review_cycles + ratings)
+```
+
+### Schema Added
+| Table | Purpose |
+|-------|---------|
+| review_cycles | Organize performance data by time period (annual, quarterly) |
+| performance_ratings | Numeric ratings per employee per cycle (1.0-5.0 scale) |
+| performance_reviews | Text narratives with FTS search support |
+| enps_responses | Employee Net Promoter Score tracking (0-10 scale) |
+
+### Employee Fields Added
+- `date_of_birth` — For age calculations
+- `gender` — For DEI reporting
+- `ethnicity` — For DEI reporting
+- `termination_date` — When status changed to terminated
+- `termination_reason` — voluntary/involuntary/retirement/other
+
+### TypeScript Types Added
+- `ReviewCycle`, `PerformanceRating`, `PerformanceReview`, `EnpsResponse`
+- `EnpsCategory` union type + `getEnpsCategory()` helper
+- `EmployeeWithPerformance` extended interface
+- `RATING_LABELS` constant for UI display
+
+### Tauri Commands Added (9 total)
+| Command | Description |
+|---------|-------------|
+| `create_employee` | Create new employee |
+| `get_employee` | Get by ID |
+| `get_employee_by_email` | Get by email |
+| `update_employee` | Partial update |
+| `delete_employee` | Delete by ID |
+| `list_employees` | Filter + paginate |
+| `get_departments` | Unique department list |
+| `get_employee_counts` | Count by status |
+| `import_employees` | Bulk upsert by email |
+
+### Technical Notes
+- Migration runner now handles "duplicate column" errors gracefully (idempotent)
+- FTS5 virtual table + 3 sync triggers for performance_reviews search
+- All foreign keys use ON DELETE CASCADE for clean data removal
+- Employee CRUD uses SQLx with FromRow derive for type-safe queries
+- Bulk import uses upsert pattern (merge by email)
+
+### Verified
+- [x] TypeScript compiles without errors
+- [x] Rust compiles without errors
+- [x] Build succeeds
+- [x] Migration creates all 4 new tables
+- [x] Migration adds 5 new columns to employees
+- [x] FTS triggers created for performance_reviews
+
+### Next Session Should
+- Start with: 2.1.7 Add calamine dependency for Excel parsing
+- Then: 2.1.B File Ingestion (CSV, XLSX, TSV parsing)
+- Or: 2.1.C UI Components (EmployeePanel, EmployeeDetail, ImportWizard)
+- Be aware of: All backend CRUD complete; need file ingestion + UI next
+
+---
+
 ## Session 2025-12-15 (Phase 1.5 Complete)
 
 **Phase:** 1.5 — Network Detection

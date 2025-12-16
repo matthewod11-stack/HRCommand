@@ -108,6 +108,52 @@ These decisions were explicitly deferred to V1.1 or later:
 **Context:** Financial PII only (SSN, CC, bank) to reduce false positives.
 **Revisit When:** Users report accidentally sending medical/immigration data
 
+### Compensation Data (Salary, Bonus, Equity)
+**Status:** Deferred to V2
+**Decision Date:** 2025-12-15
+**Context:** Full HR Suite schema includes performance ratings, reviews, eNPS, and demographics in V1. Compensation data adds significant PII/security complexity and is deferred.
+**What's Included in V1:** Performance ratings, performance reviews, eNPS scores, demographics (DOB, gender, ethnicity)
+**Revisit When:** Core V1 stable; high user demand for pay equity analysis
+
+### PDF/Document Ingestion
+**Status:** Deferred to V2
+**Decision Date:** 2025-12-15
+**Context:** V1 supports CSV, Excel (.xlsx/.xls), and TSV file import. PDF and DOCX parsing requires OCR or structured extraction (RAG complexity). Policy documents and handbooks would benefit from this but it's not core to employee context.
+**What's Included in V1:** CSV, Excel (.xlsx/.xls), TSV parsing
+**Technical Approach for V2:** Consider pdf-extract-api or similar, embeddings for semantic search, chunk storage
+**Revisit When:** Users request ability to ask questions about company policies/handbooks
+
+### Persona Switcher (Pre-Built HR Personas)
+**Status:** Deferred to V2
+**Decision Date:** 2025-12-15
+**Context:** V1 ships with a single persona ("Alex" — experienced VP of People Ops). V2 could offer multiple curated personas for different user preferences or organizational cultures.
+
+**Candidate Personas:**
+| Persona | Style | Best For |
+|---------|-------|----------|
+| **Alex** (V1 default) | Warm, practical, conversational | General HR leadership |
+| **Jordan** | More formal, compliance-focused | Regulated industries, risk-averse orgs |
+| **Sam** | Startup-friendly, direct, moves fast | Early-stage companies, lean HR |
+| **Morgan** | Data-driven, analytical | HR analytics users, metrics-focused |
+| **Taylor** | Employee-advocate lens, empathetic | High-touch cultures, people-first orgs |
+
+**Implementation Notes:**
+- Personas are pre-written system prompts we ship, not user-editable
+- Selection in Settings panel (simple dropdown)
+- Could show persona "card" with description before selecting
+- Persona affects tone/style, not factual answers or compliance guidance
+- All personas maintain same legal disclaimers and boundaries
+
+**Why Not User-Editable:**
+- Avoids "prompt injection" complexity
+- Ensures quality/consistency
+- Prevents users from accidentally removing safety guardrails
+- Curated feels more premium than DIY
+
+**Revisit When:** V1 stable, user feedback on Alex persona collected
+
+---
+
 ### Interactive Analytics Panel (Natural Language → Charts)
 **Status:** Deferred to V2
 **Decision Date:** 2025-12-13

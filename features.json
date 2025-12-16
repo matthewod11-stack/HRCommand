@@ -2,12 +2,12 @@
   "$schema": "./features.schema.json",
   "_meta": {
     "description": "Feature tracking for HR Command Center. Status: not-started | in-progress | pass | fail | blocked",
-    "lastUpdated": "2025-12-15",
+    "lastUpdated": "2025-12-16",
     "project": "HR Command Center",
-    "totalFeatures": 27,
-    "passing": 6,
+    "totalFeatures": 32,
+    "passing": 7,
     "failing": 0,
-    "inProgress": 0
+    "inProgress": 1
   },
   "phase-0": {
     "pre-flight-validation": {
@@ -39,8 +39,8 @@
   },
   "phase-2": {
     "employee-data": {
-      "status": "not-started",
-      "notes": "CSV import, CRUD, sample data"
+      "status": "in-progress",
+      "notes": "2.1.1-2.1.17 complete: Schema, CRUD, file parser, import UIs, EmployeePanel, EmployeeDetail, EmployeeEdit, ImportWizard. Next: test data generation (2.1.18-2.1.21)"
     },
     "company-profile": {
       "status": "not-started",

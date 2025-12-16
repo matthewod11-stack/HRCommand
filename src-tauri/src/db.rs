@@ -51,9 +51,21 @@ pub async fn init_db(app: &AppHandle) -> DbResult<DbPool> {
 
 /// Run database migrations
 async fn run_migrations(pool: &DbPool) -> DbResult<()> {
-    // Read and execute the initial migration
-    let migration_sql = include_str!("../migrations/001_initial.sql");
+    // Migration files in order
+    let migrations = [
+        include_str!("../migrations/001_initial.sql"),
+        include_str!("../migrations/002_performance_enps.sql"),
+    ];
 
+    for migration_sql in migrations {
+        run_migration_sql(pool, migration_sql).await?;
+    }
+
+    Ok(())
+}
+
+/// Execute a single migration file's SQL statements
+async fn run_migration_sql(pool: &DbPool, migration_sql: &str) -> DbResult<()> {
     // Parse statements carefully - handle BEGIN...END blocks (triggers)
     // These blocks contain semicolons that shouldn't split the statement
     let mut current_statement = String::new();
@@ -92,16 +104,25 @@ async fn run_migrations(pool: &DbPool) -> DbResult<()> {
                 // Remove trailing semicolon for SQLx
                 let stmt_without_semi = stmt.trim_end_matches(';').trim();
                 if !stmt_without_semi.is_empty() {
-                    sqlx::query(stmt_without_semi)
-                        .execute(pool)
-                        .await
-                        .map_err(|e| {
-                            DbError::Migration(format!(
+                    let result = sqlx::query(stmt_without_semi).execute(pool).await;
+
+                    // Handle expected errors gracefully:
+                    // - "duplicate column" for ALTER TABLE ADD COLUMN (already exists)
+                    // - "table already exists" (should be covered by IF NOT EXISTS, but just in case)
+                    if let Err(e) = result {
+                        let err_str = e.to_string().to_lowercase();
+                        let is_duplicate_column = err_str.contains("duplicate column");
+                        let is_table_exists = err_str.contains("already exists");
+
+                        if !is_duplicate_column && !is_table_exists {
+                            return Err(DbError::Migration(format!(
                                 "Failed to execute: {}\nError: {}",
                                 stmt_without_semi.chars().take(100).collect::<String>(),
                                 e
-                            ))
-                        })?;
+                            )));
+                        }
+                        // Otherwise, silently continue - migration already applied
+                    }
                 }
             }
             current_statement.clear();

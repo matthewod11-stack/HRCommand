@@ -1,9 +1,13 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { listen, UnlistenFn } from '@tauri-apps/api/event';
 import { LayoutProvider } from './contexts/LayoutContext';
+import { EmployeeProvider } from './contexts/EmployeeContext';
 import { AppShell } from './components/layout/AppShell';
 import { ChatInput, MessageList } from './components/chat';
 import { ApiKeyInput } from './components/settings';
+import { EmployeePanel, EmployeeDetail, EmployeeEdit } from './components/employees';
+import { ImportWizard } from './components/import';
+import { useEmployees } from './contexts/EmployeeContext';
 import { Message } from './lib/types';
 import { hasApiKey, sendChatMessageStreaming, ChatMessage, StreamChunk } from './lib/tauri-commands';
 
@@ -146,12 +150,51 @@ function ChatArea() {
   );
 }
 
+function EmployeeEditModal() {
+  const {
+    selectedEmployee,
+    isEditModalOpen,
+    closeEditModal,
+    updateEmployeeInList,
+  } = useEmployees();
+
+  if (!selectedEmployee) return null;
+
+  return (
+    <EmployeeEdit
+      employee={selectedEmployee}
+      isOpen={isEditModalOpen}
+      onClose={closeEditModal}
+      onSave={updateEmployeeInList}
+    />
+  );
+}
+
+function ImportWizardModal() {
+  const { isImportWizardOpen, closeImportWizard, refreshEmployees } = useEmployees();
+
+  return (
+    <ImportWizard
+      isOpen={isImportWizardOpen}
+      onClose={closeImportWizard}
+      onComplete={refreshEmployees}
+    />
+  );
+}
+
 function App() {
   return (
     <LayoutProvider>
-      <AppShell>
-        <ChatArea />
-      </AppShell>
+      <EmployeeProvider>
+        <AppShell
+          sidebar={<EmployeePanel />}
+          contextPanel={<EmployeeDetail />}
+        >
+          <ChatArea />
+        </AppShell>
+        <EmployeeEditModal />
+        <ImportWizardModal />
+      </EmployeeProvider>
     </LayoutProvider>
   );
 }

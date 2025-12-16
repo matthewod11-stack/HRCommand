@@ -5,8 +5,14 @@ use tauri::Manager;
 
 mod chat;
 mod db;
+mod employees;
+mod enps;
+mod file_parser;
 mod keyring;
 mod network;
+mod performance_ratings;
+mod performance_reviews;
+mod review_cycles;
 
 use db::Database;
 
@@ -92,6 +98,425 @@ async fn is_online() -> bool {
     network::is_online().await
 }
 
+// ============================================================================
+// Employee Management Commands
+// ============================================================================
+
+/// Create a new employee
+#[tauri::command]
+async fn create_employee(
+    state: tauri::State<'_, Database>,
+    input: employees::CreateEmployee,
+) -> Result<employees::Employee, employees::EmployeeError> {
+    employees::create_employee(&state.pool, input).await
+}
+
+/// Get an employee by ID
+#[tauri::command]
+async fn get_employee(
+    state: tauri::State<'_, Database>,
+    id: String,
+) -> Result<employees::Employee, employees::EmployeeError> {
+    employees::get_employee(&state.pool, &id).await
+}
+
+/// Get an employee by email
+#[tauri::command]
+async fn get_employee_by_email(
+    state: tauri::State<'_, Database>,
+    email: String,
+) -> Result<Option<employees::Employee>, employees::EmployeeError> {
+    employees::get_employee_by_email(&state.pool, &email).await
+}
+
+/// Update an employee
+#[tauri::command]
+async fn update_employee(
+    state: tauri::State<'_, Database>,
+    id: String,
+    input: employees::UpdateEmployee,
+) -> Result<employees::Employee, employees::EmployeeError> {
+    employees::update_employee(&state.pool, &id, input).await
+}
+
+/// Delete an employee
+#[tauri::command]
+async fn delete_employee(
+    state: tauri::State<'_, Database>,
+    id: String,
+) -> Result<(), employees::EmployeeError> {
+    employees::delete_employee(&state.pool, &id).await
+}
+
+/// List employees with filtering
+#[tauri::command]
+async fn list_employees(
+    state: tauri::State<'_, Database>,
+    filter: employees::EmployeeFilter,
+    limit: Option<i64>,
+    offset: Option<i64>,
+) -> Result<employees::EmployeeListResult, employees::EmployeeError> {
+    employees::list_employees(&state.pool, filter, limit, offset).await
+}
+
+/// Get all unique departments
+#[tauri::command]
+async fn get_departments(
+    state: tauri::State<'_, Database>,
+) -> Result<Vec<String>, employees::EmployeeError> {
+    employees::get_departments(&state.pool).await
+}
+
+/// Get employee counts by status
+#[tauri::command]
+async fn get_employee_counts(
+    state: tauri::State<'_, Database>,
+) -> Result<Vec<(String, i64)>, employees::EmployeeError> {
+    employees::get_employee_counts(&state.pool).await
+}
+
+/// Bulk import employees (upsert by email)
+#[tauri::command]
+async fn import_employees(
+    state: tauri::State<'_, Database>,
+    employees: Vec<employees::CreateEmployee>,
+) -> Result<employees::ImportResult, employees::EmployeeError> {
+    employees::import_employees(&state.pool, employees).await
+}
+
+// ============================================================================
+// Review Cycle Commands
+// ============================================================================
+
+/// Create a new review cycle
+#[tauri::command]
+async fn create_review_cycle(
+    state: tauri::State<'_, Database>,
+    input: review_cycles::CreateReviewCycle,
+) -> Result<review_cycles::ReviewCycle, review_cycles::ReviewCycleError> {
+    review_cycles::create_review_cycle(&state.pool, input).await
+}
+
+/// Get a review cycle by ID
+#[tauri::command]
+async fn get_review_cycle(
+    state: tauri::State<'_, Database>,
+    id: String,
+) -> Result<review_cycles::ReviewCycle, review_cycles::ReviewCycleError> {
+    review_cycles::get_review_cycle(&state.pool, &id).await
+}
+
+/// Update a review cycle
+#[tauri::command]
+async fn update_review_cycle(
+    state: tauri::State<'_, Database>,
+    id: String,
+    input: review_cycles::UpdateReviewCycle,
+) -> Result<review_cycles::ReviewCycle, review_cycles::ReviewCycleError> {
+    review_cycles::update_review_cycle(&state.pool, &id, input).await
+}
+
+/// Delete a review cycle
+#[tauri::command]
+async fn delete_review_cycle(
+    state: tauri::State<'_, Database>,
+    id: String,
+) -> Result<(), review_cycles::ReviewCycleError> {
+    review_cycles::delete_review_cycle(&state.pool, &id).await
+}
+
+/// List all review cycles
+#[tauri::command]
+async fn list_review_cycles(
+    state: tauri::State<'_, Database>,
+    status_filter: Option<String>,
+) -> Result<Vec<review_cycles::ReviewCycle>, review_cycles::ReviewCycleError> {
+    review_cycles::list_review_cycles(&state.pool, status_filter).await
+}
+
+/// Get the current active review cycle
+#[tauri::command]
+async fn get_active_review_cycle(
+    state: tauri::State<'_, Database>,
+) -> Result<Option<review_cycles::ReviewCycle>, review_cycles::ReviewCycleError> {
+    review_cycles::get_active_review_cycle(&state.pool).await
+}
+
+/// Close a review cycle
+#[tauri::command]
+async fn close_review_cycle(
+    state: tauri::State<'_, Database>,
+    id: String,
+) -> Result<review_cycles::ReviewCycle, review_cycles::ReviewCycleError> {
+    review_cycles::close_review_cycle(&state.pool, &id).await
+}
+
+// ============================================================================
+// Performance Rating Commands
+// ============================================================================
+
+/// Create a performance rating
+#[tauri::command]
+async fn create_performance_rating(
+    state: tauri::State<'_, Database>,
+    input: performance_ratings::CreateRating,
+) -> Result<performance_ratings::PerformanceRating, performance_ratings::RatingError> {
+    performance_ratings::create_rating(&state.pool, input).await
+}
+
+/// Get a rating by ID
+#[tauri::command]
+async fn get_performance_rating(
+    state: tauri::State<'_, Database>,
+    id: String,
+) -> Result<performance_ratings::PerformanceRating, performance_ratings::RatingError> {
+    performance_ratings::get_rating(&state.pool, &id).await
+}
+
+/// Get all ratings for an employee
+#[tauri::command]
+async fn get_ratings_for_employee(
+    state: tauri::State<'_, Database>,
+    employee_id: String,
+) -> Result<Vec<performance_ratings::PerformanceRating>, performance_ratings::RatingError> {
+    performance_ratings::get_ratings_for_employee(&state.pool, &employee_id).await
+}
+
+/// Get all ratings for a review cycle
+#[tauri::command]
+async fn get_ratings_for_cycle(
+    state: tauri::State<'_, Database>,
+    review_cycle_id: String,
+) -> Result<Vec<performance_ratings::PerformanceRating>, performance_ratings::RatingError> {
+    performance_ratings::get_ratings_for_cycle(&state.pool, &review_cycle_id).await
+}
+
+/// Get the latest rating for an employee
+#[tauri::command]
+async fn get_latest_rating(
+    state: tauri::State<'_, Database>,
+    employee_id: String,
+) -> Result<Option<performance_ratings::PerformanceRating>, performance_ratings::RatingError> {
+    performance_ratings::get_latest_rating_for_employee(&state.pool, &employee_id).await
+}
+
+/// Update a rating
+#[tauri::command]
+async fn update_performance_rating(
+    state: tauri::State<'_, Database>,
+    id: String,
+    input: performance_ratings::UpdateRating,
+) -> Result<performance_ratings::PerformanceRating, performance_ratings::RatingError> {
+    performance_ratings::update_rating(&state.pool, &id, input).await
+}
+
+/// Delete a rating
+#[tauri::command]
+async fn delete_performance_rating(
+    state: tauri::State<'_, Database>,
+    id: String,
+) -> Result<(), performance_ratings::RatingError> {
+    performance_ratings::delete_rating(&state.pool, &id).await
+}
+
+/// Get rating distribution for a cycle
+#[tauri::command]
+async fn get_rating_distribution(
+    state: tauri::State<'_, Database>,
+    review_cycle_id: String,
+) -> Result<performance_ratings::RatingDistribution, performance_ratings::RatingError> {
+    performance_ratings::get_rating_distribution(&state.pool, &review_cycle_id).await
+}
+
+/// Get average rating for a cycle
+#[tauri::command]
+async fn get_average_rating(
+    state: tauri::State<'_, Database>,
+    review_cycle_id: String,
+) -> Result<Option<f64>, performance_ratings::RatingError> {
+    performance_ratings::get_average_rating(&state.pool, &review_cycle_id).await
+}
+
+// ============================================================================
+// Performance Review Commands
+// ============================================================================
+
+#[tauri::command]
+async fn create_performance_review(
+    state: tauri::State<'_, Database>,
+    input: performance_reviews::CreateReview,
+) -> Result<performance_reviews::PerformanceReview, performance_reviews::ReviewError> {
+    performance_reviews::create_review(&state.pool, input).await
+}
+
+#[tauri::command]
+async fn get_performance_review(
+    state: tauri::State<'_, Database>,
+    id: String,
+) -> Result<performance_reviews::PerformanceReview, performance_reviews::ReviewError> {
+    performance_reviews::get_review(&state.pool, &id).await
+}
+
+#[tauri::command]
+async fn get_reviews_for_employee(
+    state: tauri::State<'_, Database>,
+    employee_id: String,
+) -> Result<Vec<performance_reviews::PerformanceReview>, performance_reviews::ReviewError> {
+    performance_reviews::get_reviews_for_employee(&state.pool, &employee_id).await
+}
+
+#[tauri::command]
+async fn get_reviews_for_cycle(
+    state: tauri::State<'_, Database>,
+    review_cycle_id: String,
+) -> Result<Vec<performance_reviews::PerformanceReview>, performance_reviews::ReviewError> {
+    performance_reviews::get_reviews_for_cycle(&state.pool, &review_cycle_id).await
+}
+
+#[tauri::command]
+async fn update_performance_review(
+    state: tauri::State<'_, Database>,
+    id: String,
+    input: performance_reviews::UpdateReview,
+) -> Result<performance_reviews::PerformanceReview, performance_reviews::ReviewError> {
+    performance_reviews::update_review(&state.pool, &id, input).await
+}
+
+#[tauri::command]
+async fn delete_performance_review(
+    state: tauri::State<'_, Database>,
+    id: String,
+) -> Result<(), performance_reviews::ReviewError> {
+    performance_reviews::delete_review(&state.pool, &id).await
+}
+
+#[tauri::command]
+async fn search_performance_reviews(
+    state: tauri::State<'_, Database>,
+    query: String,
+) -> Result<Vec<performance_reviews::PerformanceReview>, performance_reviews::ReviewError> {
+    performance_reviews::search_reviews(&state.pool, &query).await
+}
+
+// ============================================================================
+// eNPS Commands
+// ============================================================================
+
+#[tauri::command]
+async fn create_enps_response(
+    state: tauri::State<'_, Database>,
+    input: enps::CreateEnps,
+) -> Result<enps::EnpsResponse, enps::EnpsError> {
+    enps::create_enps(&state.pool, input).await
+}
+
+#[tauri::command]
+async fn get_enps_response(
+    state: tauri::State<'_, Database>,
+    id: String,
+) -> Result<enps::EnpsResponse, enps::EnpsError> {
+    enps::get_enps(&state.pool, &id).await
+}
+
+#[tauri::command]
+async fn get_enps_for_employee(
+    state: tauri::State<'_, Database>,
+    employee_id: String,
+) -> Result<Vec<enps::EnpsResponse>, enps::EnpsError> {
+    enps::get_enps_for_employee(&state.pool, &employee_id).await
+}
+
+#[tauri::command]
+async fn get_enps_for_survey(
+    state: tauri::State<'_, Database>,
+    survey_name: String,
+) -> Result<Vec<enps::EnpsResponse>, enps::EnpsError> {
+    enps::get_enps_for_survey(&state.pool, &survey_name).await
+}
+
+#[tauri::command]
+async fn delete_enps_response(
+    state: tauri::State<'_, Database>,
+    id: String,
+) -> Result<(), enps::EnpsError> {
+    enps::delete_enps(&state.pool, &id).await
+}
+
+#[tauri::command]
+async fn calculate_enps_score(
+    state: tauri::State<'_, Database>,
+    survey_name: String,
+) -> Result<enps::EnpsScore, enps::EnpsError> {
+    enps::calculate_enps(&state.pool, &survey_name).await
+}
+
+#[tauri::command]
+async fn get_latest_enps_for_employee(
+    state: tauri::State<'_, Database>,
+    employee_id: String,
+) -> Result<Option<enps::EnpsResponse>, enps::EnpsError> {
+    enps::get_latest_enps(&state.pool, &employee_id).await
+}
+
+// ============================================================================
+// File Parser Commands
+// ============================================================================
+
+/// Parse a file (CSV, TSV, XLSX, XLS) and return all rows
+#[tauri::command]
+fn parse_file(
+    data: Vec<u8>,
+    file_name: String,
+) -> Result<file_parser::ParseResult, file_parser::ParseError> {
+    file_parser::parse_file(&data, &file_name)
+}
+
+/// Parse a file and return only a preview (first N rows)
+#[tauri::command]
+fn parse_file_preview(
+    data: Vec<u8>,
+    file_name: String,
+    preview_rows: Option<usize>,
+) -> Result<file_parser::ParsePreview, file_parser::ParseError> {
+    file_parser::parse_file_preview(&data, &file_name, preview_rows)
+}
+
+/// Get list of supported file extensions
+#[tauri::command]
+fn get_supported_extensions() -> Vec<&'static str> {
+    file_parser::supported_extensions()
+}
+
+/// Check if a file is supported for import
+#[tauri::command]
+fn is_supported_file(file_name: String) -> bool {
+    file_parser::is_supported_file(&file_name)
+}
+
+/// Map parsed headers to standard employee fields
+#[tauri::command]
+fn map_employee_columns(
+    headers: Vec<String>,
+) -> std::collections::HashMap<String, String> {
+    file_parser::map_employee_columns(&headers)
+}
+
+/// Map parsed headers to rating fields
+#[tauri::command]
+fn map_rating_columns(
+    headers: Vec<String>,
+) -> std::collections::HashMap<String, String> {
+    file_parser::map_rating_columns(&headers)
+}
+
+/// Map parsed headers to eNPS fields
+#[tauri::command]
+fn map_enps_columns(
+    headers: Vec<String>,
+) -> std::collections::HashMap<String, String> {
+    file_parser::map_enps_columns(&headers)
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -106,7 +531,59 @@ pub fn run() {
             send_chat_message,
             send_chat_message_streaming,
             check_network_status,
-            is_online
+            is_online,
+            // Employee management
+            create_employee,
+            get_employee,
+            get_employee_by_email,
+            update_employee,
+            delete_employee,
+            list_employees,
+            get_departments,
+            get_employee_counts,
+            import_employees,
+            // Review cycles
+            create_review_cycle,
+            get_review_cycle,
+            update_review_cycle,
+            delete_review_cycle,
+            list_review_cycles,
+            get_active_review_cycle,
+            close_review_cycle,
+            // Performance ratings
+            create_performance_rating,
+            get_performance_rating,
+            get_ratings_for_employee,
+            get_ratings_for_cycle,
+            get_latest_rating,
+            update_performance_rating,
+            delete_performance_rating,
+            get_rating_distribution,
+            get_average_rating,
+            // Performance reviews
+            create_performance_review,
+            get_performance_review,
+            get_reviews_for_employee,
+            get_reviews_for_cycle,
+            update_performance_review,
+            delete_performance_review,
+            search_performance_reviews,
+            // eNPS
+            create_enps_response,
+            get_enps_response,
+            get_enps_for_employee,
+            get_enps_for_survey,
+            delete_enps_response,
+            calculate_enps_score,
+            get_latest_enps_for_employee,
+            // File parser
+            parse_file,
+            parse_file_preview,
+            get_supported_extensions,
+            is_supported_file,
+            map_employee_columns,
+            map_rating_columns,
+            map_enps_columns
         ])
         .setup(|app| {
             let handle = app.handle().clone();
