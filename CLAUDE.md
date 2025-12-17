@@ -94,16 +94,17 @@ What's the "Next Session Should" note for PROGRESS.md?
 ## Current Phase
 
 **Phase:** 2 (Context)
-**Status:** Phase 2.4 (Cross-Conversation Memory) in progress — backend complete
+**Status:** Phase 2.4 (Cross-Conversation Memory) complete
 
 **Completed:**
 - 2.4.1: memory.rs with generate_summary(), save_summary(), find_relevant_memories()
+- 2.4.2: Frontend trigger (useConversationSummary hook, Cmd+N shortcut)
 - 2.4.3: Summary search/retrieval (hybrid: LIKE → FTS fallback)
 - 2.4.4: Memories wired into build_chat_context()
 
 **Next Steps:**
-1. Phase 2.4.2: Frontend trigger for summary generation after conversations
-2. Phase 2.5: Conversation management (sidebar, search)
+1. Phase 2.5: Conversation management (sidebar, search)
+2. Phase 2.6: Stickiness features (prompt suggestions)
 
 ---
 

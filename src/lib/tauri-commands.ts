@@ -687,11 +687,54 @@ export async function hasSetting(key: string): Promise<boolean> {
 }
 
 // =============================================================================
-// Commands to be implemented in later phases:
+// Phase 2.4 - Cross-Conversation Memory
 // =============================================================================
 
-// Phase 2.4 - Memory
-// export async function searchMemory(query: string): Promise<ConversationSummary[]>
+/**
+ * A past conversation summary for cross-conversation memory
+ */
+export interface ConversationSummary {
+  conversation_id: string;
+  summary: string;
+  created_at: string;
+}
+
+/**
+ * Generate a summary for a conversation using Claude
+ * @param messagesJson - JSON string of conversation messages
+ * @returns The generated 2-3 sentence summary
+ */
+export async function generateConversationSummary(messagesJson: string): Promise<string> {
+  return invoke('generate_conversation_summary', { messagesJson });
+}
+
+/**
+ * Save a summary to an existing conversation
+ * @param conversationId - The conversation ID to update
+ * @param summary - The summary text to save
+ */
+export async function saveConversationSummary(
+  conversationId: string,
+  summary: string
+): Promise<void> {
+  return invoke('save_conversation_summary', { conversationId, summary });
+}
+
+/**
+ * Search for relevant past conversation memories
+ * @param query - The search query (usually the user's message)
+ * @param limit - Max number of results (default: 3)
+ */
+export async function searchMemories(
+  query: string,
+  limit?: number
+): Promise<ConversationSummary[]> {
+  return invoke('search_memories', { query, limit });
+}
+
+// =============================================================================
+// Commands to be implemented in later phases:
+// =============================================================================
 
 // Phase 3.1 - PII Scanner
 // export async function scanPII(text: string): Promise<PIIRedaction[]>

@@ -10,13 +10,14 @@
 Most recent session should be first.
 -->
 
-## Session 2025-12-17 (Phase 2.4.1 — Cross-Conversation Memory)
+## Session 2025-12-17 (Phase 2.4 — Cross-Conversation Memory COMPLETE)
 
 **Phase:** 2.4 — Cross-Conversation Memory
-**Focus:** Implement memory.rs for conversation summaries and retrieval
+**Focus:** Implement complete memory system for cross-conversation context
 
 ### Completed
 - [x] 2.4.1 Implement memory.rs for conversation summaries
+- [x] 2.4.2 Generate summaries after conversations (frontend trigger)
 - [x] 2.4.3 Implement summary search/retrieval
 - [x] 2.4.4 Include relevant memories in context
 
@@ -25,9 +26,14 @@ Most recent session should be first.
 src-tauri/src/memory.rs            - NEW: Core memory module (~320 LOC, 8 tests)
 src-tauri/src/lib.rs               - Added mod memory + 3 Tauri commands
 src-tauri/src/context.rs           - Wired find_relevant_memories() into build_chat_context()
+src/lib/tauri-commands.ts          - Added generateConversationSummary, saveConversationSummary, searchMemories
+src/hooks/useConversationSummary.ts - NEW: Hook for summary generation
+src/hooks/index.ts                 - Export new hook
+src/App.tsx                        - Added conversationId tracking, Cmd+N shortcut, startNewConversation
 docs/PROGRESS.md                   - This session entry
-docs/ROADMAP.md                    - Marked 2.4.1, 2.4.3, 2.4.4 complete
-features.json                      - Updated cross-conversation-memory status
+docs/ROADMAP.md                    - Marked Phase 2.4 complete
+features.json                      - cross-conversation-memory: pass (11 total passing)
+CLAUDE.md                          - Updated to Phase 2.4 complete
 ```
 
 ### Memory System Architecture
@@ -36,15 +42,18 @@ features.json                      - Updated cross-conversation-memory status
 | `generate_summary()` | Uses Claude to create 2-3 sentence summaries |
 | `save_summary()` | Stores summary in conversations.summary column |
 | `find_relevant_memories()` | Hybrid search: summary-only → FTS fallback |
+| `useConversationSummary` | React hook for frontend integration |
+| `startNewConversation()` | Generates summary + clears messages |
 
 ### Key Implementation Decisions
 1. **Hybrid search:** Summary-only LIKE search first (focused), FTS fallback (broader)
 2. **Stop word filtering:** Removes common words for better search relevance
 3. **Punctuation stripping:** Handles "review?" vs "review" matching
 4. **Resilient integration:** Memory errors logged but don't break chat flow
-5. **Frontend triggers:** Summary generation called by frontend (keeps backend stateless)
+5. **Cmd+N shortcut:** Start new conversation (generates summary of previous)
+6. **Minimum 2 exchanges:** Won't summarize trivial conversations
 
-### Unit Tests Added (8 new)
+### Unit Tests Added (8 new in memory.rs)
 - `test_format_conversation_for_summary` - Message formatting
 - `test_extract_search_keywords` - Keyword extraction with stop words
 - `test_extract_search_keywords_short_words` - Short word filtering
@@ -61,7 +70,7 @@ features.json                      - Updated cross-conversation-memory status
 - [x] Frontend build succeeds
 
 ### Next Session Should
-- Implement Phase 2.4.2: Frontend integration to trigger summary generation after conversations end
+- Start Phase 2.5: Conversation management (ConversationSidebar, auto-titles, search)
 
 ---
 

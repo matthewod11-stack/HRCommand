@@ -161,9 +161,9 @@ This is a **long-running, multi-session implementation**. Follow these rules:
 - [x] 2.3.5 Add context to Claude API calls (+ user_name setting support)
 - [x] 2.3.6 Implement context size trimming
 
-### 2.4 Cross-Conversation Memory
+### 2.4 Cross-Conversation Memory ✓ COMPLETE
 - [x] 2.4.1 Implement memory.rs for conversation summaries
-- [ ] 2.4.2 Generate summaries after conversations (frontend trigger)
+- [x] 2.4.2 Generate summaries after conversations (frontend trigger)
 - [x] 2.4.3 Implement summary search/retrieval
 - [x] 2.4.4 Include relevant memories in context
 

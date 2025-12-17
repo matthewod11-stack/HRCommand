@@ -5,9 +5,9 @@
     "lastUpdated": "2025-12-17",
     "project": "HR Command Center",
     "totalFeatures": 32,
-    "passing": 10,
+    "passing": 11,
     "failing": 0,
-    "inProgress": 1
+    "inProgress": 0
   },
   "phase-0": {
     "pre-flight-validation": {
@@ -51,8 +51,8 @@
       "notes": "2.3.1-2.3.6 complete: context.rs, Alex persona system prompt, employee context with performance/eNPS, wired to frontend chat, user_name setting support, token budget + conversation trimming. 33 tests passing."
     },
     "cross-conversation-memory": {
-      "status": "in-progress",
-      "notes": "2.4.1, 2.4.3, 2.4.4 complete: memory.rs with generate_summary(), find_relevant_memories(), wired into context. 8 tests. Only 2.4.2 (frontend trigger) remains."
+      "status": "pass",
+      "notes": "2.4.1-2.4.4 complete: memory.rs (8 tests), useConversationSummary hook, Tauri commands, Cmd+N shortcut. Summaries generated on new conversation."
     },
     "conversation-management": {
       "status": "not-started",

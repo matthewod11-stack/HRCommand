@@ -10,6 +10,7 @@ import { EmployeePanel, EmployeeDetail, EmployeeEdit } from './components/employ
 import { ImportWizard } from './components/import';
 import { TestDataImporter } from './components/dev/TestDataImporter';
 import { useEmployees } from './contexts/EmployeeContext';
+import { useConversationSummary } from './hooks';
 import { Message, Company } from './lib/types';
 import { hasApiKey, hasCompany, sendChatMessageStreaming, getSystemPrompt, ChatMessage, StreamChunk } from './lib/tauri-commands';
 
@@ -19,6 +20,17 @@ function ChatArea() {
   const [hasKey, setHasKey] = useState<boolean | null>(null);
   const [hasCompanyProfile, setHasCompanyProfile] = useState<boolean | null>(null);
   const streamingMessageId = useRef<string | null>(null);
+
+  // Conversation tracking for cross-conversation memory
+  const [conversationId, setConversationId] = useState<string>(() => crypto.randomUUID());
+  const { generateSummary, canGenerateSummary } = useConversationSummary({
+    onSummaryGenerated: (summary) => {
+      console.log('[Memory] Summary generated:', summary.substring(0, 80) + '...');
+    },
+    onError: (error) => {
+      console.warn('[Memory] Summary generation failed:', error.message);
+    },
+  });
 
   // Check for API key and company profile on mount
   useEffect(() => {
@@ -43,6 +55,34 @@ function ChatArea() {
   const handleCompanySaved = useCallback((_company: Company) => {
     setHasCompanyProfile(true);
   }, []);
+
+  // Start a new conversation (generates summary of previous conversation if applicable)
+  // This will be connected to a "New Conversation" button in Phase 2.5
+  const startNewConversation = useCallback(async () => {
+    // Generate summary if conversation has enough content
+    if (canGenerateSummary(messages)) {
+      console.log('[Memory] Generating summary for conversation:', conversationId);
+      await generateSummary(conversationId, messages);
+    }
+
+    // Clear messages and start fresh
+    setMessages([]);
+    setConversationId(crypto.randomUUID());
+    console.log('[Chat] Started new conversation');
+  }, [messages, conversationId, canGenerateSummary, generateSummary]);
+
+  // Keyboard shortcut: Cmd+N to start a new conversation
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.metaKey && e.key === 'n' && !e.shiftKey) {
+        e.preventDefault();
+        startNewConversation();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [startNewConversation]);
 
   const handleSubmit = useCallback(async (content: string) => {
     // Add user message
