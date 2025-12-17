@@ -94,10 +94,15 @@ What's the "Next Session Should" note for PROGRESS.md?
 ## Current Phase
 
 **Phase:** 2 (Context)
-**Status:** Phase 2.3 (Context Builder) complete
+**Status:** Phase 2.4 (Cross-Conversation Memory) in progress — backend complete
+
+**Completed:**
+- 2.4.1: memory.rs with generate_summary(), save_summary(), find_relevant_memories()
+- 2.4.3: Summary search/retrieval (hybrid: LIKE → FTS fallback)
+- 2.4.4: Memories wired into build_chat_context()
 
 **Next Steps:**
-1. Phase 2.4: Cross-conversation memory (memory.rs, summaries)
+1. Phase 2.4.2: Frontend trigger for summary generation after conversations
 2. Phase 2.5: Conversation management (sidebar, search)
 
 ---
@@ -146,6 +151,7 @@ User Input → PII Scan → Context Builder → Memory Lookup → Claude API →
 |--------|---------|-------|
 | `context.rs` | Query extraction, employee retrieval, Alex persona prompt | 25 |
 | `chat.rs` | Claude API, streaming, conversation trimming | 8 |
+| `memory.rs` | Cross-conversation memory, summary generation, hybrid search | 8 |
 | `employees.rs` | Employee CRUD | - |
 | `company.rs` | Company profile CRUD | - |
 | `settings.rs` | Key-value settings store | - |

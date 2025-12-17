@@ -12,6 +12,7 @@ use sqlx::{FromRow, Row};
 use thiserror::Error;
 
 use crate::db::DbPool;
+use crate::memory;
 
 // ============================================================================
 // Token Budget Constants
@@ -1092,11 +1093,27 @@ pub async fn build_chat_context(
     let employees = find_relevant_employees(pool, &mentions, MAX_EMPLOYEES_IN_CONTEXT).await?;
     let employee_ids_used: Vec<String> = employees.iter().map(|e| e.id.clone()).collect();
 
+    // Find relevant past conversation memories (resilient - don't fail if memory lookup errors)
+    let memory_summaries = match memory::find_relevant_memories(
+        pool,
+        user_message,
+        memory::DEFAULT_MEMORY_LIMIT,
+    )
+    .await
+    {
+        Ok(memories) => memories.into_iter().map(|m| m.summary).collect(),
+        Err(e) => {
+            // Log the error but continue without memories
+            eprintln!("Warning: Failed to retrieve memories: {}", e);
+            Vec::new()
+        }
+    };
+
     Ok(ChatContext {
         company,
         employees,
         employee_ids_used,
-        memory_summaries: Vec::new(), // Placeholder for Phase 2.4
+        memory_summaries,
     })
 }
 

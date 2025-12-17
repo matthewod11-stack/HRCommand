@@ -7,7 +7,7 @@
     "totalFeatures": 32,
     "passing": 10,
     "failing": 0,
-    "inProgress": 0
+    "inProgress": 1
   },
   "phase-0": {
     "pre-flight-validation": {
@@ -51,8 +51,8 @@
       "notes": "2.3.1-2.3.6 complete: context.rs, Alex persona system prompt, employee context with performance/eNPS, wired to frontend chat, user_name setting support, token budget + conversation trimming. 33 tests passing."
     },
     "cross-conversation-memory": {
-      "status": "not-started",
-      "notes": "Summaries, memory retrieval"
+      "status": "in-progress",
+      "notes": "2.4.1, 2.4.3, 2.4.4 complete: memory.rs with generate_summary(), find_relevant_memories(), wired into context. 8 tests. Only 2.4.2 (frontend trigger) remains."
     },
     "conversation-management": {
       "status": "not-started",

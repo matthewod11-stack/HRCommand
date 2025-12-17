@@ -10,6 +10,61 @@
 Most recent session should be first.
 -->
 
+## Session 2025-12-17 (Phase 2.4.1 — Cross-Conversation Memory)
+
+**Phase:** 2.4 — Cross-Conversation Memory
+**Focus:** Implement memory.rs for conversation summaries and retrieval
+
+### Completed
+- [x] 2.4.1 Implement memory.rs for conversation summaries
+- [x] 2.4.3 Implement summary search/retrieval
+- [x] 2.4.4 Include relevant memories in context
+
+### Files Modified
+```
+src-tauri/src/memory.rs            - NEW: Core memory module (~320 LOC, 8 tests)
+src-tauri/src/lib.rs               - Added mod memory + 3 Tauri commands
+src-tauri/src/context.rs           - Wired find_relevant_memories() into build_chat_context()
+docs/PROGRESS.md                   - This session entry
+docs/ROADMAP.md                    - Marked 2.4.1, 2.4.3, 2.4.4 complete
+features.json                      - Updated cross-conversation-memory status
+```
+
+### Memory System Architecture
+| Component | Function |
+|-----------|----------|
+| `generate_summary()` | Uses Claude to create 2-3 sentence summaries |
+| `save_summary()` | Stores summary in conversations.summary column |
+| `find_relevant_memories()` | Hybrid search: summary-only → FTS fallback |
+
+### Key Implementation Decisions
+1. **Hybrid search:** Summary-only LIKE search first (focused), FTS fallback (broader)
+2. **Stop word filtering:** Removes common words for better search relevance
+3. **Punctuation stripping:** Handles "review?" vs "review" matching
+4. **Resilient integration:** Memory errors logged but don't break chat flow
+5. **Frontend triggers:** Summary generation called by frontend (keeps backend stateless)
+
+### Unit Tests Added (8 new)
+- `test_format_conversation_for_summary` - Message formatting
+- `test_extract_search_keywords` - Keyword extraction with stop words
+- `test_extract_search_keywords_short_words` - Short word filtering
+- `test_prepare_fts_query` - FTS query preparation
+- `test_prepare_fts_query_escapes_quotes` - Quote escaping
+- `test_prepare_fts_query_empty_on_stop_words` - Stop word handling
+- `test_summary_system_prompt_is_concise` - Prompt token budget
+- `test_stored_message_deserialization` - JSON parsing
+
+### Verification
+- [x] All 8 memory tests pass
+- [x] 50 total tests pass (1 pre-existing failure in file_parser unrelated)
+- [x] TypeScript type-check passes
+- [x] Frontend build succeeds
+
+### Next Session Should
+- Implement Phase 2.4.2: Frontend integration to trigger summary generation after conversations end
+
+---
+
 ## Session 2025-12-17 (Phase 2.3.6 — Context Size Trimming)
 
 **Phase:** 2.3 — Context Builder

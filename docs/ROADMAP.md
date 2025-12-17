@@ -162,10 +162,10 @@ This is a **long-running, multi-session implementation**. Follow these rules:
 - [x] 2.3.6 Implement context size trimming
 
 ### 2.4 Cross-Conversation Memory
-- [ ] 2.4.1 Implement memory.rs for conversation summaries
-- [ ] 2.4.2 Generate summaries after conversations
-- [ ] 2.4.3 Implement summary search/retrieval
-- [ ] 2.4.4 Include relevant memories in context
+- [x] 2.4.1 Implement memory.rs for conversation summaries
+- [ ] 2.4.2 Generate summaries after conversations (frontend trigger)
+- [x] 2.4.3 Implement summary search/retrieval
+- [x] 2.4.4 Include relevant memories in context
 
 ### 2.5 Conversation Management
 - [ ] 2.5.1 Create ConversationSidebar component

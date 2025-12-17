@@ -12,6 +12,7 @@ mod employees;
 mod enps;
 mod file_parser;
 mod keyring;
+mod memory;
 mod network;
 mod performance_ratings;
 mod performance_reviews;
@@ -671,6 +672,39 @@ async fn get_aggregate_enps(
 }
 
 // ============================================================================
+// Memory Commands (Cross-Conversation Memory)
+// ============================================================================
+
+/// Generate a summary for a conversation using Claude
+#[tauri::command]
+async fn generate_conversation_summary(
+    messages_json: String,
+) -> Result<String, memory::MemoryError> {
+    memory::generate_summary(&messages_json).await
+}
+
+/// Save a summary to an existing conversation
+#[tauri::command]
+async fn save_conversation_summary(
+    state: tauri::State<'_, Database>,
+    conversation_id: String,
+    summary: String,
+) -> Result<(), memory::MemoryError> {
+    memory::save_summary(&state.pool, &conversation_id, &summary).await
+}
+
+/// Search for relevant past conversation memories
+#[tauri::command]
+async fn search_memories(
+    state: tauri::State<'_, Database>,
+    query: String,
+    limit: Option<usize>,
+) -> Result<Vec<memory::ConversationSummary>, memory::MemoryError> {
+    let limit = limit.unwrap_or(memory::DEFAULT_MEMORY_LIMIT);
+    memory::find_relevant_memories(&state.pool, &query, limit).await
+}
+
+// ============================================================================
 // Settings Commands
 // ============================================================================
 
@@ -797,6 +831,10 @@ pub fn run() {
             get_employee_context,
             get_company_context,
             get_aggregate_enps,
+            // Memory (cross-conversation)
+            generate_conversation_summary,
+            save_conversation_summary,
+            search_memories,
             // Settings
             get_setting,
             set_setting,
