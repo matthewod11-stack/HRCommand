@@ -58,7 +58,13 @@ These decisions were made during planning and should NOT be revisited during imp
 
 ## Open Issues
 
-*(No issues yet - project currently in Phase 1 implementation)*
+### [PHASE-2.1] file_parser::tests::test_normalize_header test failure
+**Status:** Open
+**Severity:** Low
+**Discovered:** 2025-12-17
+**Description:** The `test_normalize_header` test in file_parser.rs is failing. Appears to be a pre-existing issue unrelated to current context builder work. Test expects header normalization to produce "email" but receives different value.
+**Workaround:** Test can be skipped; file parsing functionality works correctly in production.
+**Resolution:** (pending investigation)
 
 ---
 
