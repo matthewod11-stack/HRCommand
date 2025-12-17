@@ -16,6 +16,7 @@ mod network;
 mod performance_ratings;
 mod performance_reviews;
 mod review_cycles;
+mod settings;
 
 use db::Database;
 
@@ -669,6 +670,47 @@ async fn get_aggregate_enps(
     context::calculate_aggregate_enps(&state.pool).await
 }
 
+// ============================================================================
+// Settings Commands
+// ============================================================================
+
+/// Get a setting value by key
+#[tauri::command]
+async fn get_setting(
+    state: tauri::State<'_, Database>,
+    key: String,
+) -> Result<Option<String>, settings::SettingsError> {
+    settings::get_setting(&state.pool, &key).await
+}
+
+/// Set a setting value (creates or updates)
+#[tauri::command]
+async fn set_setting(
+    state: tauri::State<'_, Database>,
+    key: String,
+    value: String,
+) -> Result<(), settings::SettingsError> {
+    settings::set_setting(&state.pool, &key, &value).await
+}
+
+/// Delete a setting by key
+#[tauri::command]
+async fn delete_setting(
+    state: tauri::State<'_, Database>,
+    key: String,
+) -> Result<(), settings::SettingsError> {
+    settings::delete_setting(&state.pool, &key).await
+}
+
+/// Check if a setting exists
+#[tauri::command]
+async fn has_setting(
+    state: tauri::State<'_, Database>,
+    key: String,
+) -> Result<bool, settings::SettingsError> {
+    settings::has_setting(&state.pool, &key).await
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -754,7 +796,12 @@ pub fn run() {
             get_system_prompt,
             get_employee_context,
             get_company_context,
-            get_aggregate_enps
+            get_aggregate_enps,
+            // Settings
+            get_setting,
+            set_setting,
+            delete_setting,
+            has_setting
         ])
         .setup(|app| {
             let handle = app.handle().clone();

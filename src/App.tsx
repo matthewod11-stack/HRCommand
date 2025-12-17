@@ -11,7 +11,7 @@ import { ImportWizard } from './components/import';
 import { TestDataImporter } from './components/dev/TestDataImporter';
 import { useEmployees } from './contexts/EmployeeContext';
 import { Message, Company } from './lib/types';
-import { hasApiKey, hasCompany, sendChatMessageStreaming, ChatMessage, StreamChunk } from './lib/tauri-commands';
+import { hasApiKey, hasCompany, sendChatMessageStreaming, getSystemPrompt, ChatMessage, StreamChunk } from './lib/tauri-commands';
 
 function ChatArea() {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -95,8 +95,8 @@ function ChatArea() {
         content: m.content,
       }));
 
-      // System prompt for HR context (will be enhanced in Phase 2)
-      const systemPrompt = `You are an AI assistant for HR Command Center, helping HR professionals manage employee information and answer HR-related questions. Be helpful, professional, and concise.`;
+      // Build dynamic system prompt with Alex persona + employee/company context
+      const [systemPrompt, _employeeIdsUsed] = await getSystemPrompt(content);
 
       // Call Claude API with streaming
       await sendChatMessageStreaming(apiMessages, systemPrompt);

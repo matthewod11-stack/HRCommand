@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
-import { upsertCompany, getCompany, hasCompany } from '../../lib/tauri-commands';
+import { upsertCompany, getCompany, hasCompany, getSetting, setSetting } from '../../lib/tauri-commands';
 import type { Company, UpsertCompany } from '../../lib/types';
 
 /** All 50 US state codes with names */
@@ -75,12 +75,20 @@ export function CompanySetup({
   const [name, setName] = useState(existingCompany?.name ?? '');
   const [state, setState] = useState(existingCompany?.state ?? '');
   const [industry, setIndustry] = useState(existingCompany?.industry ?? '');
+  const [userName, setUserName] = useState('');
   const [status, setStatus] = useState<SaveStatus>('idle');
   const [errorMessage, setErrorMessage] = useState('');
   const [hasExisting, setHasExisting] = useState(!!existingCompany);
 
-  // Load existing company on mount if not provided via props
+  // Load existing company and user_name on mount if not provided via props
   useEffect(() => {
+    // Load user_name setting
+    getSetting('user_name').then((name) => {
+      if (name) setUserName(name);
+    }).catch(() => {
+      // Ignore
+    });
+
     if (!existingCompany) {
       hasCompany().then(async (exists) => {
         setHasExisting(exists);
@@ -116,6 +124,12 @@ export function CompanySetup({
       };
 
       const company = await upsertCompany(input);
+
+      // Save user name to settings if provided
+      if (userName.trim()) {
+        await setSetting('user_name', userName.trim());
+      }
+
       setStatus('saved');
       setHasExisting(true);
       onSave?.(company);
@@ -126,7 +140,7 @@ export function CompanySetup({
       setStatus('error');
       setErrorMessage(err instanceof Error ? err.message : 'Failed to save company profile');
     }
-  }, [name, state, industry, isValid, onSave]);
+  }, [name, state, industry, userName, isValid, onSave]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && isValid && status === 'idle') {
@@ -151,7 +165,9 @@ export function CompanySetup({
             </svg>
           </div>
           <div>
-            <p className="text-sm font-medium text-green-800">{name}</p>
+            <p className="text-sm font-medium text-green-800">
+              {userName ? `${userName} @ ` : ''}{name}
+            </p>
             <p className="text-xs text-green-600">
               {US_STATES.find(s => s.code === state)?.name ?? state}
               {industry ? ` - ${industry}` : ''}
@@ -182,6 +198,35 @@ export function CompanySetup({
       )}
 
       <div className="space-y-4">
+        {/* Your Name */}
+        <div>
+          <label htmlFor="user-name" className="block text-sm font-medium text-stone-700 mb-1.5">
+            Your Name <span className="text-stone-400">(how Alex should address you)</span>
+          </label>
+          <input
+            id="user-name"
+            type="text"
+            value={userName}
+            onChange={(e) => {
+              setUserName(e.target.value);
+              setErrorMessage('');
+              setStatus('idle');
+            }}
+            onKeyDown={handleKeyDown}
+            placeholder="Sarah"
+            disabled={status === 'saving'}
+            className={`
+              w-full px-4 py-3
+              bg-white border rounded-xl
+              text-stone-700 placeholder:text-stone-400
+              focus:outline-none focus:ring-2 focus:border-primary-300 focus:ring-primary-100
+              transition-all duration-200
+              ${status === 'saving' ? 'cursor-wait bg-stone-50' : ''}
+              ${userName.trim() ? 'border-green-300' : 'border-stone-200'}
+            `}
+          />
+        </div>
+
         {/* Company Name */}
         <div>
           <label htmlFor="company-name" className="block text-sm font-medium text-stone-700 mb-1.5">

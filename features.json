@@ -5,9 +5,9 @@
     "lastUpdated": "2025-12-17",
     "project": "HR Command Center",
     "totalFeatures": 32,
-    "passing": 9,
+    "passing": 10,
     "failing": 0,
-    "inProgress": 1
+    "inProgress": 0
   },
   "phase-0": {
     "pre-flight-validation": {
@@ -47,8 +47,8 @@
       "notes": "2.2.1-2.2.4 complete: company.rs CRUD, CompanySetup component, gated onboarding flow. State = HQ/incorporation (single), employee work states tracked separately."
     },
     "context-builder": {
-      "status": "in-progress",
-      "notes": "2.3.1-2.3.2 complete: context.rs + enhanced query extraction (tenure/performer/aggregate). 18 tests passing. Remaining: wire to chat (2.3.5)."
+      "status": "pass",
+      "notes": "2.3.1-2.3.5 complete: context.rs, Alex persona system prompt, employee context with performance/eNPS, wired to frontend chat, user_name setting support. 18 tests passing. Remaining: 2.3.6 context size trimming."
     },
     "cross-conversation-memory": {
       "status": "not-started",

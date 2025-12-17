@@ -650,6 +650,43 @@ export async function getAggregateEnps(): Promise<EnpsAggregate> {
 }
 
 // =============================================================================
+// Phase 2.3 - Settings
+// =============================================================================
+
+/**
+ * Get a setting value by key
+ * Returns null if the setting doesn't exist
+ * @param key - The setting key (e.g., "user_name")
+ */
+export async function getSetting(key: string): Promise<string | null> {
+  return invoke('get_setting', { key });
+}
+
+/**
+ * Set a setting value (creates or updates)
+ * @param key - The setting key
+ * @param value - The value to store
+ */
+export async function setSetting(key: string, value: string): Promise<void> {
+  return invoke('set_setting', { key, value });
+}
+
+/**
+ * Delete a setting by key
+ * Does nothing if the setting doesn't exist
+ */
+export async function deleteSetting(key: string): Promise<void> {
+  return invoke('delete_setting', { key });
+}
+
+/**
+ * Check if a setting exists
+ */
+export async function hasSetting(key: string): Promise<boolean> {
+  return invoke('has_setting', { key });
+}
+
+// =============================================================================
 // Commands to be implemented in later phases:
 // =============================================================================
 

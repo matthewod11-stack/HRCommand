@@ -10,6 +10,79 @@
 Most recent session should be first.
 -->
 
+## Session 2025-12-17 (Phase 2.3.5 — Wire Context to Chat + User Name)
+
+**Phase:** 2.3 — Context Builder
+**Focus:** Wire Alex persona system prompt to frontend chat + add user_name setting support
+
+### Completed
+- [x] 2.3.3 Build system prompt with HR persona ("Alex") + company context (verified in backend)
+- [x] 2.3.4 Include performance/eNPS data in employee context (verified in backend)
+- [x] 2.3.5 Add context to Claude API calls (+ user_name setting support)
+
+### Files Created
+```
+src-tauri/src/settings.rs              - Key-value settings store (~110 LOC)
+```
+
+### Files Modified
+```
+src-tauri/src/lib.rs                   - Added settings module + 4 Tauri commands
+src-tauri/src/context.rs               - Added user_name param to build_system_prompt
+src/App.tsx                            - Replaced static prompt with getSystemPrompt()
+src/lib/tauri-commands.ts              - Added settings TypeScript wrappers
+src/components/company/CompanySetup.tsx - Added user name field to onboarding flow
+docs/ROADMAP.md                        - Marked 2.3.3-2.3.5 complete
+features.json                          - context-builder: pass (10 passing)
+```
+
+### New Settings Module
+Generic key-value store for application settings (existing settings table, no schema changes)
+
+| Function | Purpose |
+|----------|---------|
+| `get_setting(key)` | Get value by key, returns Option<String> |
+| `set_setting(key, value)` | Upsert a setting |
+| `delete_setting(key)` | Remove a setting |
+| `has_setting(key)` | Check if setting exists |
+
+### Key Changes
+1. **App.tsx:** Replaced hardcoded system prompt with dynamic `getSystemPrompt(content)` call
+2. **context.rs:** `build_system_prompt()` now accepts `user_name` parameter
+3. **context.rs:** `get_system_prompt_for_message()` fetches user_name from settings automatically
+4. **System prompt:** Uses `{user_display}` which defaults to "the HR team" if no user_name set
+5. **CompanySetup.tsx:** Added "Your Name" field to onboarding - saves to `user_name` setting
+
+### Alex Persona System Prompt Now Active
+Claude now receives the full Alex persona prompt with:
+- VP of People Operations persona
+- Company name + state context
+- Employee data with performance ratings + eNPS
+- State-specific employment law awareness
+- User name personalization (when set)
+
+### Tauri Commands Added (4)
+| Command | Purpose |
+|---------|---------|
+| `get_setting` | Get a setting value by key |
+| `set_setting` | Set a setting value (upsert) |
+| `delete_setting` | Delete a setting |
+| `has_setting` | Check if setting exists |
+
+### Verified
+- [x] TypeScript compiles without errors
+- [x] Rust compiles without errors (warnings are pre-existing)
+- [x] Vite build succeeds (66 modules, 525KB)
+- [x] All 18 context module tests pass
+- [x] Tauri app starts successfully
+
+### Next Session Should
+- Continue with: 2.3.6 Implement context size trimming
+- Or: 2.4.1 Start cross-conversation memory (memory.rs)
+- Manual test: Verify Alex persona appears in responses with company/employee context
+
+---
+
 ## Session 2025-12-17 (Phase 2.3.2 — Enhanced Query Extraction)
 
 **Phase:** 2.3 — Context Builder

@@ -961,9 +961,11 @@ pub fn build_system_prompt(
     company: Option<&CompanyContext>,
     employee_context: &str,
     memory_summaries: &[String],
+    user_name: Option<&str>,
 ) -> String {
     let company_name = company.map(|c| c.name.as_str()).unwrap_or("your company");
     let company_state = company.map(|c| c.state.as_str()).unwrap_or("your state");
+    let user_display = user_name.unwrap_or("the HR team");
 
     let company_info = if let Some(c) = company {
         format!(
@@ -981,7 +983,7 @@ pub fn build_system_prompt(
     };
 
     format!(
-r#"You are Alex, an experienced VP of People Operations helping the HR team at {company_name}, a company based in {company_state}.
+r#"You are Alex, an experienced VP of People Operations helping {user_display} at {company_name}, a company based in {company_state}.
 
 Your role is to be a trusted HR thought partner—someone who's seen these situations before and can offer practical, actionable guidance.
 
@@ -1014,6 +1016,7 @@ RELEVANT PAST CONVERSATIONS:
 {memories}
 
 Answer questions as Alex would—practical, human, and grounded in real HR experience."#,
+        user_display = user_display,
         company_name = company_name,
         company_state = company_state,
         company_info = company_info,
@@ -1056,11 +1059,18 @@ pub async fn get_system_prompt_for_message(
 ) -> Result<(String, Vec<String>), ContextError> {
     let context = build_chat_context(pool, user_message).await?;
 
+    // Fetch user_name from settings (if set)
+    let user_name = crate::settings::get_setting(pool, "user_name")
+        .await
+        .ok()
+        .flatten();
+
     let employee_context = format_employee_context(&context.employees);
     let system_prompt = build_system_prompt(
         context.company.as_ref(),
         &employee_context,
         &context.memory_summaries,
+        user_name.as_deref(),
     );
 
     Ok((system_prompt, context.employee_ids_used))
