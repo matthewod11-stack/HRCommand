@@ -518,15 +518,114 @@ export async function getLatestEnpsForEmployee(employeeId: string): Promise<Enps
 }
 
 // =============================================================================
-// Commands to be implemented in later phases:
+// Phase 2.3 - Context Builder
 // =============================================================================
 
-// Phase 2.2 - Company Profile
-// export async function getCompany(): Promise<Company | null>
-// export async function saveCompany(company: Company): Promise<void>
+/**
+ * Rating info for employee context
+ */
+export interface RatingInfo {
+  cycle_name: string;
+  overall_rating: number;
+  rating_date: string | null;
+}
 
-// Phase 2.3 - Context Builder
-// export async function buildContext(query: string): Promise<ContextPayload>
+/**
+ * eNPS info for employee context
+ */
+export interface EnpsInfo {
+  score: number;
+  survey_name: string | null;
+  survey_date: string;
+  feedback: string | null;
+}
+
+/**
+ * Full employee context including performance and eNPS data
+ */
+export interface EmployeeContext {
+  id: string;
+  full_name: string;
+  email: string;
+  department: string | null;
+  job_title: string | null;
+  hire_date: string | null;
+  work_state: string | null;
+  status: string;
+  manager_name: string | null;
+
+  // Performance data
+  latest_rating: number | null;
+  latest_rating_cycle: string | null;
+  rating_trend: string | null; // "improving" | "stable" | "declining"
+  all_ratings: RatingInfo[];
+
+  // eNPS data
+  latest_enps: number | null;
+  latest_enps_date: string | null;
+  enps_trend: string | null;
+  all_enps: EnpsInfo[];
+}
+
+/**
+ * Company context for system prompt
+ */
+export interface CompanyContext {
+  name: string;
+  state: string;
+  industry: string | null;
+  employee_count: number;
+  department_count: number;
+}
+
+/**
+ * Full chat context for building system prompt
+ */
+export interface ChatContext {
+  company: CompanyContext | null;
+  employees: EmployeeContext[];
+  employee_ids_used: string[];
+  memory_summaries: string[];
+}
+
+/**
+ * Build chat context for a user message
+ * Extracts mentions, finds relevant employees, and gathers company data
+ * @param userMessage - The user's message to analyze
+ */
+export async function buildChatContext(userMessage: string): Promise<ChatContext> {
+  return invoke('build_chat_context', { userMessage });
+}
+
+/**
+ * Get the system prompt for a chat message
+ * Returns the full system prompt and list of employee IDs used
+ * @param userMessage - The user's message to analyze
+ * @returns Tuple of [system_prompt, employee_ids_used]
+ */
+export async function getSystemPrompt(userMessage: string): Promise<[string, string[]]> {
+  return invoke('get_system_prompt', { userMessage });
+}
+
+/**
+ * Get full context for a specific employee
+ * Useful for debugging or displaying employee details
+ * @param employeeId - The employee ID
+ */
+export async function getEmployeeContext(employeeId: string): Promise<EmployeeContext> {
+  return invoke('get_employee_context', { employeeId });
+}
+
+/**
+ * Get company context (name, state, employee/department counts)
+ */
+export async function getCompanyContext(): Promise<CompanyContext | null> {
+  return invoke('get_company_context');
+}
+
+// =============================================================================
+// Commands to be implemented in later phases:
+// =============================================================================
 
 // Phase 2.4 - Memory
 // export async function searchMemory(query: string): Promise<ConversationSummary[]>

@@ -154,7 +154,7 @@ This is a **long-running, multi-session implementation**. Follow these rules:
 ### 2.3 Context Builder
 > **Reference:** [HR_PERSONA.md](./HR_PERSONA.md) for Claude's HR leader persona
 
-- [ ] 2.3.1 Implement context.rs with retrieval logic
+- [x] 2.3.1 Implement context.rs with retrieval logic
 - [ ] 2.3.2 Add employee name/department extraction from query
 - [ ] 2.3.3 Build system prompt with HR persona ("Alex") + company context
 - [ ] 2.3.4 Include performance/eNPS data in employee context

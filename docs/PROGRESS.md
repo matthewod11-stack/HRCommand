@@ -10,6 +10,69 @@
 Most recent session should be first.
 -->
 
+## Session 2025-12-16 (Phase 2.3.1 — Context Builder)
+
+**Phase:** 2.3 — Context Builder
+**Focus:** Implement context.rs with retrieval logic
+
+### Completed
+- [x] 2.3.1 Implement context.rs with retrieval logic
+
+### Files Created
+```
+src-tauri/src/context.rs               - Context builder module (~450 LOC)
+```
+
+### Files Modified
+```
+src-tauri/src/lib.rs                   - Added context module + 4 Tauri commands
+src/lib/tauri-commands.ts              - Added TypeScript wrappers + types
+```
+
+### Tauri Commands Added (4)
+| Command | Purpose |
+|---------|---------|
+| `build_chat_context` | Extract mentions, find relevant employees, gather company data |
+| `get_system_prompt` | Build full system prompt with Alex persona |
+| `get_employee_context` | Get full context for single employee (debug/display) |
+| `get_company_context` | Get company info for system prompt |
+
+### Key Features Implemented
+- **Query Analysis:** Extracts employee names, departments from user queries
+- **Employee Retrieval:** Finds relevant employees by name (LIKE matching) or department
+- **Performance Data:** Joins ratings with review cycle names, calculates trends
+- **eNPS Data:** Includes scores and feedback with trend analysis
+- **Alex Persona:** System prompt template from HR_PERSONA.md with company/employee context
+- **Token Budget:** Limits employee context to ~8000 chars (~2000 tokens)
+
+### TypeScript Types Added
+- `RatingInfo`, `EnpsInfo` — Rating and eNPS context items
+- `EmployeeContext` — Full employee with performance/eNPS data
+- `CompanyContext` — Company info for system prompt
+- `ChatContext` — Full context for building prompts
+
+### Unit Tests (7 passing)
+- `test_extract_mentions_names` — Extracts "Sarah Chen" from queries
+- `test_extract_mentions_department` — Finds "Engineering" department mentions
+- `test_extract_mentions_performance` — Detects performance-related queries
+- `test_extract_mentions_enps` — Detects eNPS-related queries
+- `test_rating_label` — Maps 1-5 ratings to labels
+- `test_enps_category` — Maps 0-10 scores to Promoter/Passive/Detractor
+- `test_calculate_trend` — Calculates improving/stable/declining trends
+
+### Verified
+- [x] TypeScript compiles without errors
+- [x] Rust compiles without errors (16 warnings, pre-existing)
+- [x] Build succeeds (66 modules, 517KB)
+- [x] All 7 context module tests pass
+
+### Next Session Should
+- Continue with: 2.3.2 Add employee name/department extraction from query (refine)
+- Or: 2.3.3 Build system prompt with HR persona + company context (wire up)
+- Be aware of: Context builder ready but not yet wired to chat flow
+
+---
+
 ## Session 2025-12-16 (Environment Setup — New Machine)
 
 **Phase:** Pre-2.3

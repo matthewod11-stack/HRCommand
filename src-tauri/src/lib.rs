@@ -6,6 +6,7 @@ use tauri::Manager;
 mod bulk_import;
 mod chat;
 mod company;
+mod context;
 mod db;
 mod employees;
 mod enps;
@@ -621,6 +622,45 @@ fn map_enps_columns(
     file_parser::map_enps_columns(&headers)
 }
 
+// ============================================================================
+// Context Builder Commands
+// ============================================================================
+
+/// Build chat context for a user message (extracts mentions, finds employees)
+#[tauri::command]
+async fn build_chat_context(
+    state: tauri::State<'_, Database>,
+    user_message: String,
+) -> Result<context::ChatContext, context::ContextError> {
+    context::build_chat_context(&state.pool, &user_message).await
+}
+
+/// Get the system prompt for a chat message
+#[tauri::command]
+async fn get_system_prompt(
+    state: tauri::State<'_, Database>,
+    user_message: String,
+) -> Result<(String, Vec<String>), context::ContextError> {
+    context::get_system_prompt_for_message(&state.pool, &user_message).await
+}
+
+/// Get employee context by ID (for debugging/display)
+#[tauri::command]
+async fn get_employee_context(
+    state: tauri::State<'_, Database>,
+    employee_id: String,
+) -> Result<context::EmployeeContext, context::ContextError> {
+    context::get_employee_context(&state.pool, &employee_id).await
+}
+
+/// Get company context
+#[tauri::command]
+async fn get_company_context(
+    state: tauri::State<'_, Database>,
+) -> Result<Option<context::CompanyContext>, context::ContextError> {
+    context::get_company_context(&state.pool).await
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -700,7 +740,12 @@ pub fn run() {
             bulk_import_ratings,
             bulk_import_reviews,
             bulk_import_enps,
-            verify_data_integrity
+            verify_data_integrity,
+            // Context builder
+            build_chat_context,
+            get_system_prompt,
+            get_employee_context,
+            get_company_context
         ])
         .setup(|app| {
             let handle = app.handle().clone();

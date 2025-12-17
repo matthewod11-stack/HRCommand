@@ -7,7 +7,7 @@
     "totalFeatures": 32,
     "passing": 9,
     "failing": 0,
-    "inProgress": 0
+    "inProgress": 1
   },
   "phase-0": {
     "pre-flight-validation": {
@@ -47,8 +47,8 @@
       "notes": "2.2.1-2.2.4 complete: company.rs CRUD, CompanySetup component, gated onboarding flow. State = HQ/incorporation (single), employee work states tracked separately."
     },
     "context-builder": {
-      "status": "not-started",
-      "notes": "Auto-retrieval, system prompt template"
+      "status": "in-progress",
+      "notes": "2.3.1 complete: context.rs with retrieval logic, employee/company context, Alex persona. Remaining: wire to chat, refine extraction."
     },
     "cross-conversation-memory": {
       "status": "not-started",
