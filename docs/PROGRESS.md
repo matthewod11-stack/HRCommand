@@ -10,6 +10,71 @@
 Most recent session should be first.
 -->
 
+## Session 2025-12-17 (Phase 2.3.2 — Enhanced Query Extraction)
+
+**Phase:** 2.3 — Context Builder
+**Focus:** Enhance query extraction with tenure, performance, and aggregate query support
+
+### Completed
+- [x] 2.3.2 Add employee name/department extraction from query (enhanced)
+
+### Files Modified
+```
+src-tauri/src/context.rs           - Enhanced extraction + specialized retrieval (~400 LOC added)
+src-tauri/src/lib.rs               - Added get_aggregate_enps Tauri command
+src/lib/tauri-commands.ts          - Added EnpsAggregate type + getAggregateEnps wrapper
+```
+
+### New Query Types Supported
+| Query Type | Example | Retrieval |
+|------------|---------|-----------|
+| Tenure (longest) | "Who's been here longest?" | `ORDER BY hire_date ASC` |
+| Tenure (newest) | "Who are our newest hires?" | `ORDER BY hire_date DESC` |
+| Anniversary | "Upcoming work anniversaries?" | SQLite date comparison |
+| Underperformers | "Who's underperforming?" | `WHERE rating < 2.5` |
+| Top performers | "Who are star employees?" | `WHERE rating >= 4.5` |
+| Aggregate eNPS | "What's our company eNPS?" | Promoter/detractor calculation |
+
+### Key Features Implemented
+- **TenureDirection enum:** Longest, Newest, Anniversary for tenure queries
+- **Query intent detection:** 50+ keyword patterns for specialized queries
+- **Possessive stripping:** "Sarah's" → "Sarah" for name extraction
+- **Specialized retrievers:** 5 new functions for tenure/performance/aggregate queries
+- **EnpsAggregate struct:** Score, promoters, passives, detractors, response rate
+- **Primary intent routing:** Underperformer > Top performer > Tenure > Name > Department
+
+### Tauri Commands Added (1)
+| Command | Purpose |
+|---------|---------|
+| `get_aggregate_enps` | Calculate organization-wide eNPS score |
+
+### Unit Tests (11 new, 18 total)
+New tests:
+- `test_extract_tenure_longest` — Detects "been here longest"
+- `test_extract_tenure_newest` — Detects "newest hires"
+- `test_extract_tenure_anniversary` — Detects "work anniversary"
+- `test_extract_underperformer` — Detects "underperforming"
+- `test_extract_underperformer_struggling` — Detects "struggling"
+- `test_extract_top_performer` — Detects "top performers"
+- `test_extract_top_performer_star` — Detects "star employees"
+- `test_extract_aggregate_enps` — Detects "company eNPS"
+- `test_extract_possessive_name` — Strips "'s" from "Sarah's"
+- `test_extract_possessive_full_name` — Handles "Johnson's"
+- `test_extract_how_many` — Detects aggregate intent
+
+### Verified
+- [x] TypeScript compiles without errors
+- [x] Rust compiles without errors (18 warnings, pre-existing)
+- [x] Build succeeds (66 modules, 525KB)
+- [x] All 18 context module tests pass
+
+### Next Session Should
+- Continue with: 2.3.3 Build system prompt with HR persona + company context (already in place, may need refinement)
+- Or: 2.3.5 Add context to Claude API calls (wire frontend to use context)
+- Be aware of: Context extraction now supports Pause Point 2A verification queries
+
+---
+
 ## Session 2025-12-16 (Phase 2.3.1 — Context Builder)
 
 **Phase:** 2.3 — Context Builder

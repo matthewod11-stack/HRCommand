@@ -579,6 +579,24 @@ export interface CompanyContext {
 }
 
 /**
+ * Aggregate eNPS calculation result
+ */
+export interface EnpsAggregate {
+  /** eNPS score (-100 to +100) */
+  score: number;
+  /** Number of promoters (score >= 9) */
+  promoters: number;
+  /** Number of passives (score 7-8) */
+  passives: number;
+  /** Number of detractors (score <= 6) */
+  detractors: number;
+  /** Total survey responses */
+  total_responses: number;
+  /** Response rate vs active employees (percentage) */
+  response_rate: number;
+}
+
+/**
  * Full chat context for building system prompt
  */
 export interface ChatContext {
@@ -621,6 +639,14 @@ export async function getEmployeeContext(employeeId: string): Promise<EmployeeCo
  */
 export async function getCompanyContext(): Promise<CompanyContext | null> {
   return invoke('get_company_context');
+}
+
+/**
+ * Get aggregate eNPS score for the organization
+ * Calculates promoters, passives, detractors, and overall score
+ */
+export async function getAggregateEnps(): Promise<EnpsAggregate> {
+  return invoke('get_aggregate_enps');
 }
 
 // =============================================================================

@@ -110,6 +110,17 @@ pub struct ChatContext {
 // Query Analysis
 // ============================================================================
 
+/// Direction for tenure-based queries
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum TenureDirection {
+    /// "who's been here longest", "most senior"
+    Longest,
+    /// "newest employees", "recent hires", "just started"
+    Newest,
+    /// "upcoming anniversaries", "work anniversary"
+    Anniversary,
+}
+
 /// Extracted mentions from a user query
 #[derive(Debug, Clone, Default)]
 pub struct QueryMentions {
@@ -123,6 +134,16 @@ pub struct QueryMentions {
     pub is_performance_query: bool,
     /// Keywords suggesting eNPS-related queries
     pub is_enps_query: bool,
+    /// Keywords suggesting tenure-related queries
+    pub is_tenure_query: bool,
+    /// Keywords suggesting top performer queries
+    pub is_top_performer_query: bool,
+    /// Keywords suggesting underperformer queries
+    pub is_underperformer_query: bool,
+    /// Specific tenure direction (longest vs newest vs anniversary)
+    pub tenure_direction: Option<TenureDirection>,
+    /// Whether query wants aggregate stats rather than individual employees
+    pub wants_aggregate: bool,
 }
 
 /// Extract potential employee names and departments from a query
@@ -137,13 +158,50 @@ pub fn extract_mentions(query: &str) -> QueryMentions {
     ];
 
     let performance_keywords = [
-        "performance", "rating", "review", "performer", "underperform",
+        "performance", "rating", "review", "performer",
         "pip", "improvement plan", "developing", "exceeds", "exceptional",
     ];
 
     let enps_keywords = [
         "enps", "nps", "promoter", "engagement", "satisfaction", "survey",
         "detractor", "passive", "morale",
+    ];
+
+    // Tenure query keywords - phrases for direction detection
+    let tenure_longest_keywords = [
+        "been here longest", "longest tenure", "most senior", "longest serving",
+        "been here the longest", "here longest", "oldest employee", "most tenured",
+    ];
+    let tenure_newest_keywords = [
+        "newest", "recent hire", "recently hired", "just started", "new employee",
+        "just joined", "newest hire", "most recent hire", "started recently",
+    ];
+    let tenure_anniversary_keywords = [
+        "anniversary", "work anniversary", "tenure milestone", "years of service",
+    ];
+    let tenure_general_keywords = [
+        "tenure", "how long", "been here", "started", "hire date", "joined",
+    ];
+
+    // Top performer keywords (distinct from general performance)
+    let top_performer_keywords = [
+        "top performer", "best performer", "high performer", "star employee",
+        "exceptional performer", "highest rated", "best rated", "top rated",
+        "strongest performer", "a-player", "highest performer",
+    ];
+
+    // Underperformer keywords (distinct from general performance)
+    let underperformer_keywords = [
+        "underperform", "low performer", "struggling", "needs improvement",
+        "below expectations", "poor performer", "weakest", "lowest rated",
+        "performance issue", "performance problem", "not performing",
+    ];
+
+    // Aggregate stat keywords (wants calculation, not individuals)
+    let wants_aggregate_keywords = [
+        "our enps", "company enps", "overall enps", "average enps",
+        "how many", "total", "count", "percentage", "average rating",
+        "overall rating", "company-wide", "across the company",
     ];
 
     let query_lower = query.to_lowercase();
@@ -161,12 +219,50 @@ pub fn extract_mentions(query: &str) -> QueryMentions {
         .iter()
         .any(|kw| query_lower.contains(kw));
 
+    // Check for tenure-related queries and direction
+    if tenure_longest_keywords.iter().any(|kw| query_lower.contains(kw)) {
+        mentions.is_tenure_query = true;
+        mentions.tenure_direction = Some(TenureDirection::Longest);
+    } else if tenure_newest_keywords.iter().any(|kw| query_lower.contains(kw)) {
+        mentions.is_tenure_query = true;
+        mentions.tenure_direction = Some(TenureDirection::Newest);
+    } else if tenure_anniversary_keywords.iter().any(|kw| query_lower.contains(kw)) {
+        mentions.is_tenure_query = true;
+        mentions.tenure_direction = Some(TenureDirection::Anniversary);
+    } else if tenure_general_keywords.iter().any(|kw| query_lower.contains(kw)) {
+        mentions.is_tenure_query = true;
+        // No specific direction - could be asking about a specific person's tenure
+    }
+
+    // Check for top performer queries
+    mentions.is_top_performer_query = top_performer_keywords
+        .iter()
+        .any(|kw| query_lower.contains(kw));
+
+    // Check for underperformer queries
+    mentions.is_underperformer_query = underperformer_keywords
+        .iter()
+        .any(|kw| query_lower.contains(kw));
+
+    // Check if query wants aggregate stats (not individual employees)
+    mentions.wants_aggregate = wants_aggregate_keywords
+        .iter()
+        .any(|kw| query_lower.contains(kw));
+
     // Extract potential names (capitalized words, 2+ chars, not at sentence start)
     // This is a simple heuristic - more sophisticated NER could be added later
     let words: Vec<&str> = query.split_whitespace().collect();
 
     for (i, word) in words.iter().enumerate() {
-        let clean_word = word.trim_matches(|c: char| !c.is_alphanumeric());
+        // Strip possessives before other cleaning (Sarah's → Sarah)
+        let mut working_word = *word;
+        if working_word.ends_with("'s") || working_word.ends_with("'s") {
+            working_word = &working_word[..working_word.len() - 2];
+        } else if working_word.ends_with("s'") {
+            working_word = &working_word[..working_word.len() - 2];
+        }
+        // Now clean remaining punctuation
+        let clean_word = working_word.trim_matches(|c: char| !c.is_alphanumeric());
 
         // Skip if too short or all lowercase
         if clean_word.len() < 2 {
@@ -265,14 +361,35 @@ struct EnpsRow {
 }
 
 /// Find employees matching the extracted mentions
+/// Routes to specialized retrieval functions based on query type (primary intent)
 pub async fn find_relevant_employees(
     pool: &DbPool,
     mentions: &QueryMentions,
     limit: usize,
 ) -> Result<Vec<EmployeeContext>, ContextError> {
+    // Priority 1: Underperformer queries (most specific)
+    if mentions.is_underperformer_query {
+        return find_underperformers(pool, limit).await;
+    }
+
+    // Priority 2: Top performer queries
+    if mentions.is_top_performer_query {
+        return find_top_performers(pool, limit).await;
+    }
+
+    // Priority 3: Tenure queries with direction
+    if mentions.is_tenure_query {
+        return match mentions.tenure_direction {
+            Some(TenureDirection::Longest) => find_longest_tenure(pool, limit).await,
+            Some(TenureDirection::Newest) => find_newest_employees(pool, limit).await,
+            Some(TenureDirection::Anniversary) => find_upcoming_anniversaries(pool, limit).await,
+            None => find_longest_tenure(pool, limit).await, // Default to longest if direction unclear
+        };
+    }
+
+    // Priority 4: Name-based search (explicit employee mentions)
     let mut employee_ids: Vec<String> = Vec::new();
 
-    // Search by name mentions
     for name in &mentions.names {
         let pattern = format!("%{}%", name);
         let rows: Vec<(String,)> = sqlx::query_as(
@@ -289,7 +406,7 @@ pub async fn find_relevant_employees(
         }
     }
 
-    // Search by department mentions
+    // Priority 5: Department-based search
     for dept in &mentions.departments {
         let pattern = format!("%{}%", dept);
         let rows: Vec<(String,)> = sqlx::query_as(
@@ -306,9 +423,8 @@ pub async fn find_relevant_employees(
         }
     }
 
-    // If aggregate query with no specific mentions, get a sample
+    // Priority 6: Aggregate query fallback (random sample)
     if employee_ids.is_empty() && mentions.is_aggregate_query {
-        // Get a representative sample for aggregate queries
         let rows: Vec<(String,)> = sqlx::query_as(
             "SELECT id FROM employees WHERE status = 'active' ORDER BY RANDOM() LIMIT ?"
         )
@@ -483,6 +599,227 @@ pub async fn get_company_context(pool: &DbPool) -> Result<Option<CompanyContext>
         employee_count,
         department_count,
     }))
+}
+
+// ============================================================================
+// Specialized Retrieval Functions
+// ============================================================================
+
+/// Aggregate eNPS calculation result
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EnpsAggregate {
+    /// eNPS score (-100 to +100)
+    pub score: i32,
+    /// Number of promoters (score >= 9)
+    pub promoters: i64,
+    /// Number of passives (score 7-8)
+    pub passives: i64,
+    /// Number of detractors (score <= 6)
+    pub detractors: i64,
+    /// Total survey responses
+    pub total_responses: i64,
+    /// Response rate vs active employees
+    pub response_rate: f64,
+}
+
+/// Find employees with longest tenure (sorted by hire_date ASC)
+pub async fn find_longest_tenure(
+    pool: &DbPool,
+    limit: usize,
+) -> Result<Vec<EmployeeContext>, ContextError> {
+    let rows: Vec<(String,)> = sqlx::query_as(
+        "SELECT id FROM employees WHERE status = 'active' AND hire_date IS NOT NULL ORDER BY hire_date ASC LIMIT ?"
+    )
+    .bind(limit as i64)
+    .fetch_all(pool)
+    .await?;
+
+    let mut employees = Vec::new();
+    for (id,) in rows {
+        if let Ok(emp) = get_employee_context(pool, &id).await {
+            employees.push(emp);
+        }
+    }
+    Ok(employees)
+}
+
+/// Find newest employees (sorted by hire_date DESC)
+pub async fn find_newest_employees(
+    pool: &DbPool,
+    limit: usize,
+) -> Result<Vec<EmployeeContext>, ContextError> {
+    let rows: Vec<(String,)> = sqlx::query_as(
+        "SELECT id FROM employees WHERE status = 'active' AND hire_date IS NOT NULL ORDER BY hire_date DESC LIMIT ?"
+    )
+    .bind(limit as i64)
+    .fetch_all(pool)
+    .await?;
+
+    let mut employees = Vec::new();
+    for (id,) in rows {
+        if let Ok(emp) = get_employee_context(pool, &id).await {
+            employees.push(emp);
+        }
+    }
+    Ok(employees)
+}
+
+/// Find underperforming employees (rating < 2.5 in recent cycles)
+pub async fn find_underperformers(
+    pool: &DbPool,
+    limit: usize,
+) -> Result<Vec<EmployeeContext>, ContextError> {
+    // Find employees with at least one rating below 2.5, prioritizing those with multiple low ratings
+    let rows: Vec<(String,)> = sqlx::query_as(
+        r#"
+        SELECT e.id
+        FROM employees e
+        JOIN performance_ratings pr ON e.id = pr.employee_id
+        WHERE e.status = 'active' AND pr.overall_rating < 2.5
+        GROUP BY e.id
+        ORDER BY COUNT(*) DESC, MIN(pr.overall_rating) ASC
+        LIMIT ?
+        "#
+    )
+    .bind(limit as i64)
+    .fetch_all(pool)
+    .await?;
+
+    let mut employees = Vec::new();
+    for (id,) in rows {
+        if let Ok(emp) = get_employee_context(pool, &id).await {
+            employees.push(emp);
+        }
+    }
+    Ok(employees)
+}
+
+/// Find top performers (rating >= 4.5 in recent cycles)
+pub async fn find_top_performers(
+    pool: &DbPool,
+    limit: usize,
+) -> Result<Vec<EmployeeContext>, ContextError> {
+    // Find employees with high ratings, prioritizing consistent excellence
+    let rows: Vec<(String,)> = sqlx::query_as(
+        r#"
+        SELECT e.id
+        FROM employees e
+        JOIN performance_ratings pr ON e.id = pr.employee_id
+        WHERE e.status = 'active' AND pr.overall_rating >= 4.5
+        GROUP BY e.id
+        ORDER BY COUNT(*) DESC, MAX(pr.overall_rating) DESC
+        LIMIT ?
+        "#
+    )
+    .bind(limit as i64)
+    .fetch_all(pool)
+    .await?;
+
+    let mut employees = Vec::new();
+    for (id,) in rows {
+        if let Ok(emp) = get_employee_context(pool, &id).await {
+            employees.push(emp);
+        }
+    }
+    Ok(employees)
+}
+
+/// Find employees with upcoming work anniversaries (within next 30 days)
+pub async fn find_upcoming_anniversaries(
+    pool: &DbPool,
+    limit: usize,
+) -> Result<Vec<EmployeeContext>, ContextError> {
+    // Find employees whose hire_date anniversary falls within next 30 days
+    // Uses SQLite date functions to compare month/day
+    let rows: Vec<(String,)> = sqlx::query_as(
+        r#"
+        SELECT id FROM employees
+        WHERE status = 'active'
+        AND hire_date IS NOT NULL
+        AND (
+            (strftime('%m-%d', hire_date) >= strftime('%m-%d', 'now')
+             AND strftime('%m-%d', hire_date) <= strftime('%m-%d', 'now', '+30 days'))
+            OR
+            (strftime('%m-%d', 'now', '+30 days') < strftime('%m-%d', 'now')
+             AND (strftime('%m-%d', hire_date) >= strftime('%m-%d', 'now')
+                  OR strftime('%m-%d', hire_date) <= strftime('%m-%d', 'now', '+30 days')))
+        )
+        ORDER BY strftime('%m-%d', hire_date)
+        LIMIT ?
+        "#
+    )
+    .bind(limit as i64)
+    .fetch_all(pool)
+    .await?;
+
+    let mut employees = Vec::new();
+    for (id,) in rows {
+        if let Ok(emp) = get_employee_context(pool, &id).await {
+            employees.push(emp);
+        }
+    }
+    Ok(employees)
+}
+
+/// Calculate aggregate eNPS score for the organization
+pub async fn calculate_aggregate_enps(pool: &DbPool) -> Result<EnpsAggregate, ContextError> {
+    // Get the most recent survey response per employee to avoid double-counting
+    let stats: (i64, i64, i64, i64) = sqlx::query_as(
+        r#"
+        WITH latest_responses AS (
+            SELECT employee_id, score, survey_date,
+                   ROW_NUMBER() OVER (PARTITION BY employee_id ORDER BY survey_date DESC) as rn
+            FROM enps_responses
+        )
+        SELECT
+            COUNT(*) as total,
+            SUM(CASE WHEN score >= 9 THEN 1 ELSE 0 END) as promoters,
+            SUM(CASE WHEN score >= 7 AND score <= 8 THEN 1 ELSE 0 END) as passives,
+            SUM(CASE WHEN score <= 6 THEN 1 ELSE 0 END) as detractors
+        FROM latest_responses
+        WHERE rn = 1
+        "#
+    )
+    .fetch_one(pool)
+    .await?;
+
+    let (total, promoters, passives, detractors) = stats;
+
+    // Get active employee count for response rate
+    let active_count: i64 = sqlx::query("SELECT COUNT(*) as count FROM employees WHERE status = 'active'")
+        .fetch_one(pool)
+        .await?
+        .get("count");
+
+    let score = if total > 0 {
+        ((promoters - detractors) * 100 / total) as i32
+    } else {
+        0
+    };
+
+    let response_rate = if active_count > 0 {
+        (total as f64 / active_count as f64) * 100.0
+    } else {
+        0.0
+    };
+
+    Ok(EnpsAggregate {
+        score,
+        promoters,
+        passives,
+        detractors,
+        total_responses: total,
+        response_rate,
+    })
+}
+
+/// Format aggregate eNPS for inclusion in context
+pub fn format_aggregate_enps(enps: &EnpsAggregate) -> String {
+    format!(
+        "Company eNPS: {} (Promoters: {}, Passives: {}, Detractors: {}) — {} responses ({:.0}% response rate)",
+        enps.score, enps.promoters, enps.passives, enps.detractors,
+        enps.total_responses, enps.response_rate
+    )
 }
 
 // ============================================================================
@@ -791,5 +1128,92 @@ mod tests {
         assert_eq!(calculate_trend(&[3.5, 3.4, 3.5]), Some("stable".to_string()));
         // Not enough data
         assert_eq!(calculate_trend(&[3.5]), None);
+    }
+
+    // =========================================================================
+    // New tests for Phase 2.3.2 — Enhanced query extraction
+    // =========================================================================
+
+    #[test]
+    fn test_extract_tenure_longest() {
+        let query = "Who's been here the longest?";
+        let mentions = extract_mentions(query);
+        assert!(mentions.is_tenure_query);
+        assert_eq!(mentions.tenure_direction, Some(TenureDirection::Longest));
+    }
+
+    #[test]
+    fn test_extract_tenure_newest() {
+        let query = "Who are our newest hires?";
+        let mentions = extract_mentions(query);
+        assert!(mentions.is_tenure_query);
+        assert_eq!(mentions.tenure_direction, Some(TenureDirection::Newest));
+    }
+
+    #[test]
+    fn test_extract_tenure_anniversary() {
+        let query = "Who has a work anniversary coming up?";
+        let mentions = extract_mentions(query);
+        assert!(mentions.is_tenure_query);
+        assert_eq!(mentions.tenure_direction, Some(TenureDirection::Anniversary));
+    }
+
+    #[test]
+    fn test_extract_underperformer() {
+        let query = "Who's underperforming on the team?";
+        let mentions = extract_mentions(query);
+        assert!(mentions.is_underperformer_query);
+    }
+
+    #[test]
+    fn test_extract_underperformer_struggling() {
+        let query = "Which employees are struggling?";
+        let mentions = extract_mentions(query);
+        assert!(mentions.is_underperformer_query);
+    }
+
+    #[test]
+    fn test_extract_top_performer() {
+        let query = "Who are our top performers?";
+        let mentions = extract_mentions(query);
+        assert!(mentions.is_top_performer_query);
+    }
+
+    #[test]
+    fn test_extract_top_performer_star() {
+        let query = "Who are the star employees in Engineering?";
+        let mentions = extract_mentions(query);
+        assert!(mentions.is_top_performer_query);
+        assert!(mentions.departments.contains(&"Engineering".to_string()));
+    }
+
+    #[test]
+    fn test_extract_aggregate_enps() {
+        let query = "What's our company eNPS?";
+        let mentions = extract_mentions(query);
+        assert!(mentions.is_enps_query);
+        assert!(mentions.wants_aggregate);
+    }
+
+    #[test]
+    fn test_extract_possessive_name() {
+        let query = "What's Sarah's performance history?";
+        let mentions = extract_mentions(query);
+        assert!(mentions.names.iter().any(|n| n == "Sarah"));
+    }
+
+    #[test]
+    fn test_extract_possessive_full_name() {
+        let query = "Tell me about Marcus Johnson's reviews";
+        let mentions = extract_mentions(query);
+        // Should find "Marcus" after stripping possessive from "Johnson's"
+        assert!(mentions.names.iter().any(|n| n.contains("Marcus")));
+    }
+
+    #[test]
+    fn test_extract_how_many() {
+        let query = "How many employees do we have?";
+        let mentions = extract_mentions(query);
+        assert!(mentions.wants_aggregate);
     }
 }

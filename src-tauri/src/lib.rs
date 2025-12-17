@@ -661,6 +661,14 @@ async fn get_company_context(
     context::get_company_context(&state.pool).await
 }
 
+/// Get aggregate eNPS score for the organization
+#[tauri::command]
+async fn get_aggregate_enps(
+    state: tauri::State<'_, Database>,
+) -> Result<context::EnpsAggregate, context::ContextError> {
+    context::calculate_aggregate_enps(&state.pool).await
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -745,7 +753,8 @@ pub fn run() {
             build_chat_context,
             get_system_prompt,
             get_employee_context,
-            get_company_context
+            get_company_context,
+            get_aggregate_enps
         ])
         .setup(|app| {
             let handle = app.handle().clone();
