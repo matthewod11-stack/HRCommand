@@ -94,16 +94,22 @@ What's the "Next Session Should" note for PROGRESS.md?
 ## Current Phase
 
 **Phase:** 2 (Context)
-**Status:** Phase 2.4 (Cross-Conversation Memory) complete
+**Status:** Phase 2.5 (Conversation Management) in progress
 
-**Completed:**
-- 2.4.1: memory.rs with generate_summary(), save_summary(), find_relevant_memories()
-- 2.4.2: Frontend trigger (useConversationSummary hook, Cmd+N shortcut)
-- 2.4.3: Summary search/retrieval (hybrid: LIKE → FTS fallback)
-- 2.4.4: Memories wired into build_chat_context()
+**In Progress (2.5):**
+- 2.5.1: Backend complete (conversations.rs CRUD, 7 Tauri commands, 7 tests)
+- Implementation plan: `~/.claude/plans/glowing-zooming-kite.md`
+
+**Remaining (2.5):**
+- ConversationContext.tsx (state management)
+- ConversationSidebar UI (tabbed layout with Employees)
+- Wire sidebar to chat area
+
+**Completed (2.4):**
+- memory.rs, useConversationSummary hook, Cmd+N shortcut, memories in context
 
 **Next Steps:**
-1. Phase 2.5: Conversation management (sidebar, search)
+1. Complete Phase 2.5 frontend (ConversationContext, ConversationSidebar)
 2. Phase 2.6: Stickiness features (prompt suggestions)
 
 ---
@@ -153,6 +159,7 @@ User Input → PII Scan → Context Builder → Memory Lookup → Claude API →
 | `context.rs` | Query extraction, employee retrieval, Alex persona prompt | 25 |
 | `chat.rs` | Claude API, streaming, conversation trimming | 8 |
 | `memory.rs` | Cross-conversation memory, summary generation, hybrid search | 8 |
+| `conversations.rs` | Conversation CRUD, FTS search, title generation | 7 |
 | `employees.rs` | Employee CRUD | - |
 | `company.rs` | Company profile CRUD | - |
 | `settings.rs` | Key-value settings store | - |

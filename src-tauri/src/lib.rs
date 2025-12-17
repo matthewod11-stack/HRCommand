@@ -7,6 +7,7 @@ mod bulk_import;
 mod chat;
 mod company;
 mod context;
+mod conversations;
 mod db;
 mod employees;
 mod enps;
@@ -705,6 +706,78 @@ async fn search_memories(
 }
 
 // ============================================================================
+// Conversation Management Commands
+// ============================================================================
+
+/// Create a new conversation
+#[tauri::command]
+async fn create_conversation(
+    state: tauri::State<'_, Database>,
+    input: conversations::CreateConversation,
+) -> Result<conversations::Conversation, conversations::ConversationError> {
+    conversations::create_conversation(&state.pool, input).await
+}
+
+/// Get a conversation by ID
+#[tauri::command]
+async fn get_conversation(
+    state: tauri::State<'_, Database>,
+    id: String,
+) -> Result<conversations::Conversation, conversations::ConversationError> {
+    conversations::get_conversation(&state.pool, &id).await
+}
+
+/// Update a conversation (title, messages, summary)
+#[tauri::command]
+async fn update_conversation(
+    state: tauri::State<'_, Database>,
+    id: String,
+    input: conversations::UpdateConversation,
+) -> Result<conversations::Conversation, conversations::ConversationError> {
+    conversations::update_conversation(&state.pool, &id, input).await
+}
+
+/// List conversations for sidebar display
+#[tauri::command]
+async fn list_conversations(
+    state: tauri::State<'_, Database>,
+    limit: Option<i64>,
+    offset: Option<i64>,
+) -> Result<Vec<conversations::ConversationListItem>, conversations::ConversationError> {
+    let limit = limit.unwrap_or(50);
+    let offset = offset.unwrap_or(0);
+    conversations::list_conversations(&state.pool, limit, offset).await
+}
+
+/// Search conversations using FTS
+#[tauri::command]
+async fn search_conversations(
+    state: tauri::State<'_, Database>,
+    query: String,
+    limit: Option<i64>,
+) -> Result<Vec<conversations::ConversationListItem>, conversations::ConversationError> {
+    let limit = limit.unwrap_or(20);
+    conversations::search_conversations(&state.pool, &query, limit).await
+}
+
+/// Delete a conversation
+#[tauri::command]
+async fn delete_conversation(
+    state: tauri::State<'_, Database>,
+    id: String,
+) -> Result<(), conversations::ConversationError> {
+    conversations::delete_conversation(&state.pool, &id).await
+}
+
+/// Generate a title for a conversation
+#[tauri::command]
+async fn generate_conversation_title(
+    first_message: String,
+) -> Result<String, conversations::ConversationError> {
+    Ok(conversations::generate_title_with_fallback(&first_message).await)
+}
+
+// ============================================================================
 // Settings Commands
 // ============================================================================
 
@@ -835,6 +908,14 @@ pub fn run() {
             generate_conversation_summary,
             save_conversation_summary,
             search_memories,
+            // Conversation management
+            create_conversation,
+            get_conversation,
+            update_conversation,
+            list_conversations,
+            search_conversations,
+            delete_conversation,
+            generate_conversation_title,
             // Settings
             get_setting,
             set_setting,

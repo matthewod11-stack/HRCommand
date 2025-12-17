@@ -10,6 +10,76 @@
 Most recent session should be first.
 -->
 
+## Session 2025-12-17 (Phase 2.5.1 — Conversation Management Backend)
+
+**Phase:** 2.5 — Conversation Management
+**Focus:** Backend CRUD operations and title generation for conversation history
+
+### Implementation Plan
+Full Phase 2.5 implementation plan generated and saved at:
+`~/.claude/plans/glowing-zooming-kite.md`
+
+Key decisions (user-confirmed):
+- **Sidebar layout:** Tabbed (Conversations | Employees)
+- **Title generation:** Claude-generated after first exchange
+- **Persistence:** Auto-save after each assistant response
+
+### Completed
+- [x] Created `conversations.rs` backend module (~320 LOC)
+- [x] Added 7 Tauri commands for conversation CRUD
+- [x] Added TypeScript wrappers and types
+- [x] Implemented Claude-powered title generation with fallback
+- [x] Added 7 unit tests
+
+### Files Created/Modified
+```
+src-tauri/src/conversations.rs     - NEW: CRUD, search, title generation (~320 LOC)
+src-tauri/src/lib.rs               - Added mod conversations + 7 Tauri commands
+src/lib/tauri-commands.ts          - Added ConversationRecord, ConversationListItem types + 7 wrappers
+features.json                      - conversation-management: in-progress
+docs/PROGRESS.md                   - This session entry
+```
+
+### New Tauri Commands (7)
+| Command | Purpose |
+|---------|---------|
+| `create_conversation` | Create a new conversation record |
+| `get_conversation` | Retrieve conversation by ID |
+| `update_conversation` | Update title/messages/summary (upsert) |
+| `list_conversations` | List for sidebar (lightweight items) |
+| `search_conversations` | FTS search across conversations |
+| `delete_conversation` | Delete by ID |
+| `generate_conversation_title` | Claude title generation with fallback |
+
+### Key Implementation Details
+1. **Upsert pattern:** `update_conversation` creates if not exists
+2. **Lightweight list:** `ConversationListItem` avoids loading full message JSON
+3. **Title generation:** Claude prompt for 3-5 word titles, fallback to truncation
+4. **FTS search:** Uses existing `conversations_fts` virtual table
+5. **Stop word filtering:** Shared pattern with memory.rs
+
+### Unit Tests (7 new in conversations.rs)
+- `test_prepare_fts_query_basic` - FTS query preparation
+- `test_prepare_fts_query_filters_stop_words` - Stop word removal
+- `test_prepare_fts_query_empty_on_all_stop_words` - Empty query handling
+- `test_prepare_fts_query_filters_short_words` - Short word filtering
+- `test_prepare_fts_query_escapes_quotes` - Quote escaping
+- `test_conversation_error_serialization` - Error serialization
+- `test_title_system_prompt_is_concise` - Prompt token budget
+
+### Verification
+- [x] 57 Rust tests pass (1 pre-existing failure in file_parser)
+- [x] TypeScript type-check passes
+- [x] Frontend build succeeds
+
+### Next Session Should
+1. Continue Phase 2.5 using plan at `~/.claude/plans/glowing-zooming-kite.md`
+2. Create ConversationContext.tsx (state management)
+3. Create ConversationSidebar UI components
+4. Wire sidebar to chat area
+
+---
+
 ## Session 2025-12-17 (Phase 2.4 — Cross-Conversation Memory COMPLETE)
 
 **Phase:** 2.4 — Cross-Conversation Memory

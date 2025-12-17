@@ -7,7 +7,7 @@
     "totalFeatures": 32,
     "passing": 11,
     "failing": 0,
-    "inProgress": 0
+    "inProgress": 1
   },
   "phase-0": {
     "pre-flight-validation": {
@@ -55,8 +55,8 @@
       "notes": "2.4.1-2.4.4 complete: memory.rs (8 tests), useConversationSummary hook, Tauri commands, Cmd+N shortcut. Summaries generated on new conversation."
     },
     "conversation-management": {
-      "status": "not-started",
-      "notes": "Sidebar, search, auto-titles"
+      "status": "in-progress",
+      "notes": "Backend complete: conversations.rs CRUD (7 commands), auto-title generation, 7 tests. Frontend pending: ConversationContext, ConversationSidebar UI."
     },
     "stickiness-features": {
       "status": "not-started",

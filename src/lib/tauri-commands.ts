@@ -733,6 +733,129 @@ export async function searchMemories(
 }
 
 // =============================================================================
+// Phase 2.5 - Conversation Management
+// =============================================================================
+
+/**
+ * Full conversation record from database
+ */
+export interface ConversationRecord {
+  id: string;
+  title: string | null;
+  summary: string | null;
+  messages_json: string;
+  created_at: string;
+  updated_at: string;
+}
+
+/**
+ * Lightweight conversation item for sidebar list
+ */
+export interface ConversationListItem {
+  id: string;
+  title: string | null;
+  summary: string | null;
+  message_count: number;
+  first_message_preview: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+/**
+ * Input for creating a conversation
+ */
+export interface CreateConversationInput {
+  id: string;
+  title?: string;
+  messages_json?: string;
+}
+
+/**
+ * Input for updating a conversation
+ */
+export interface UpdateConversationInput {
+  title?: string;
+  messages_json?: string;
+  summary?: string;
+}
+
+/**
+ * Create a new conversation
+ * @param input - Conversation ID and optional title/messages
+ */
+export async function createConversation(
+  input: CreateConversationInput
+): Promise<ConversationRecord> {
+  return invoke('create_conversation', { input });
+}
+
+/**
+ * Get a conversation by ID
+ * @param id - The conversation ID
+ */
+export async function getConversation(id: string): Promise<ConversationRecord> {
+  return invoke('get_conversation', { id });
+}
+
+/**
+ * Update a conversation (title, messages, or summary)
+ * Creates the conversation if it doesn't exist (upsert behavior)
+ * @param id - The conversation ID
+ * @param input - Fields to update
+ */
+export async function updateConversation(
+  id: string,
+  input: UpdateConversationInput
+): Promise<ConversationRecord> {
+  return invoke('update_conversation', { id, input });
+}
+
+/**
+ * List conversations for sidebar display
+ * Returns lightweight items sorted by updated_at (most recent first)
+ * @param limit - Max results (default: 50)
+ * @param offset - Pagination offset (default: 0)
+ */
+export async function listConversations(
+  limit?: number,
+  offset?: number
+): Promise<ConversationListItem[]> {
+  return invoke('list_conversations', { limit, offset });
+}
+
+/**
+ * Search conversations using full-text search
+ * Searches across title, messages, and summary
+ * @param query - Search query
+ * @param limit - Max results (default: 20)
+ */
+export async function searchConversations(
+  query: string,
+  limit?: number
+): Promise<ConversationListItem[]> {
+  return invoke('search_conversations', { query, limit });
+}
+
+/**
+ * Delete a conversation
+ * @param id - The conversation ID to delete
+ */
+export async function deleteConversation(id: string): Promise<void> {
+  return invoke('delete_conversation', { id });
+}
+
+/**
+ * Generate a title for a conversation using Claude
+ * Falls back to truncated first message if Claude fails
+ * @param firstMessage - The first user message in the conversation
+ */
+export async function generateConversationTitle(
+  firstMessage: string
+): Promise<string> {
+  return invoke('generate_conversation_title', { firstMessage });
+}
+
+// =============================================================================
 // Commands to be implemented in later phases:
 // =============================================================================
 
