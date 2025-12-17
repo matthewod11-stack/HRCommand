@@ -10,6 +10,39 @@
 Most recent session should be first.
 -->
 
+## Session 2025-12-16 (Environment Setup — New Machine)
+
+**Phase:** Pre-2.3
+**Focus:** Verify and configure development environment on new machine
+
+### Completed
+- [x] Verified toolchain versions (Rust 1.90.0, Node v24.7.0, npm 11.6.1)
+- [x] Installed Tauri CLI 2.9.6 (`cargo install tauri-cli`)
+- [x] Regenerated test data (100 employees, 229 ratings, 219 eNPS responses)
+- [x] Verified TypeScript compiles without errors
+- [x] Verified Vite build succeeds (66 modules, 517KB)
+- [x] Verified Rust compiles (15 warnings, 0 errors)
+- [x] Verified Tauri dev mode starts successfully
+
+### Environment Verified
+| Component | Version |
+|-----------|---------|
+| Rust | 1.90.0 |
+| Node.js | v24.7.0 |
+| npm | 11.6.1 |
+| Tauri CLI | 2.9.6 |
+
+### Notes
+- Test data regenerated using `npm run generate-test-data` and `npx tsx scripts/generate-test-data.ts --performance`
+- First Tauri build on this machine triggered full dependency compilation (491 crates)
+- No code changes — environment setup only
+
+### Next Session Should
+- Start with: Phase 2.3.1 — Implement context.rs with retrieval logic
+- Be aware of: HR_PERSONA.md contains system prompt template for "Alex" persona
+
+---
+
 ## Session 2025-12-16 (Phase 2.2 — Company Profile)
 
 **Phase:** 2.2 — Company Profile
