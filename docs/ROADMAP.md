@@ -159,7 +159,7 @@ This is a **long-running, multi-session implementation**. Follow these rules:
 - [x] 2.3.3 Build system prompt with HR persona ("Alex") + company context
 - [x] 2.3.4 Include performance/eNPS data in employee context
 - [x] 2.3.5 Add context to Claude API calls (+ user_name setting support)
-- [ ] 2.3.6 Implement context size trimming
+- [x] 2.3.6 Implement context size trimming
 
 ### 2.4 Cross-Conversation Memory
 - [ ] 2.4.1 Implement memory.rs for conversation summaries

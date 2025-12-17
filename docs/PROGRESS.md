@@ -10,6 +10,65 @@
 Most recent session should be first.
 -->
 
+## Session 2025-12-17 (Phase 2.3.6 — Context Size Trimming)
+
+**Phase:** 2.3 — Context Builder
+**Focus:** Implement token budgeting and conversation history trimming
+
+### Completed
+- [x] 2.3.6 Implement context size trimming
+
+### Files Modified
+```
+src-tauri/src/context.rs           - Token budget constants, estimate_tokens(), tokens_to_chars(), get_max_conversation_tokens(), 7 new tests (~70 LOC)
+src-tauri/src/chat.rs              - trim_conversation_to_budget(), conversation estimation, wired into both API functions, 7 new tests (~85 LOC)
+CLAUDE.md                          - Updated to Phase 2.3 complete, added database tables, testing info
+README.md                          - Updated status line
+docs/ROADMAP.md                    - Marked 2.3.6 complete
+features.json                      - Updated context-builder notes (33 tests passing)
+```
+
+### Token Budget System
+| Allocation | Tokens | Characters |
+|------------|--------|------------|
+| System prompt | 20,000 | ~80K |
+| Conversation history | 150,000 | ~600K |
+| Output reserved | 4,096 | ~16K |
+| Safety buffer | ~26K | ~100K |
+| **Total (Claude Sonnet 4)** | **200,000** | **~800K** |
+
+### Key Features Implemented
+1. **Token estimation:** `estimate_tokens()` uses conservative 4 chars/token ratio
+2. **Silent trimming:** `trim_conversation_to_budget()` drops oldest messages without notification
+3. **Pair preservation:** Removes user+assistant message pairs to maintain conversation coherence
+4. **Both APIs covered:** Trimming applied to streaming and non-streaming endpoints
+5. **Employee context:** Already limited to 16K chars (~4K tokens) via `MAX_EMPLOYEE_CONTEXT_CHARS`
+
+### Unit Tests Added (14 new)
+**context.rs (7 tests):**
+- `test_estimate_tokens_empty`, `test_estimate_tokens_short_text`, `test_estimate_tokens_exact_multiple`
+- `test_estimate_tokens_rounds_up`, `test_estimate_tokens_longer_text`
+- `test_tokens_to_chars`, `test_get_max_conversation_tokens`
+
+**chat.rs (7 tests):**
+- `test_estimate_message_tokens`, `test_estimate_conversation_tokens`
+- `test_trim_conversation_no_trimming_needed`, `test_trim_conversation_empty`
+- `test_trim_conversation_single_message`, `test_trim_conversation_preserves_recent`
+- `test_trim_removes_oldest_first`
+
+### Verified
+- [x] TypeScript compiles without errors
+- [x] Rust compiles without errors (19 warnings, pre-existing)
+- [x] Vite build succeeds (66 modules, 525KB)
+- [x] All 33 context+chat module tests pass
+
+### Next Session Should
+- Start with: 2.4.1 Implement memory.rs for conversation summaries
+- Or: 2.5.1 Create ConversationSidebar component
+- Be aware of: Phase 2.3 (Context Builder) is now fully complete
+
+---
+
 ## Session 2025-12-17 (Phase 2.3.5 — Wire Context to Chat + User Name)
 
 **Phase:** 2.3 — Context Builder

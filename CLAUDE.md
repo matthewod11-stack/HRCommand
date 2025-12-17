@@ -35,10 +35,24 @@ HRCommand/
 │   └── reference/            # Archive: feedback, decisions log
 │
 ├── scripts/
-│   └── dev-init.sh           # Session initialization
+│   ├── dev-init.sh           # Session initialization
+│   └── generate-test-data.ts # Test data generator
 │
-├── src/                      # React frontend (when created)
-└── src-tauri/                # Rust backend (when created)
+├── src/                      # React frontend
+│   ├── components/           # UI components (chat, employees, import, settings)
+│   ├── contexts/             # React context providers
+│   ├── hooks/                # Custom React hooks
+│   └── lib/                  # Types, Tauri command wrappers
+│
+└── src-tauri/                # Rust backend
+    ├── src/
+    │   ├── lib.rs            # Tauri command exports
+    │   ├── db.rs             # SQLite connection + migrations
+    │   ├── chat.rs           # Claude API client + streaming
+    │   ├── context.rs        # Context builder + Alex persona
+    │   ├── employees.rs      # Employee CRUD
+    │   └── ...               # Additional modules
+    └── migrations/           # SQL migration files
 ```
 
 ---
@@ -79,12 +93,12 @@ What's the "Next Session Should" note for PROGRESS.md?
 
 ## Current Phase
 
-**Phase:** 1 (Foundation)
-**Status:** Phase 0 complete, beginning implementation
+**Phase:** 2 (Context)
+**Status:** Phase 2.3 (Context Builder) complete
 
 **Next Steps:**
-1. Phase 1.1: Project scaffolding (Tauri + React + Vite)
-2. Phase 1.2: SQLite setup
+1. Phase 2.4: Cross-conversation memory (memory.rs, summaries)
+2. Phase 2.5: Conversation management (sidebar, search)
 
 ---
 
@@ -113,15 +127,28 @@ User Input → PII Scan → Context Builder → Memory Lookup → Claude API →
 ```
 
 ### Key Components
-- **Frontend (React):** ~2,200 LOC - Chat UI, sidebars, onboarding
-- **Backend (Rust):** ~1,200 LOC - SQLite, PII scanner, Claude API, Keychain
+- **Frontend (React):** Chat UI, employee panels, import wizards, settings
+- **Backend (Rust):** SQLite, context builder, Claude API client, Keychain
 
-### Database Tables (5)
-- `employees` - Core employee data with work_state
+### Database Tables (9)
+- `employees` - Core employee data with work_state, demographics, termination
 - `conversations` - Chat history with title, summary
 - `company` - Required: name + state
-- `settings` - App config
+- `settings` - Key-value app config
 - `audit_log` - Redacted request/response log
+- `review_cycles` - Performance review periods
+- `performance_ratings` - Numeric ratings (1.0-5.0)
+- `performance_reviews` - Text narratives with FTS
+- `enps_responses` - Employee Net Promoter Score
+
+### Key Modules (Rust)
+| Module | Purpose | Tests |
+|--------|---------|-------|
+| `context.rs` | Query extraction, employee retrieval, Alex persona prompt | 25 |
+| `chat.rs` | Claude API, streaming, conversation trimming | 8 |
+| `employees.rs` | Employee CRUD | - |
+| `company.rs` | Company profile CRUD | - |
+| `settings.rs` | Key-value settings store | - |
 
 ---
 
@@ -140,26 +167,15 @@ User Input → PII Scan → Context Builder → Memory Lookup → Claude API →
 
 ---
 
-## LOC Budget
-
-| Area | Target |
-|------|--------|
-| React components | ~1,400 |
-| React contexts/hooks | ~600 |
-| React utilities | ~100 |
-| Rust backend | ~1,200 |
-| **Total** | **~3,300** |
-
-Stay lean. If approaching budget, reconsider complexity.
-
----
-
 ## Testing Approach
 
-- **PII Scanner:** Unit tests for regex patterns
-- **Context Builder:** Integration tests with mock data
+- **Context Builder:** 25 unit tests (query extraction, token estimation)
+- **Chat Module:** 8 unit tests (trimming, message handling)
+- **PII Scanner:** Unit tests for regex patterns (Phase 3)
 - **UI:** Manual verification at pause points
 - **E2E:** Verify at each phase pause point
+
+Run tests: `cargo test --manifest-path src-tauri/Cargo.toml`
 
 ---
 
@@ -170,7 +186,7 @@ Stay lean. If approaching budget, reconsider complexity.
 | `HR-Command-Center-Roadmap.md` | For phase context |
 | `HR-Command-Center-Design-Architecture.md` | When implementing |
 | `docs/reference/DECISIONS-LOG.md` | When questioning approach |
-| `docs/reference/MASTER-FEEDBACK-CONSOLIDATED.md` | For feature prioritization |
+| `docs/HR_PERSONA.md` | Alex persona system prompt |
 
 ---
 
@@ -180,15 +196,21 @@ Stay lean. If approaching budget, reconsider complexity.
 # Session start
 ./scripts/dev-init.sh
 
-# Development (after Phase 1 scaffolding)
-npm run dev           # Start dev server
+# Development
+npm run dev           # Start Vite dev server
 npm run build         # Production build
 npm run type-check    # TypeScript check
-npm test              # Run tests
-
-# Tauri
 cargo tauri dev       # Run Tauri app
 cargo tauri build     # Build for distribution
+
+# Testing
+cargo test --manifest-path src-tauri/Cargo.toml           # All Rust tests
+cargo test --manifest-path src-tauri/Cargo.toml context   # Context tests
+cargo test --manifest-path src-tauri/Cargo.toml chat      # Chat tests
+
+# Test data
+npm run generate-test-data     # Generate test employees
+npm run import-test-data       # Import to SQLite
 ```
 
 ---
@@ -207,4 +229,4 @@ Session: YYYY-MM-DD
 ---
 
 *Last updated: December 2025*
-*Status: Planning complete, ready for Phase 0*
+*Status: Phase 2.3 complete (Context Builder with trimming)*

@@ -48,7 +48,7 @@
     },
     "context-builder": {
       "status": "pass",
-      "notes": "2.3.1-2.3.5 complete: context.rs, Alex persona system prompt, employee context with performance/eNPS, wired to frontend chat, user_name setting support. 18 tests passing. Remaining: 2.3.6 context size trimming."
+      "notes": "2.3.1-2.3.6 complete: context.rs, Alex persona system prompt, employee context with performance/eNPS, wired to frontend chat, user_name setting support, token budget + conversation trimming. 33 tests passing."
     },
     "cross-conversation-memory": {
       "status": "not-started",

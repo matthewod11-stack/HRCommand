@@ -14,12 +14,32 @@ use thiserror::Error;
 use crate::db::DbPool;
 
 // ============================================================================
-// Constants
+// Token Budget Constants
 // ============================================================================
+// Claude Sonnet 4 has 200K context window. We allocate conservatively:
+// - System prompt (persona + company + employees): 20K tokens
+// - Conversation history: 150K tokens
+// - Output reserved: 4K tokens
+// - Safety buffer: 26K tokens
 
-/// Maximum characters for employee context section (approximate token budget)
-/// ~4 chars per token, targeting ~2000 tokens for employee context
-const MAX_EMPLOYEE_CONTEXT_CHARS: usize = 8000;
+/// Approximate characters per token (conservative estimate for English text)
+const CHARS_PER_TOKEN: usize = 4;
+
+/// Maximum tokens for the entire system prompt (persona + company + employees + memory)
+const MAX_SYSTEM_PROMPT_TOKENS: usize = 20_000;
+
+/// Maximum tokens for conversation history
+const MAX_CONVERSATION_TOKENS: usize = 150_000;
+
+/// Tokens reserved for Claude's response output
+#[allow(dead_code)]
+const OUTPUT_TOKENS_RESERVED: usize = 4_096;
+
+/// Maximum tokens for employee context section (part of system prompt budget)
+const MAX_EMPLOYEE_CONTEXT_TOKENS: usize = 4_000;
+
+/// Maximum characters for employee context (derived from token budget)
+const MAX_EMPLOYEE_CONTEXT_CHARS: usize = MAX_EMPLOYEE_CONTEXT_TOKENS * CHARS_PER_TOKEN;
 
 /// Maximum number of employees to include in context
 const MAX_EMPLOYEES_IN_CONTEXT: usize = 10;
@@ -953,6 +973,34 @@ fn enps_category(score: i32) -> &'static str {
 }
 
 // ============================================================================
+// Token Estimation Utilities
+// ============================================================================
+
+/// Estimate token count from text length (conservative: ~4 chars per token)
+/// This is a rough approximation; actual tokenization varies by content.
+pub fn estimate_tokens(text: &str) -> usize {
+    // Round up to be conservative
+    (text.len() + CHARS_PER_TOKEN - 1) / CHARS_PER_TOKEN
+}
+
+/// Convert a token budget to approximate character budget
+#[allow(dead_code)]
+pub fn tokens_to_chars(tokens: usize) -> usize {
+    tokens * CHARS_PER_TOKEN
+}
+
+/// Get the maximum conversation token budget
+pub fn get_max_conversation_tokens() -> usize {
+    MAX_CONVERSATION_TOKENS
+}
+
+/// Get the maximum system prompt token budget
+#[allow(dead_code)]
+pub fn get_max_system_prompt_tokens() -> usize {
+    MAX_SYSTEM_PROMPT_TOKENS
+}
+
+// ============================================================================
 // System Prompt Building
 // ============================================================================
 
@@ -1225,5 +1273,52 @@ mod tests {
         let query = "How many employees do we have?";
         let mentions = extract_mentions(query);
         assert!(mentions.wants_aggregate);
+    }
+
+    // ========================================
+    // Token Estimation Tests
+    // ========================================
+
+    #[test]
+    fn test_estimate_tokens_empty() {
+        assert_eq!(estimate_tokens(""), 0);
+    }
+
+    #[test]
+    fn test_estimate_tokens_short_text() {
+        // "Hello" = 5 chars = ceil(5/4) = 2 tokens
+        assert_eq!(estimate_tokens("Hello"), 2);
+    }
+
+    #[test]
+    fn test_estimate_tokens_exact_multiple() {
+        // 8 chars = 8/4 = 2 tokens
+        assert_eq!(estimate_tokens("12345678"), 2);
+    }
+
+    #[test]
+    fn test_estimate_tokens_rounds_up() {
+        // 9 chars = ceil(9/4) = 3 tokens (conservative)
+        assert_eq!(estimate_tokens("123456789"), 3);
+    }
+
+    #[test]
+    fn test_estimate_tokens_longer_text() {
+        // 100 chars = 100/4 = 25 tokens
+        let text = "a".repeat(100);
+        assert_eq!(estimate_tokens(&text), 25);
+    }
+
+    #[test]
+    fn test_tokens_to_chars() {
+        assert_eq!(tokens_to_chars(100), 400);
+        assert_eq!(tokens_to_chars(0), 0);
+        assert_eq!(tokens_to_chars(1), 4);
+    }
+
+    #[test]
+    fn test_get_max_conversation_tokens() {
+        // Should return the constant value
+        assert_eq!(get_max_conversation_tokens(), 150_000);
     }
 }

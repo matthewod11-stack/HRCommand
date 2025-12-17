@@ -40,7 +40,7 @@ A desktop AI assistant for HR professionals that keeps your employee data local 
 | 4. Polish | ⏳ Planned | Onboarding, export, digest |
 | 5. Launch | ⏳ Planned | Beta users, payment |
 
-**Current:** Phase 2.3 (Context Builder) — Alex persona wired to chat with employee/company context.
+**Current:** Phase 2.3 complete — Context builder with Alex persona + token budget trimming. Next: 2.4 Memory.
 
 ## Key Features (Planned)
 
@@ -105,4 +105,4 @@ Proprietary. See LICENSE file for details.
 ---
 
 *Last updated: December 2025*
-*Status: Phase 1.3 complete (Basic Chat UI)*
+*Status: Phase 2.3 complete (Context Builder)*

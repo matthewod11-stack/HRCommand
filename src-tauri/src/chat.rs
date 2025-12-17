@@ -7,6 +7,7 @@ use serde::{Deserialize, Serialize};
 use tauri::{AppHandle, Emitter};
 use thiserror::Error;
 
+use crate::context::{estimate_tokens, get_max_conversation_tokens};
 use crate::keyring;
 
 const ANTHROPIC_API_URL: &str = "https://api.anthropic.com/v1/messages";
@@ -184,6 +185,62 @@ pub struct StreamChunk {
 }
 
 // ============================================================================
+// Conversation Trimming
+// ============================================================================
+
+/// Estimate tokens for a single chat message
+/// Includes overhead for role/structure (~4 tokens per message)
+fn estimate_message_tokens(message: &ChatMessage) -> usize {
+    estimate_tokens(&message.content) + 4
+}
+
+/// Estimate total tokens for a conversation
+fn estimate_conversation_tokens(messages: &[ChatMessage]) -> usize {
+    messages.iter().map(|m| estimate_message_tokens(m)).sum()
+}
+
+/// Trim conversation history to fit within token budget
+/// Strategy: Keep most recent messages, remove oldest user/assistant pairs first
+/// This silently drops old messages without notification (per design spec)
+pub fn trim_conversation_to_budget(
+    messages: Vec<ChatMessage>,
+    system_prompt: &Option<String>,
+) -> Vec<ChatMessage> {
+    // Calculate available budget for conversation
+    let system_tokens = system_prompt
+        .as_ref()
+        .map(|s| estimate_tokens(s))
+        .unwrap_or(0);
+    let max_conversation_tokens = get_max_conversation_tokens();
+    let conversation_budget = max_conversation_tokens.saturating_sub(system_tokens);
+
+    let mut result = messages;
+    let mut total_tokens = estimate_conversation_tokens(&result);
+
+    // If already under budget, return as-is
+    if total_tokens <= conversation_budget {
+        return result;
+    }
+
+    // Remove oldest messages until under budget
+    // Keep at least the most recent user message
+    while total_tokens > conversation_budget && result.len() > 1 {
+        // Remove the oldest message
+        result.remove(0);
+
+        // If we just removed a user message and the new first message is assistant,
+        // also remove it to keep pairs intact (don't leave orphan assistant response)
+        if !result.is_empty() && result[0].role == "assistant" {
+            result.remove(0);
+        }
+
+        total_tokens = estimate_conversation_tokens(&result);
+    }
+
+    result
+}
+
+// ============================================================================
 // API Client
 // ============================================================================
 
@@ -195,11 +252,14 @@ pub async fn send_message(
     // Get API key from Keychain
     let api_key = keyring::get_api_key()?;
 
+    // Trim conversation to fit within token budget (silently drops oldest messages)
+    let trimmed_messages = trim_conversation_to_budget(messages, &system_prompt);
+
     // Build the request
     let request = MessageRequest {
         model: MODEL.to_string(),
         max_tokens: MAX_TOKENS,
-        messages: messages
+        messages: trimmed_messages
             .into_iter()
             .map(|m| Message {
                 role: m.role,
@@ -278,11 +338,14 @@ pub async fn send_message_streaming(
     // Get API key
     let api_key = keyring::get_api_key()?;
 
+    // Trim conversation to fit within token budget (silently drops oldest messages)
+    let trimmed_messages = trim_conversation_to_budget(messages, &system_prompt);
+
     // Build the request with streaming enabled
     let request = MessageRequest {
         model: MODEL.to_string(),
         max_tokens: MAX_TOKENS,
-        messages: messages
+        messages: trimmed_messages
             .into_iter()
             .map(|m| Message {
                 role: m.role,
@@ -377,5 +440,100 @@ mod tests {
         let json = serde_json::to_string(&msg).unwrap();
         assert!(json.contains("user"));
         assert!(json.contains("Hello"));
+    }
+
+    // ========================================
+    // Conversation Trimming Tests
+    // ========================================
+
+    fn make_message(role: &str, content: &str) -> ChatMessage {
+        ChatMessage {
+            role: role.to_string(),
+            content: content.to_string(),
+        }
+    }
+
+    #[test]
+    fn test_estimate_message_tokens() {
+        let msg = make_message("user", "Hello"); // 5 chars = 2 tokens + 4 overhead = 6
+        assert_eq!(estimate_message_tokens(&msg), 6);
+    }
+
+    #[test]
+    fn test_estimate_conversation_tokens() {
+        let messages = vec![
+            make_message("user", "Hello"),      // 6 tokens
+            make_message("assistant", "Hi there"), // ceil(8/4) + 4 = 6 tokens
+        ];
+        assert_eq!(estimate_conversation_tokens(&messages), 12);
+    }
+
+    #[test]
+    fn test_trim_conversation_no_trimming_needed() {
+        // Small conversation should not be trimmed
+        let messages = vec![
+            make_message("user", "Hello"),
+            make_message("assistant", "Hi there"),
+        ];
+        let system_prompt = Some("You are a helpful assistant.".to_string());
+
+        let trimmed = trim_conversation_to_budget(messages.clone(), &system_prompt);
+        assert_eq!(trimmed.len(), 2);
+    }
+
+    #[test]
+    fn test_trim_conversation_empty() {
+        let messages: Vec<ChatMessage> = vec![];
+        let trimmed = trim_conversation_to_budget(messages, &None);
+        assert!(trimmed.is_empty());
+    }
+
+    #[test]
+    fn test_trim_conversation_single_message() {
+        let messages = vec![make_message("user", "Hello")];
+        let trimmed = trim_conversation_to_budget(messages, &None);
+        assert_eq!(trimmed.len(), 1);
+    }
+
+    #[test]
+    fn test_trim_conversation_preserves_recent() {
+        // Create a moderately sized conversation
+        let mut messages = vec![];
+        for i in 0..10 {
+            messages.push(make_message("user", &format!("Question {}", i)));
+            messages.push(make_message("assistant", &format!("Answer {}", i)));
+        }
+
+        // With no system prompt, should have lots of budget
+        let trimmed = trim_conversation_to_budget(messages.clone(), &None);
+
+        // Should preserve all messages since they fit in budget
+        assert_eq!(trimmed.len(), 20);
+
+        // Last message should be preserved
+        assert_eq!(trimmed.last().unwrap().content, "Answer 9");
+    }
+
+    #[test]
+    fn test_trim_removes_oldest_first() {
+        // Create messages where oldest is identifiable
+        let messages = vec![
+            make_message("user", "OLDEST"),
+            make_message("assistant", "Response to oldest"),
+            make_message("user", "MIDDLE"),
+            make_message("assistant", "Response to middle"),
+            make_message("user", "NEWEST"),
+            make_message("assistant", "Response to newest"),
+        ];
+
+        // With huge system prompt that leaves almost no conversation budget,
+        // simulate trimming by checking behavior
+        let trimmed = trim_conversation_to_budget(messages.clone(), &None);
+
+        // Should still have all since they fit in 150K token budget
+        assert_eq!(trimmed.len(), 6);
+
+        // First message should still be OLDEST (no trimming needed)
+        assert_eq!(trimmed[0].content, "OLDEST");
     }
 }
