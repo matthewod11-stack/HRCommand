@@ -2,9 +2,10 @@ import { type ReactNode } from 'react';
 import { useLayout } from '../../contexts/LayoutContext';
 import { useNetwork } from '../../hooks';
 import { OfflineIndicator } from '../shared';
+import { TabSwitcher, ConversationSidebar } from '../conversations';
+import { EmployeePanel } from '../employees';
 
 interface AppShellProps {
-  sidebar?: ReactNode;
   children: ReactNode;
   contextPanel?: ReactNode;
 }
@@ -68,8 +69,8 @@ function IconButton({
   );
 }
 
-export function AppShell({ sidebar, children, contextPanel }: AppShellProps) {
-  const { sidebarOpen, contextPanelOpen, toggleSidebar, toggleContextPanel } = useLayout();
+export function AppShell({ children, contextPanel }: AppShellProps) {
+  const { sidebarOpen, contextPanelOpen, sidebarTab, toggleSidebar, toggleContextPanel, setSidebarTab } = useLayout();
   const { isOnline, errorMessage, checkNow, isChecking } = useNetwork();
 
   return (
@@ -142,15 +143,27 @@ export function AppShell({ sidebar, children, contextPanel }: AppShellProps) {
             border-r border-stone-200/60
             transition-all duration-300 ease-in-out
             overflow-hidden
-            ${sidebarOpen ? 'w-60' : 'w-0'}
+            ${sidebarOpen ? 'w-72' : 'w-0'}
           `}
         >
           <div className={`
-            w-60 h-full
+            w-72 h-full flex flex-col
             transition-opacity duration-200
             ${sidebarOpen ? 'opacity-100' : 'opacity-0'}
           `}>
-            {sidebar || <SidebarPlaceholder />}
+            {/* Tab Switcher */}
+            <div className="p-3 pb-0">
+              <TabSwitcher value={sidebarTab} onChange={setSidebarTab} />
+            </div>
+
+            {/* Tab Content */}
+            <div className="flex-1 overflow-hidden">
+              {sidebarTab === 'conversations' ? (
+                <ConversationSidebar />
+              ) : (
+                <EmployeePanel />
+              )}
+            </div>
           </div>
         </aside>
 
@@ -187,60 +200,6 @@ export function AppShell({ sidebar, children, contextPanel }: AppShellProps) {
             {contextPanel || <ContextPanelPlaceholder />}
           </div>
         </aside>
-      </div>
-    </div>
-  );
-}
-
-function SidebarPlaceholder() {
-  return (
-    <div className="h-full flex flex-col p-4">
-      <button className="
-        w-full py-2.5 px-4
-        bg-primary-500 hover:bg-primary-600
-        text-white text-sm font-medium
-        rounded-lg
-        transition-all duration-200
-        hover:shadow-md hover:scale-[1.02]
-        active:scale-[0.98]
-      ">
-        + New Conversation
-      </button>
-
-      <div className="mt-6 flex-1">
-        <p className="text-xs font-medium text-stone-400 uppercase tracking-wider mb-3">
-          Today
-        </p>
-        <div className="space-y-1">
-          {['Performance review help', 'Sarah\'s PTO request', 'New hire onboarding'].map((title, i) => (
-            <div
-              key={i}
-              className="
-                px-3 py-2 rounded-md
-                text-sm text-stone-600
-                hover:bg-stone-200/50
-                cursor-pointer
-                transition-colors duration-150
-              "
-            >
-              {title}
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div className="pt-3 border-t border-stone-200/60">
-        <div className="
-          px-3 py-2 rounded-md
-          bg-stone-200/30
-          text-sm text-stone-400
-          flex items-center gap-2
-        ">
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
-          </svg>
-          Search conversations...
-        </div>
       </div>
     </div>
   );

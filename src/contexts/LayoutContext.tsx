@@ -1,8 +1,11 @@
 import { createContext, useContext, useState, useCallback, type ReactNode } from 'react';
 
+export type SidebarTab = 'conversations' | 'employees';
+
 interface LayoutState {
   sidebarOpen: boolean;
   contextPanelOpen: boolean;
+  sidebarTab: SidebarTab;
 }
 
 interface LayoutContextValue extends LayoutState {
@@ -10,6 +13,7 @@ interface LayoutContextValue extends LayoutState {
   toggleContextPanel: () => void;
   setSidebarOpen: (open: boolean) => void;
   setContextPanelOpen: (open: boolean) => void;
+  setSidebarTab: (tab: SidebarTab) => void;
 }
 
 const LayoutContext = createContext<LayoutContextValue | null>(null);
@@ -18,6 +22,7 @@ export function LayoutProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<LayoutState>({
     sidebarOpen: true,
     contextPanelOpen: true,
+    sidebarTab: 'conversations', // Default to conversations tab
   });
 
   const toggleSidebar = useCallback(() => {
@@ -36,6 +41,10 @@ export function LayoutProvider({ children }: { children: ReactNode }) {
     setState(prev => ({ ...prev, contextPanelOpen: open }));
   }, []);
 
+  const setSidebarTab = useCallback((tab: SidebarTab) => {
+    setState(prev => ({ ...prev, sidebarTab: tab }));
+  }, []);
+
   return (
     <LayoutContext.Provider
       value={{
@@ -44,6 +53,7 @@ export function LayoutProvider({ children }: { children: ReactNode }) {
         toggleContextPanel,
         setSidebarOpen,
         setContextPanelOpen,
+        setSidebarTab,
       }}
     >
       {children}

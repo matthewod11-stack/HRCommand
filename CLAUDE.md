@@ -94,23 +94,19 @@ What's the "Next Session Should" note for PROGRESS.md?
 ## Current Phase
 
 **Phase:** 2 (Context)
-**Status:** Phase 2.5 (Conversation Management) in progress
+**Status:** Phase 2.5 complete, Phase 2.6 next
 
-**In Progress (2.5):**
-- 2.5.1: Backend complete (conversations.rs CRUD, 7 Tauri commands, 7 tests)
-- Implementation plan: `~/.claude/plans/glowing-zooming-kite.md`
-
-**Remaining (2.5):**
-- ConversationContext.tsx (state management)
-- ConversationSidebar UI (tabbed layout with Employees)
-- Wire sidebar to chat area
+**Completed (2.5):**
+- Backend: conversations.rs CRUD (7 commands, 7 tests)
+- Frontend: ConversationContext.tsx (auto-save, auto-title)
+- UI: Tabbed sidebar (ConversationSidebar, TabSwitcher, ConversationCard, ConversationSearch)
 
 **Completed (2.4):**
 - memory.rs, useConversationSummary hook, Cmd+N shortcut, memories in context
 
 **Next Steps:**
-1. Complete Phase 2.5 frontend (ConversationContext, ConversationSidebar)
-2. Phase 2.6: Stickiness features (prompt suggestions)
+1. Phase 2.6: Stickiness features (prompt suggestions)
+2. Run Pause Point 2A verification checklist
 
 ---
 

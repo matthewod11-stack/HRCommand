@@ -5,9 +5,9 @@
     "lastUpdated": "2025-12-17",
     "project": "HR Command Center",
     "totalFeatures": 32,
-    "passing": 11,
+    "passing": 12,
     "failing": 0,
-    "inProgress": 1
+    "inProgress": 0
   },
   "phase-0": {
     "pre-flight-validation": {
@@ -55,8 +55,8 @@
       "notes": "2.4.1-2.4.4 complete: memory.rs (8 tests), useConversationSummary hook, Tauri commands, Cmd+N shortcut. Summaries generated on new conversation."
     },
     "conversation-management": {
-      "status": "in-progress",
-      "notes": "Backend complete: conversations.rs CRUD (7 commands), auto-title generation, 7 tests. Frontend pending: ConversationContext, ConversationSidebar UI."
+      "status": "pass",
+      "notes": "Complete: Backend CRUD (7 commands, 7 tests), ConversationContext (auto-save, auto-title), tabbed sidebar UI (ConversationSidebar, TabSwitcher, ConversationCard, ConversationSearch)."
     },
     "stickiness-features": {
       "status": "not-started",

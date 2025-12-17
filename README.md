@@ -35,12 +35,12 @@ A desktop AI assistant for HR professionals that keeps your employee data local 
 |-------|--------|-------------|
 | 0. Pre-flight | ✅ Done | Tooling verified |
 | 1. Foundation | ✅ Done | App runs, Claude API streaming, network detection |
-| 2. Context | 🔨 In Progress | AI knows your company (2.3.5 done) |
+| 2. Context | 🔨 In Progress | AI knows your company (2.5 done, 2.6 remaining) |
 | 3. Protection | ⏳ Planned | PII auto-redaction |
 | 4. Polish | ⏳ Planned | Onboarding, export, digest |
 | 5. Launch | ⏳ Planned | Beta users, payment |
 
-**Current:** Phase 2.3 complete — Context builder with Alex persona + token budget trimming. Next: 2.4 Memory.
+**Current:** Phase 2.5 complete — Conversation management with tabbed sidebar, auto-save, auto-title, search. Next: 2.6 Stickiness features.
 
 ## Key Features (Planned)
 
@@ -50,8 +50,8 @@ A desktop AI assistant for HR professionals that keeps your employee data local 
 - [x] Employee CSV/Excel import with merge support
 - [x] Company profile with state-specific context
 - [x] Alex HR persona with employee/company awareness
-- [ ] Conversation sidebar with search
-- [ ] Cross-conversation memory
+- [x] Conversation sidebar with search
+- [x] Cross-conversation memory
 - [ ] Smart prompt suggestions
 - [ ] Monday digest (anniversaries, check-ins)
 - [ ] Encrypted data export/backup

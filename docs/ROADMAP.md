@@ -167,12 +167,12 @@ This is a **long-running, multi-session implementation**. Follow these rules:
 - [x] 2.4.3 Implement summary search/retrieval
 - [x] 2.4.4 Include relevant memories in context
 
-### 2.5 Conversation Management
-- [ ] 2.5.1 Create ConversationSidebar component
-- [ ] 2.5.2 Implement auto-title generation
-- [ ] 2.5.3 Create ConversationSearch component (FTS)
-- [ ] 2.5.4 Add "New conversation" action
-- [ ] 2.5.5 Wire sidebar to chat area
+### 2.5 Conversation Management ✓ COMPLETE
+- [x] 2.5.1 Create ConversationSidebar component
+- [x] 2.5.2 Implement auto-title generation
+- [x] 2.5.3 Create ConversationSearch component (FTS)
+- [x] 2.5.4 Add "New conversation" action
+- [x] 2.5.5 Wire sidebar to chat area
 
 ### 2.6 Stickiness Features
 - [ ] 2.6.1 Create PromptSuggestions component

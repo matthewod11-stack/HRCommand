@@ -1,36 +1,25 @@
-import { useState, useCallback, useEffect, useRef } from 'react';
-import { listen, UnlistenFn } from '@tauri-apps/api/event';
+import { useState, useCallback, useEffect } from 'react';
 import { LayoutProvider } from './contexts/LayoutContext';
 import { EmployeeProvider } from './contexts/EmployeeContext';
+import { ConversationProvider, useConversations } from './contexts/ConversationContext';
 import { AppShell } from './components/layout/AppShell';
 import { ChatInput, MessageList } from './components/chat';
 import { ApiKeyInput } from './components/settings';
 import { CompanySetup } from './components/company';
-import { EmployeePanel, EmployeeDetail, EmployeeEdit } from './components/employees';
+import { EmployeeDetail, EmployeeEdit } from './components/employees';
 import { ImportWizard } from './components/import';
 import { TestDataImporter } from './components/dev/TestDataImporter';
 import { useEmployees } from './contexts/EmployeeContext';
-import { useConversationSummary } from './hooks';
-import { Message, Company } from './lib/types';
-import { hasApiKey, hasCompany, sendChatMessageStreaming, getSystemPrompt, ChatMessage, StreamChunk } from './lib/tauri-commands';
+import { Company } from './lib/types';
+import { hasApiKey, hasCompany } from './lib/tauri-commands';
 
 function ChatArea() {
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  // Get conversation state from context
+  const { messages, isLoading, sendMessage, startNewConversation } = useConversations();
+
+  // Gating state (API key and company profile checks)
   const [hasKey, setHasKey] = useState<boolean | null>(null);
   const [hasCompanyProfile, setHasCompanyProfile] = useState<boolean | null>(null);
-  const streamingMessageId = useRef<string | null>(null);
-
-  // Conversation tracking for cross-conversation memory
-  const [conversationId, setConversationId] = useState<string>(() => crypto.randomUUID());
-  const { generateSummary, canGenerateSummary } = useConversationSummary({
-    onSummaryGenerated: (summary) => {
-      console.log('[Memory] Summary generated:', summary.substring(0, 80) + '...');
-    },
-    onError: (error) => {
-      console.warn('[Memory] Summary generation failed:', error.message);
-    },
-  });
 
   // Check for API key and company profile on mount
   useEffect(() => {
@@ -56,21 +45,6 @@ function ChatArea() {
     setHasCompanyProfile(true);
   }, []);
 
-  // Start a new conversation (generates summary of previous conversation if applicable)
-  // This will be connected to a "New Conversation" button in Phase 2.5
-  const startNewConversation = useCallback(async () => {
-    // Generate summary if conversation has enough content
-    if (canGenerateSummary(messages)) {
-      console.log('[Memory] Generating summary for conversation:', conversationId);
-      await generateSummary(conversationId, messages);
-    }
-
-    // Clear messages and start fresh
-    setMessages([]);
-    setConversationId(crypto.randomUUID());
-    console.log('[Chat] Started new conversation');
-  }, [messages, conversationId, canGenerateSummary, generateSummary]);
-
   // Keyboard shortcut: Cmd+N to start a new conversation
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -84,82 +58,12 @@ function ChatArea() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [startNewConversation]);
 
-  const handleSubmit = useCallback(async (content: string) => {
-    // Add user message
-    const userMessage: Message = {
-      id: crypto.randomUUID(),
-      role: 'user',
-      content,
-      timestamp: new Date().toISOString(),
-    };
-    setMessages((prev) => [...prev, userMessage]);
-    setIsLoading(true);
-
-    // Create empty assistant message for streaming
-    const assistantId = crypto.randomUUID();
-    streamingMessageId.current = assistantId;
-    const assistantMessage: Message = {
-      id: assistantId,
-      role: 'assistant',
-      content: '',
-      timestamp: new Date().toISOString(),
-    };
-    setMessages((prev) => [...prev, assistantMessage]);
-
-    // Set up stream event listener
-    let unlisten: UnlistenFn | null = null;
-
-    try {
-      unlisten = await listen<StreamChunk>('chat-stream', (event) => {
-        const { chunk, done } = event.payload;
-
-        if (done) {
-          // Streaming complete
-          streamingMessageId.current = null;
-          setIsLoading(false);
-        } else {
-          // Append chunk to the assistant message
-          setMessages((prev) =>
-            prev.map((msg) =>
-              msg.id === assistantId
-                ? { ...msg, content: msg.content + chunk }
-                : msg
-            )
-          );
-        }
-      });
-
-      // Build message history for API (excluding the empty assistant message)
-      const apiMessages: ChatMessage[] = [...messages, userMessage].map((m) => ({
-        role: m.role,
-        content: m.content,
-      }));
-
-      // Build dynamic system prompt with Alex persona + employee/company context
-      const [systemPrompt, _employeeIdsUsed] = await getSystemPrompt(content);
-
-      // Call Claude API with streaming
-      await sendChatMessageStreaming(apiMessages, systemPrompt);
-    } catch (error) {
-      // Update the assistant message with error
-      setMessages((prev) =>
-        prev.map((msg) =>
-          msg.id === assistantId
-            ? {
-                ...msg,
-                content: `Sorry, I encountered an error: ${error instanceof Error ? error.message : String(error)}\n\nPlease check your API key and try again.`,
-              }
-            : msg
-        )
-      );
-      setIsLoading(false);
-    } finally {
-      // Clean up listener
-      if (unlisten) {
-        unlisten();
-      }
-    }
-  }, [messages]);
+  const handleSubmit = useCallback(
+    async (content: string) => {
+      await sendMessage(content);
+    },
+    [sendMessage]
+  );
 
   const handlePromptClick = useCallback(
     (prompt: string) => {
@@ -328,20 +232,19 @@ function App() {
 
   return (
     <LayoutProvider>
-      <EmployeeProvider>
-        <AppShell
-          sidebar={<EmployeePanel />}
-          contextPanel={<EmployeeDetail />}
-        >
-          <ChatArea />
-        </AppShell>
-        <EmployeeEditModal />
-        <ImportWizardModal />
-        <TestDataModal
-          isOpen={isTestDataModalOpen}
-          onClose={() => setIsTestDataModalOpen(false)}
-        />
-      </EmployeeProvider>
+      <ConversationProvider>
+        <EmployeeProvider>
+          <AppShell contextPanel={<EmployeeDetail />}>
+            <ChatArea />
+          </AppShell>
+          <EmployeeEditModal />
+          <ImportWizardModal />
+          <TestDataModal
+            isOpen={isTestDataModalOpen}
+            onClose={() => setIsTestDataModalOpen(false)}
+          />
+        </EmployeeProvider>
+      </ConversationProvider>
     </LayoutProvider>
   );
 }

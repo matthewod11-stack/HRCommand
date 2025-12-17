@@ -10,6 +10,64 @@
 Most recent session should be first.
 -->
 
+## Session 2025-12-17 (Phase 2.5 — Conversation Management Frontend)
+
+**Phase:** 2.5 — Conversation Management
+**Focus:** ConversationContext state management and tabbed sidebar UI
+
+### Completed
+- [x] Created ConversationContext.tsx (~350 LOC)
+  - State: messages, conversationId, isLoading, currentTitle, conversations list
+  - Auto-save after assistant response (watches isLoading transition)
+  - Auto-title generation after first exchange
+  - Memory integration (summary on new conversation)
+  - Debounced search (300ms)
+- [x] Created conversation sidebar components (~465 LOC total)
+  - TabSwitcher.tsx - Conversations/People tab switching
+  - ConversationCard.tsx - Card with title, preview, relative timestamp, delete
+  - ConversationSearch.tsx - Search input with loading spinner
+  - ConversationSidebar.tsx - Main sidebar with list, search, new button
+- [x] Updated LayoutContext with sidebarTab state
+- [x] Updated AppShell to use tabbed sidebar internally
+- [x] Simplified App.tsx (removed sidebar prop)
+
+### Files Created
+```
+src/contexts/ConversationContext.tsx         - NEW: State management (~350 LOC)
+src/components/conversations/TabSwitcher.tsx  - NEW: Tab component (~60 LOC)
+src/components/conversations/ConversationCard.tsx - NEW: Card component (~120 LOC)
+src/components/conversations/ConversationSearch.tsx - NEW: Search input (~75 LOC)
+src/components/conversations/ConversationSidebar.tsx - NEW: Main sidebar (~200 LOC)
+src/components/conversations/index.ts         - NEW: Barrel exports
+```
+
+### Files Modified
+```
+src/contexts/LayoutContext.tsx               - Added sidebarTab state
+src/components/layout/AppShell.tsx           - Integrated TabSwitcher, removed SidebarPlaceholder
+src/App.tsx                                  - Uses ConversationProvider, simplified
+```
+
+### Key Features
+1. **Tabbed sidebar** - Switch between Conversations and People (Employees)
+2. **Auto-save** - Conversations persist after each assistant response
+3. **Auto-title** - Claude generates 3-5 word title after first exchange
+4. **Search** - Debounced FTS search across conversation content
+5. **Delete confirmation** - Modal before deleting conversations
+6. **Keyboard hint** - Shows Cmd+N shortcut in sidebar
+
+### Verification
+- [x] TypeScript type-check passes
+- [x] Frontend build succeeds (73 modules, 539KB)
+- [x] 57 Rust tests pass (1 pre-existing failure in file_parser)
+
+### Next Session Should
+1. Test the app manually with `cargo tauri dev`
+2. Continue to Phase 2.6 (Stickiness features - prompt suggestions)
+3. Run Pause Point 2A verification checklist
+
+---
+
 ## Session 2025-12-17 (Phase 2.5.1 — Conversation Management Backend)
 
 **Phase:** 2.5 — Conversation Management
