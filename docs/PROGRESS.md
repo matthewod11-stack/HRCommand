@@ -10,6 +10,62 @@
 Most recent session should be first.
 -->
 
+## Session 2025-12-18 (Phase 2.7.3-2.7.4 — Query-Adaptive Context)
+
+**Phase:** 2.7 — Context Scaling
+**Focus:** Refactor build_chat_context() for query-adaptive retrieval and update system prompt
+
+### Completed
+- [x] 2.7.3 Refactor build_chat_context() for query-adaptive retrieval
+- [x] 2.7.4 Update format functions and system prompt with aggregates
+
+### Files Modified
+```
+src-tauri/src/context.rs           - Added EmployeeSummary struct for lightweight roster queries
+                                   - Updated ChatContext with aggregates, query_type, employee_summaries fields
+                                   - Added find_recent_terminations() for Attrition queries
+                                   - Added build_employee_list() for List queries (department-filtered)
+                                   - Added build_termination_list() for attrition list queries
+                                   - Added format_employee_summaries() for roster formatting
+                                   - Refactored build_chat_context() with query-adaptive routing
+                                   - Updated build_system_prompt() to include org aggregates section
+                                   - Updated get_system_prompt_for_message() to handle both profiles and summaries
+docs/ROADMAP.md                    - Marked 2.7.3 and 2.7.4 complete
+features.json                      - Updated context-builder notes
+```
+
+### Key Implementation Details
+- **Query-Type Routing in build_chat_context():**
+  | QueryType | Employee Data | Max Records |
+  |-----------|---------------|-------------|
+  | Aggregate | None (aggregates sufficient) | 0 |
+  | List | Summaries only (~70 chars each) | 30 |
+  | Individual | Full profiles | 3 |
+  | Comparison | Full profiles | 8 |
+  | Attrition | Full terminations | 10 |
+  | General | Full profiles | 5 |
+
+- **New Data Structures:**
+  - `EmployeeSummary` — lightweight roster entry (id, name, dept, title, status, hire_date)
+  - Updated `ChatContext` with `aggregates: Option<OrgAggregates>`, `query_type: QueryType`, `employee_summaries: Vec<EmployeeSummary>`
+
+- **System Prompt Changes:**
+  - Always includes `ORGANIZATION DATA` section with aggregates
+  - `RELEVANT EMPLOYEES` section only appears when employees/summaries exist
+  - Aggregate queries get zero employee data (aggregates are sufficient)
+
+### Verification
+- [x] TypeScript type-check passes
+- [x] Production build succeeds
+- [x] All 43 context module tests pass
+- [x] Pre-existing test failure in file_parser unrelated to changes
+
+### Next Session Should
+1. Phase 2.7.5: Add integration tests for the query-adaptive context system
+2. Run Pause Point 2A verification checklist (manual testing)
+
+---
+
 ## Session 2025-12-18 (Phase 2.7.2 — Query Classification)
 
 **Phase:** 2.7 — Context Scaling

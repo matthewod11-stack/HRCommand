@@ -199,13 +199,28 @@ pub struct CompanyContext {
     pub department_count: i64,
 }
 
+/// Lightweight employee summary for list queries (~70 chars each)
+/// Used when showing rosters instead of full profiles
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EmployeeSummary {
+    pub id: String,
+    pub full_name: String,
+    pub department: Option<String>,
+    pub job_title: Option<String>,
+    pub status: String,
+    pub hire_date: Option<String>,
+}
+
 /// Full context for building system prompt
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ChatContext {
     pub company: Option<CompanyContext>,
-    pub employees: Vec<EmployeeContext>,
+    pub aggregates: Option<OrgAggregates>,          // Phase 2.7: org-wide stats
+    pub query_type: QueryType,                      // Phase 2.7: classification result
+    pub employees: Vec<EmployeeContext>,            // Full profiles (for Individual/Comparison)
+    pub employee_summaries: Vec<EmployeeSummary>,   // Brief roster (for List queries)
     pub employee_ids_used: Vec<String>,
-    pub memory_summaries: Vec<String>, // Placeholder for Phase 2.4
+    pub memory_summaries: Vec<String>,
 }
 
 // ============================================================================
@@ -1051,6 +1066,116 @@ pub async fn find_upcoming_anniversaries(
     Ok(employees)
 }
 
+/// Find recently terminated employees for attrition queries
+/// Returns full EmployeeContext with termination details
+pub async fn find_recent_terminations(
+    pool: &DbPool,
+    limit: usize,
+) -> Result<Vec<EmployeeContext>, ContextError> {
+    let rows: Vec<(String,)> = sqlx::query_as(
+        "SELECT id FROM employees WHERE status = 'terminated' ORDER BY termination_date DESC LIMIT ?"
+    )
+    .bind(limit as i64)
+    .fetch_all(pool)
+    .await?;
+
+    let mut employees = Vec::new();
+    for (id,) in rows {
+        if let Ok(emp) = get_employee_context(pool, &id).await {
+            employees.push(emp);
+        }
+    }
+    Ok(employees)
+}
+
+/// Build a lightweight employee list for roster queries
+/// Returns EmployeeSummary (name, dept, title, status, hire date) without full perf data
+pub async fn build_employee_list(
+    pool: &DbPool,
+    mentions: &QueryMentions,
+    limit: usize,
+) -> Result<Vec<EmployeeSummary>, ContextError> {
+    // Build query based on department filter
+    let rows = if !mentions.departments.is_empty() {
+        let dept = &mentions.departments[0];
+        let pattern = format!("%{}%", dept);
+        sqlx::query_as::<_, (String, String, Option<String>, Option<String>, String, Option<String>)>(
+            r#"
+            SELECT id, full_name, department, job_title, status, hire_date
+            FROM employees
+            WHERE department LIKE ? AND status = 'active'
+            ORDER BY full_name
+            LIMIT ?
+            "#
+        )
+        .bind(&pattern)
+        .bind(limit as i64)
+        .fetch_all(pool)
+        .await?
+    } else {
+        // No department filter - return active employees
+        sqlx::query_as::<_, (String, String, Option<String>, Option<String>, String, Option<String>)>(
+            r#"
+            SELECT id, full_name, department, job_title, status, hire_date
+            FROM employees
+            WHERE status = 'active'
+            ORDER BY full_name
+            LIMIT ?
+            "#
+        )
+        .bind(limit as i64)
+        .fetch_all(pool)
+        .await?
+    };
+
+    let summaries: Vec<EmployeeSummary> = rows
+        .into_iter()
+        .map(|(id, full_name, department, job_title, status, hire_date)| EmployeeSummary {
+            id,
+            full_name,
+            department,
+            job_title,
+            status,
+            hire_date,
+        })
+        .collect();
+
+    Ok(summaries)
+}
+
+/// Build a list of terminated employees for attrition list queries
+pub async fn build_termination_list(
+    pool: &DbPool,
+    limit: usize,
+) -> Result<Vec<EmployeeSummary>, ContextError> {
+    let rows = sqlx::query_as::<_, (String, String, Option<String>, Option<String>, String, Option<String>)>(
+        r#"
+        SELECT id, full_name, department, job_title, status, hire_date
+        FROM employees
+        WHERE status = 'terminated'
+        ORDER BY termination_date DESC
+        LIMIT ?
+        "#
+    )
+    .bind(limit as i64)
+    .fetch_all(pool)
+    .await?;
+
+    let summaries: Vec<EmployeeSummary> = rows
+        .into_iter()
+        .map(|(id, full_name, department, job_title, status, hire_date)| EmployeeSummary {
+            id,
+            full_name,
+            department,
+            job_title,
+            status,
+            hire_date,
+        })
+        .collect();
+
+    Ok(summaries)
+}
+
 /// Calculate aggregate eNPS score for the organization
 pub async fn calculate_aggregate_enps(pool: &DbPool) -> Result<EnpsAggregate, ContextError> {
     // Get the most recent survey response per employee to avoid double-counting
@@ -1454,7 +1579,7 @@ pub fn format_org_aggregates(agg: &OrgAggregates, company_name: Option<&str>) ->
 /// Format employee context for inclusion in system prompt
 pub fn format_employee_context(employees: &[EmployeeContext]) -> String {
     if employees.is_empty() {
-        return "No specific employees mentioned or relevant to this query.".to_string();
+        return String::new();
     }
 
     let mut output = String::new();
@@ -1475,6 +1600,48 @@ pub fn format_employee_context(employees: &[EmployeeContext]) -> String {
     }
 
     output
+}
+
+/// Format employee summaries for list queries (~70 chars each)
+/// Used for roster displays where full performance data isn't needed
+pub fn format_employee_summaries(summaries: &[EmployeeSummary], total_count: Option<i64>) -> String {
+    if summaries.is_empty() {
+        return String::new();
+    }
+
+    let mut lines = Vec::new();
+
+    // Show count context if available
+    if let Some(total) = total_count {
+        if summaries.len() < total as usize {
+            lines.push(format!(
+                "EMPLOYEES (showing {} of {}):",
+                summaries.len(),
+                total
+            ));
+        } else {
+            lines.push(format!("EMPLOYEES ({}):", summaries.len()));
+        }
+    } else {
+        lines.push(format!("EMPLOYEES ({}):", summaries.len()));
+    }
+
+    for emp in summaries {
+        let title = emp.job_title.as_deref().unwrap_or("No title");
+        let dept = emp.department.as_deref().unwrap_or("Unassigned");
+        let hire = emp
+            .hire_date
+            .as_deref()
+            .map(|d| format!(", hired {}", d))
+            .unwrap_or_default();
+
+        lines.push(format!(
+            "• {} — {}, {} ({}{hire})",
+            emp.full_name, title, dept, emp.status
+        ));
+    }
+
+    lines.join("\n")
 }
 
 /// Format a single employee's context
@@ -1609,9 +1776,10 @@ pub fn get_max_system_prompt_tokens() -> usize {
 // System Prompt Building
 // ============================================================================
 
-/// Build the complete system prompt for Claude
+/// Build the complete system prompt for Claude (Phase 2.7 - includes org aggregates)
 pub fn build_system_prompt(
     company: Option<&CompanyContext>,
+    aggregates: Option<&OrgAggregates>,
     employee_context: &str,
     memory_summaries: &[String],
     user_name: Option<&str>,
@@ -1629,10 +1797,24 @@ pub fn build_system_prompt(
         "Company profile not yet configured.".to_string()
     };
 
+    // Format org-wide aggregates (Phase 2.7)
+    let org_data = if let Some(agg) = aggregates {
+        format_org_aggregates(agg, company.map(|c| c.name.as_str()))
+    } else {
+        "Organization data not available.".to_string()
+    };
+
     let memories = if memory_summaries.is_empty() {
         "No relevant past conversations.".to_string()
     } else {
         memory_summaries.join("\n\n")
+    };
+
+    // Build employee section (may be empty for Aggregate queries)
+    let employee_section = if employee_context.is_empty() {
+        String::new()
+    } else {
+        format!("\nRELEVANT EMPLOYEES:\n{}", employee_context)
     };
 
     format!(
@@ -1650,20 +1832,21 @@ COMMUNICATION STYLE:
 COMPANY CONTEXT:
 {company_info}
 
+{org_data}
+
 CONTEXT AWARENESS:
 - {company_name} is in {company_state}, so consider state-specific employment law
 - When federal and state law differ, flag it clearly
 - Reference specific employees by name when their data is relevant
 - Build on previous conversations when you remember relevant context
+- Use the ORGANIZATION DATA above to answer aggregate questions accurately
 
 BOUNDARIES:
 - This is guidance, not legal advice—the user acknowledged this during setup
 - For anything involving potential litigation, recommend legal counsel
 - You don't have access to confidential investigation details
 - Compensation data is not available (V1)
-
-EMPLOYEE DATA AVAILABLE:
-{employee_context}
+{employee_section}
 
 RELEVANT PAST CONVERSATIONS:
 {memories}
@@ -1673,7 +1856,8 @@ Answer questions as Alex would—practical, human, and grounded in real HR exper
         company_name = company_name,
         company_state = company_state,
         company_info = company_info,
-        employee_context = employee_context,
+        org_data = org_data,
+        employee_section = employee_section,
         memories = memories,
     )
 }
@@ -1682,24 +1866,106 @@ Answer questions as Alex would—practical, human, and grounded in real HR exper
 // Main Context Building Function
 // ============================================================================
 
-/// Build complete context for a chat message
-/// If selected_employee_id is provided, that employee is always included first
+/// Maximum employees for list queries (lightweight summaries)
+const MAX_LIST_EMPLOYEES: usize = 30;
+
+/// Maximum employees for comparison queries (full profiles)
+const MAX_COMPARISON_EMPLOYEES: usize = 8;
+
+/// Maximum employees for individual queries
+const MAX_INDIVIDUAL_EMPLOYEES: usize = 3;
+
+/// Maximum employees for attrition queries
+const MAX_ATTRITION_EMPLOYEES: usize = 10;
+
+/// Maximum employees for general fallback queries
+const MAX_GENERAL_EMPLOYEES: usize = 5;
+
+/// Build complete context for a chat message using query-adaptive retrieval (Phase 2.7)
+///
+/// This function:
+/// 1. Classifies the query type (Aggregate, List, Individual, Comparison, Attrition, General)
+/// 2. Always computes organization-wide aggregates for accurate stats
+/// 3. Routes to appropriate employee retrieval based on query type
+/// 4. If selected_employee_id is provided, that employee is always prioritized
 pub async fn build_chat_context(
     pool: &DbPool,
     user_message: &str,
     selected_employee_id: Option<&str>,
 ) -> Result<ChatContext, ContextError> {
-    // Extract mentions from user message
+    // Step 1: Extract mentions and classify query
     let mentions = extract_mentions(user_message);
+    let query_type = classify_query(user_message, &mentions);
 
-    // Get company context
+    // Step 2: Get company context
     let company = get_company_context(pool).await?;
 
-    // Find relevant employees (with selected employee prioritized)
-    let employees = find_relevant_employees(pool, &mentions, MAX_EMPLOYEES_IN_CONTEXT, selected_employee_id).await?;
-    let employee_ids_used: Vec<String> = employees.iter().map(|e| e.id.clone()).collect();
+    // Step 3: Always compute organization aggregates (cheap SQL, enables accurate stats)
+    let aggregates = match build_org_aggregates(pool).await {
+        Ok(agg) => Some(agg),
+        Err(e) => {
+            eprintln!("Warning: Failed to build org aggregates: {}", e);
+            None
+        }
+    };
 
-    // Find relevant past conversation memories (resilient - don't fail if memory lookup errors)
+    // Step 4: Query-adaptive employee retrieval
+    let (employees, employee_summaries) = match query_type {
+        QueryType::Aggregate => {
+            // Aggregate queries don't need individual employee data
+            // The aggregates provide all necessary stats
+            (vec![], vec![])
+        }
+        QueryType::List => {
+            // List queries get lightweight summaries (no full perf data)
+            let summaries = build_employee_list(pool, &mentions, MAX_LIST_EMPLOYEES).await?;
+            (vec![], summaries)
+        }
+        QueryType::Individual => {
+            // Individual queries get full profiles for named employees
+            let employees = find_relevant_employees(
+                pool,
+                &mentions,
+                MAX_INDIVIDUAL_EMPLOYEES,
+                selected_employee_id,
+            )
+            .await?;
+            (employees, vec![])
+        }
+        QueryType::Comparison => {
+            // Comparison queries get full profiles for top/bottom performers
+            let employees = find_relevant_employees(
+                pool,
+                &mentions,
+                MAX_COMPARISON_EMPLOYEES,
+                selected_employee_id,
+            )
+            .await?;
+            (employees, vec![])
+        }
+        QueryType::Attrition => {
+            // Attrition queries get recent terminations with full context
+            let employees = find_recent_terminations(pool, MAX_ATTRITION_EMPLOYEES).await?;
+            (employees, vec![])
+        }
+        QueryType::General => {
+            // General fallback: sample of relevant employees
+            let employees = find_relevant_employees(
+                pool,
+                &mentions,
+                MAX_GENERAL_EMPLOYEES,
+                selected_employee_id,
+            )
+            .await?;
+            (employees, vec![])
+        }
+    };
+
+    // Collect employee IDs for audit logging
+    let mut employee_ids_used: Vec<String> = employees.iter().map(|e| e.id.clone()).collect();
+    employee_ids_used.extend(employee_summaries.iter().map(|e| e.id.clone()));
+
+    // Step 5: Find relevant past conversation memories (resilient - don't fail if lookup errors)
     let memory_summaries = match memory::find_relevant_memories(
         pool,
         user_message,
@@ -1709,7 +1975,6 @@ pub async fn build_chat_context(
     {
         Ok(memories) => memories.into_iter().map(|m| m.summary).collect(),
         Err(e) => {
-            // Log the error but continue without memories
             eprintln!("Warning: Failed to retrieve memories: {}", e);
             Vec::new()
         }
@@ -1717,7 +1982,10 @@ pub async fn build_chat_context(
 
     Ok(ChatContext {
         company,
+        aggregates,
+        query_type,
         employees,
+        employee_summaries,
         employee_ids_used,
         memory_summaries,
     })
@@ -1738,9 +2006,20 @@ pub async fn get_system_prompt_for_message(
         .ok()
         .flatten();
 
-    let employee_context = format_employee_context(&context.employees);
+    // Build employee context: full profiles or summaries depending on query type
+    let employee_context = if !context.employees.is_empty() {
+        format_employee_context(&context.employees)
+    } else if !context.employee_summaries.is_empty() {
+        // For list queries, get total count from aggregates for context
+        let total_count = context.aggregates.as_ref().map(|a| a.total_employees);
+        format_employee_summaries(&context.employee_summaries, total_count)
+    } else {
+        String::new() // Aggregate queries don't need employee details
+    };
+
     let system_prompt = build_system_prompt(
         context.company.as_ref(),
+        context.aggregates.as_ref(),
         &employee_context,
         &context.memory_summaries,
         user_name.as_deref(),

@@ -196,8 +196,8 @@ This is a **long-running, multi-session implementation**. Follow these rules:
 - [x] 2.7.0 Pass selected_employee_id from UI to context builder (prioritize selected employee)
 - [x] 2.7.1 Add OrgAggregates struct and build_org_aggregates() SQL queries
 - [x] 2.7.2 Implement QueryType enum and classify_query() function
-- [ ] 2.7.3 Refactor build_chat_context() for query-adaptive retrieval
-- [ ] 2.7.4 Update format functions and system prompt with aggregates
+- [x] 2.7.3 Refactor build_chat_context() for query-adaptive retrieval
+- [x] 2.7.4 Update format functions and system prompt with aggregates
 - [ ] 2.7.5 Add unit tests for classification and aggregates
 
 ### Pause Point 2A
