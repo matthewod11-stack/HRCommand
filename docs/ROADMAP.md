@@ -185,9 +185,9 @@ This is a **long-running, multi-session implementation**. Follow these rules:
 - [x] 2.6.0e Add department and manager filters to EmployeePanel
 
 #### Stickiness Features
-- [ ] 2.6.1 Create PromptSuggestions component
-- [ ] 2.6.2 Implement contextual prompt generation
-- [ ] 2.6.3 Create empty state guidance
+- [x] 2.6.1 Create PromptSuggestions component
+- [x] 2.6.2 Implement contextual prompt generation
+- [x] 2.6.3 Create empty state guidance
 
 ### 2.7 Context Scaling (Query-Adaptive)
 > **Architecture Doc:** [CONTEXT_SCALING_ARCHITECTURE.md](./CONTEXT_SCALING_ARCHITECTURE.md)

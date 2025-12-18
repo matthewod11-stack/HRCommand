@@ -2,13 +2,16 @@
  * MessageList Component
  *
  * Displays a scrollable list of chat messages with smart spacing based on
- * speaker changes. Shows welcome content when no messages exist.
+ * speaker changes. Shows welcome content with contextual prompt suggestions
+ * when no messages exist.
  */
 
 import { useRef, useEffect } from 'react';
 import { Message } from '../../lib/types';
 import { MessageBubble } from './MessageBubble';
 import { TypingIndicator } from './TypingIndicator';
+import { PromptSuggestions } from './PromptSuggestions';
+import { usePromptSuggestions } from '../../hooks/usePromptSuggestions';
 
 interface MessageListProps {
   /** Array of messages to display */
@@ -32,18 +35,45 @@ function getMessageSpacing(
 }
 
 /**
+ * Get contextual heading and description based on suggestion context
+ */
+function getWelcomeText(context: 'empty' | 'employee-selected' | 'general', employeeName: string | null) {
+  switch (context) {
+    case 'empty':
+      return {
+        heading: 'Let\'s get started',
+        description: 'Import your employee data to unlock HR insights, or ask me anything about HR best practices.',
+      };
+    case 'employee-selected':
+      return {
+        heading: `About ${employeeName}`,
+        description: `Ask me anything about ${employeeName}—performance, feedback, or draft communications.`,
+      };
+    case 'general':
+    default:
+      return {
+        heading: 'What can I help with?',
+        description: 'Ask me anything about your team—performance reviews, PTO policies, onboarding, or employee questions.',
+      };
+  }
+}
+
+/**
  * Welcome content shown when no messages exist
+ * Uses contextual suggestions based on app state
  */
 function WelcomeContent({
   onPromptClick,
 }: {
   onPromptClick?: (prompt: string) => void;
 }) {
-  const suggestions = [
-    'Who has an anniversary this month?',
-    'Help with a performance review',
-    'Draft a PTO policy update',
-  ];
+  const { suggestions, context, selectedEmployeeName } = usePromptSuggestions();
+  const { heading, description } = getWelcomeText(context, selectedEmployeeName);
+
+  // Different icon based on context
+  const iconPath = context === 'employee-selected'
+    ? 'M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z'
+    : 'M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 01-2.555-.337A5.972 5.972 0 015.41 20.97a5.969 5.969 0 01-.474-.065 4.48 4.48 0 00.978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25z';
 
   return (
     <div className="flex-1 flex flex-col justify-center items-center text-center py-12">
@@ -67,43 +97,29 @@ function WelcomeContent({
           <path
             strokeLinecap="round"
             strokeLinejoin="round"
-            d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 01-2.555-.337A5.972 5.972 0 015.41 20.97a5.969 5.969 0 01-.474-.065 4.48 4.48 0 00.978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25z"
+            d={iconPath}
           />
         </svg>
       </div>
 
       {/* Heading */}
       <h2 className="font-display text-xl font-semibold text-stone-800 mb-2">
-        What can I help with?
+        {heading}
       </h2>
 
       {/* Description */}
       <p className="text-stone-500 max-w-sm mb-8">
-        Ask me anything about your team—performance reviews, PTO policies,
-        onboarding, or employee questions.
+        {description}
       </p>
 
-      {/* Prompt suggestions */}
-      <div className="flex flex-wrap gap-2 justify-center max-w-md">
-        {suggestions.map((prompt, i) => (
-          <button
-            key={i}
-            onClick={() => onPromptClick?.(prompt)}
-            className="
-              px-4 py-2
-              bg-white
-              border border-stone-200/80
-              rounded-full
-              text-sm text-stone-600
-              hover:border-primary-300 hover:text-primary-600
-              hover:shadow-sm
-              transition-all duration-200
-            "
-          >
-            {prompt}
-          </button>
-        ))}
-      </div>
+      {/* Contextual prompt suggestions */}
+      <PromptSuggestions
+        suggestions={suggestions}
+        onSelect={(text) => onPromptClick?.(text)}
+        variant="welcome"
+        className="max-w-md"
+        maxSuggestions={4}
+      />
     </div>
   );
 }

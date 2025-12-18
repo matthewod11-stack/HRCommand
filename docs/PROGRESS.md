@@ -10,6 +10,53 @@
 Most recent session should be first.
 -->
 
+## Session 2025-12-18 (Phase 2.6 — Stickiness Features Complete)
+
+**Phase:** 2.6 — Stickiness Features
+**Focus:** Create contextual prompt suggestions for empty state guidance
+
+### Completed
+- [x] 2.6.1 Created PromptSuggestions component with two variants (welcome, inline)
+- [x] 2.6.2 Created usePromptSuggestions hook for context-aware prompt generation
+- [x] 2.6.3 Updated MessageList WelcomeContent to use contextual suggestions
+
+### Files Created
+```
+src/components/chat/PromptSuggestions.tsx    - Reusable suggestion component (~130 LOC)
+src/hooks/usePromptSuggestions.ts            - Context-aware prompt generation (~90 LOC)
+```
+
+### Files Modified
+```
+src/components/chat/index.ts                 - Export PromptSuggestions
+src/hooks/index.ts                           - Export usePromptSuggestions
+src/components/chat/MessageList.tsx          - WelcomeContent uses contextual suggestions
+docs/ROADMAP.md                              - Marked 2.6.1-2.6.3 complete
+features.json                                - stickiness-features: pass (13 total)
+README.md                                    - Updated status
+```
+
+### Key Implementation Details
+- **Three context modes** drive different suggestion sets:
+  - **Empty** (no employees): Setup-focused prompts ("Help me set up my employee database")
+  - **General** (employees loaded): Team analytics ("What's our team eNPS?", "Who are top performers?")
+  - **Employee-selected**: Personalized prompts ("Write a performance review for {name}")
+- **PromptSuggestion interface**: `{ text, icon?, category? }`
+- **Two visual variants**: `welcome` (pill buttons) and `inline` (compact links)
+- **Dynamic heading/icon**: Changes based on context (person icon when employee selected)
+
+### Verification
+- [x] TypeScript type-check passes
+- [x] Vite build succeeds (708KB)
+- [x] Rust tests: 57 passed, 1 failed (pre-existing file_parser test)
+
+### Next Session Should
+1. Run Pause Point 2A verification checklist (manual testing)
+2. Or start Phase 2.7: Context Scaling (query-adaptive retrieval)
+3. Architecture doc: `docs/CONTEXT_SCALING_ARCHITECTURE.md`
+
+---
+
 ## Session 2025-12-18 (Phase 2.6 — UI Polish Complete)
 
 **Phase:** 2.6 — UI Polish + Stickiness
