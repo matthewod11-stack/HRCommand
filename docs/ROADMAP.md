@@ -189,6 +189,16 @@ This is a **long-running, multi-session implementation**. Follow these rules:
 - [ ] 2.6.2 Implement contextual prompt generation
 - [ ] 2.6.3 Create empty state guidance
 
+### 2.7 Context Scaling (Query-Adaptive)
+> **Architecture Doc:** [CONTEXT_SCALING_ARCHITECTURE.md](./CONTEXT_SCALING_ARCHITECTURE.md)
+> **Problem:** Current 10-employee limit prevents accurate aggregate queries at scale
+
+- [ ] 2.7.1 Add OrgAggregates struct and build_org_aggregates() SQL queries
+- [ ] 2.7.2 Implement QueryType enum and classify_query() function
+- [ ] 2.7.3 Refactor build_chat_context() for query-adaptive retrieval
+- [ ] 2.7.4 Update format functions and system prompt with aggregates
+- [ ] 2.7.5 Add unit tests for classification and aggregates
+
 ### Pause Point 2A
 **Verification Required:**
 - [ ] Can import employee CSV/Excel and see employees with demographics

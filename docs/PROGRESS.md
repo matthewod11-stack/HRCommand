@@ -10,6 +10,52 @@
 Most recent session should be first.
 -->
 
+## Session 2025-12-17 (Phase 2.7 Planning — Context Scaling Architecture)
+
+**Phase:** 2.7 — Context Scaling
+**Focus:** Design query-adaptive context system to scale beyond 10-employee limit
+
+### Completed
+- [x] Analyzed current context.rs implementation and scaling limitations
+- [x] Created comprehensive architecture document for query-adaptive context
+- [x] Defined QueryType enum with 6 classifications (Aggregate, List, Individual, Comparison, Attrition, General)
+- [x] Specified OrgAggregates struct with headcount, performance, eNPS, and attrition stats
+- [x] Documented 7 SQL queries for aggregate calculations
+- [x] Defined classification priority logic and keyword patterns
+- [x] Added edge case handling (ambiguous queries, multi-intent, empty results)
+- [x] Created migration path with backward compatibility
+- [x] Added testing matrix (unit, integration, manual, load)
+- [x] Made 5 design decisions (pagination UX, caching, memory integration, contextual prompts, terminated employees)
+- [x] Added Phase 2.7 tasks to ROADMAP.md
+
+### Architecture Document Created
+**Location:** `docs/CONTEXT_SCALING_ARCHITECTURE.md`
+
+**Key Design Decision:** "How's X doing?" = Aggregate (status check), not List
+- The word "doing" implies wanting a health assessment, not a roster
+
+### 5 Implementation Phases Defined
+| Phase | Focus | Est. Time |
+|-------|-------|-----------|
+| 1 | Data structures + aggregates SQL | ~2h |
+| 2 | Query classification | ~1.5h |
+| 3 | Context builder refactor | ~2h |
+| 4 | Format functions + system prompt | ~1h |
+| 5 | Testing & validation | ~1.5h |
+
+### Verification
+- [x] Architecture document complete with all sections
+- [x] ROADMAP.md updated with Phase 2.7 tasks
+- [x] No code changes (planning only)
+
+### Next Session Should
+1. Complete Phase 2.6 (UI polish + stickiness) first
+2. Then start Phase 2.7.1: Add OrgAggregates struct and SQL queries
+3. Follow implementation plan in `docs/CONTEXT_SCALING_ARCHITECTURE.md`
+4. Run Pause Point 2A verification after both phases complete
+
+---
+
 ## Session 2025-12-17 (Phase 2.6 Planning — UI Polish + Stickiness)
 
 **Phase:** 2.6 — Stickiness Features + UI Polish
