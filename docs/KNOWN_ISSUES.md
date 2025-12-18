@@ -237,6 +237,53 @@ These decisions were explicitly deferred to V1.1 or later:
 
 ---
 
+### Org Chart View (Interactive Hierarchy Visualization)
+**Status:** Deferred to V2
+**Decision Date:** 2025-12-18
+**Context:** A dedicated page/module that visualizes the organizational hierarchy as an interactive org chart. Would live alongside the Analytics module as a separate view, not embedded in chat.
+
+**Why This Is Compelling (Product):**
+- **Visual understanding** of reporting relationships at a glance
+- **Navigate by clicking** — click a person to see their direct reports expand, or click up to see their chain of command
+- **Natural complement** to chat — "Who reports to Sarah?" becomes a visual answer
+- **Onboarding tool** — new HR users can quickly understand org structure
+
+**Core Features (MVP):**
+- Tree/hierarchy view with manager → direct reports relationships
+- Click to expand/collapse branches
+- Click employee to select them (syncs with People panel selection)
+- Search/filter to find specific people in the tree
+- Zoom/pan for large orgs
+- Department color coding
+
+**Enhanced Features (V2.1+):**
+- Drag-and-drop reorg planning (what-if scenarios)
+- Highlight vacant positions / open headcount
+- Show key metrics on hover (tenure, rating, location)
+- Export org chart as image/PDF
+- Span of control indicators (managers with too many/few reports)
+- Dotted-line relationships (matrix reporting)
+
+**Technical Approach:**
+- Use a tree visualization library (react-org-chart, D3 hierarchy, or GoJS)
+- Data already exists: `employees.manager_id` defines the hierarchy
+- New Rust query: `get_org_tree()` returns nested structure
+- Separate route/page: `/org-chart` alongside `/analytics`
+
+**Layout Integration:**
+- New tab in main navigation (Chat | People | Org Chart | Analytics)
+- Or: accessible from People panel header as a view toggle
+- Clicking an employee in org chart could:
+  - Select them in People panel
+  - Open their detail view
+  - Start a chat about them
+
+**Complexity:** Medium — tree data structure exists, main work is visualization
+**Value:** High — visual org understanding is a common HR need
+**Revisit When:** V1 stable; natural V2 feature alongside Analytics
+
+---
+
 ## Edge Cases to Handle
 
 | Case | Phase | Priority | Notes |

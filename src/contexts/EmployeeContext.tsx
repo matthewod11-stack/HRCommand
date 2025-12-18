@@ -4,6 +4,7 @@ import {
   useState,
   useCallback,
   useEffect,
+  useRef,
   type ReactNode,
 } from 'react';
 import type { Employee, PerformanceRating } from '../lib/types';
@@ -81,6 +82,25 @@ export function EmployeeProvider({ children }: EmployeeProviderProps) {
   // Filters
   const [filter, setFilter] = useState<EmployeeFilter>({});
   const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
+  const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const hasLoadedOnceRef = useRef(false);
+
+  // Debounce search query (300ms delay)
+  useEffect(() => {
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+    searchTimeoutRef.current = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery);
+    }, 300);
+
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+    };
+  }, [searchQuery]);
 
   // Modal states
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -91,14 +111,19 @@ export function EmployeeProvider({ children }: EmployeeProviderProps) {
 
   // Fetch employees from backend
   const refreshEmployees = useCallback(async () => {
-    setIsLoading(true);
+    // Only show loading skeleton on initial load
+    // For search/filter updates, keep current list visible while fetching
+    const isInitialLoad = !hasLoadedOnceRef.current;
+    if (isInitialLoad) {
+      setIsLoading(true);
+    }
     setError(null);
 
     try {
-      // Build filter with search query
+      // Build filter with debounced search query
       const effectiveFilter: EmployeeFilter = {
         ...filter,
-        search: searchQuery || undefined,
+        search: debouncedSearchQuery || undefined,
       };
 
       const result = await listEmployees(effectiveFilter, 200, 0);
@@ -106,6 +131,7 @@ export function EmployeeProvider({ children }: EmployeeProviderProps) {
       // Start with employees without ratings
       setEmployees(result.employees);
       setTotalCount(result.total);
+      hasLoadedOnceRef.current = true;
       setIsLoading(false);
 
       // Fetch ratings in background (don't block UI)
@@ -130,7 +156,7 @@ export function EmployeeProvider({ children }: EmployeeProviderProps) {
       setIsLoading(false);
       setIsLoadingRatings(false);
     }
-  }, [filter, searchQuery]);
+  }, [filter, debouncedSearchQuery]);
 
   // Select an employee
   const selectEmployee = useCallback((id: string | null) => {

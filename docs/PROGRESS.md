@@ -10,6 +10,56 @@
 Most recent session should be first.
 -->
 
+## Session 2025-12-18 (Phase 2.7.5 + Bug Fixes + Pause Point 2A Verified)
+
+**Phase:** 2.7 — Context Scaling (COMPLETE)
+**Focus:** Unit tests, UX bug fixes, and manual verification
+
+### Completed
+- [x] 2.7.5 Add unit tests for classification and aggregates (20 new tests, 63 total)
+- [x] Bug fix: Employee search debouncing (was re-fetching on every keystroke)
+- [x] Bug fix: Selected employee disambiguation (Amanda issue — now skips other name matches)
+- [x] Added Org Chart view to V2 parking lot
+- [x] Created new hires CSV template for import testing
+- [x] **Pause Point 2A verified** — all manual tests pass
+
+### Files Modified
+```
+src-tauri/src/context.rs           - 20 new unit tests + name disambiguation fix
+src/contexts/EmployeeContext.tsx   - Debounced search (300ms) + skip loading skeleton on re-search
+docs/ROADMAP.md                    - Marked 2.7.5 and Pause Point 2A complete
+docs/KNOWN_ISSUES.md               - Added Org Chart View to V2 parking lot
+features.json                      - Updated context-builder notes (63 tests)
+test-data/new_hires_template.csv   - CSV template for testing employee import
+```
+
+### Bug Fixes
+1. **Search debouncing:** Added `debouncedSearchQuery` state with 300ms delay + `hasLoadedOnceRef` to prevent loading skeleton flash during search refinement
+2. **Name disambiguation:** When user selects an employee (e.g., Amanda Collins) and query mentions their name, now skips searching for other employees with the same name
+
+### Pause Point 2A Verification
+- [x] Can import employee CSV/Excel and see employees with demographics
+- [x] Can import performance ratings and reviews
+- [x] Can import eNPS survey data
+- [x] Can edit individual employee
+- [x] Asking "Who's been here longest?" returns correct answer
+- [x] Asking "Who's underperforming?" uses ratings data
+- [x] Asking "What's our eNPS?" calculates correctly
+- [x] Asking about employee by name includes their performance context
+- [x] Conversation sidebar shows history
+- [x] Search finds past conversations
+- [x] Memory references past discussions naturally
+
+### Verification
+- [x] TypeScript type-check passes
+- [x] 95 Rust tests pass (1 pre-existing file_parser failure)
+- [x] Production build succeeds
+
+### Next Session Should
+1. Begin Phase 3 (PII Protection) — start with 3.1.1 pii.rs regex patterns
+
+---
+
 ## Session 2025-12-18 (Phase 2.7.3-2.7.4 — Query-Adaptive Context)
 
 **Phase:** 2.7 — Context Scaling

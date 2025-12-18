@@ -690,10 +690,25 @@ pub async fn find_relevant_employees(
     // Priority 4: Name-based search (explicit employee mentions)
     let mut employee_ids: Vec<String> = Vec::new();
 
-    // Exclude selected employee from search (will be prepended later)
+    // Get selected employee info for smart filtering
     let selected_id = selected_employee.as_ref().map(|e| e.id.as_str());
+    let selected_name_lower = selected_employee
+        .as_ref()
+        .map(|e| e.full_name.to_lowercase());
 
     for name in &mentions.names {
+        // If an employee is selected AND their name matches this query name,
+        // skip searching for other employees with the same name.
+        // This prevents "Tell me about Amanda" from returning all Amandas
+        // when the user has already selected a specific Amanda.
+        if let Some(ref sel_name) = selected_name_lower {
+            let name_lower = name.to_lowercase();
+            if sel_name.contains(&name_lower) || name_lower.contains(sel_name.split_whitespace().next().unwrap_or("")) {
+                // Selected employee's name matches this query name — skip other matches
+                continue;
+            }
+        }
+
         let pattern = format!("%{}%", name);
         let rows: Vec<(String,)> = sqlx::query_as(
             "SELECT id FROM employees WHERE full_name LIKE ? LIMIT 5"
@@ -2597,5 +2612,304 @@ mod tests {
         // The wants_aggregate flag should be set, so it goes to Aggregate
         assert!(mentions.wants_aggregate);
         assert_eq!(classify_query("What's our company eNPS?", &mentions), QueryType::Aggregate);
+    }
+
+    // ========================================
+    // Helper Function Tests (Phase 2.7.5)
+    // ========================================
+
+    #[test]
+    fn test_is_attrition_query_keywords() {
+        // Direct attrition keywords
+        assert!(is_attrition_query("what's our attrition rate?"));
+        assert!(is_attrition_query("show me the turnover data"));
+        assert!(is_attrition_query("who left the company?"));
+        assert!(is_attrition_query("who's left this year?"));
+        assert!(is_attrition_query("recent departures please"));
+        assert!(is_attrition_query("who was terminated?"));
+        assert!(is_attrition_query("any resignations this quarter?"));
+    }
+
+    #[test]
+    fn test_is_attrition_query_negative() {
+        // Non-attrition queries should return false
+        assert!(!is_attrition_query("who's in engineering?"));
+        assert!(!is_attrition_query("what's our enps score?"));
+        assert!(!is_attrition_query("tell me about sarah chen"));
+        assert!(!is_attrition_query("how many employees do we have?"));
+    }
+
+    #[test]
+    fn test_is_list_query_keywords() {
+        let mentions = QueryMentions::default();
+
+        // Direct list keywords
+        assert!(is_list_query("who's in engineering?", &mentions));
+        assert!(is_list_query("show me the sales team", &mentions));
+        assert!(is_list_query("list all employees in marketing", &mentions));
+        assert!(is_list_query("everyone in operations", &mentions));
+    }
+
+    #[test]
+    fn test_is_list_query_with_department() {
+        // Department mentioned + roster phrasing = list query
+        let mut mentions = QueryMentions::default();
+        mentions.departments.push("Engineering".to_string());
+
+        assert!(is_list_query("who is on the engineering team?", &mentions));
+        assert!(is_list_query("show me engineering", &mentions));
+    }
+
+    #[test]
+    fn test_is_list_query_negative() {
+        let mentions = QueryMentions::default();
+
+        // Non-list queries
+        assert!(!is_list_query("what's our enps?", &mentions));
+        assert!(!is_list_query("how many employees?", &mentions));
+    }
+
+    #[test]
+    fn test_is_aggregate_query_keywords() {
+        // Aggregate stat keywords
+        assert!(is_aggregate_query("how many employees do we have?"));
+        assert!(is_aggregate_query("what's our total headcount?"));
+        assert!(is_aggregate_query("what is our average rating?"));
+        assert!(is_aggregate_query("show me the breakdown by department"));
+        assert!(is_aggregate_query("what percentage are in engineering?"));
+        assert!(is_aggregate_query("give me the summary"));
+        assert!(is_aggregate_query("company-wide metrics please"));
+    }
+
+    #[test]
+    fn test_is_aggregate_query_negative() {
+        // Non-aggregate queries
+        assert!(!is_aggregate_query("tell me about sarah"));
+        assert!(!is_aggregate_query("who's in engineering?"));
+        assert!(!is_aggregate_query("who left this year?"));
+    }
+
+    #[test]
+    fn test_is_status_check_patterns() {
+        // Status check patterns ("How's X doing?")
+        assert!(is_status_check("how's the engineering team doing?"));
+        assert!(is_status_check("how is the sales department?"));
+        assert!(is_status_check("how are the new hires doing?"));
+        assert!(is_status_check("how's our marketing team doing?"));
+        assert!(is_status_check("how is our retention doing overall?"));
+    }
+
+    #[test]
+    fn test_is_status_check_negative() {
+        // Non-status queries
+        assert!(!is_status_check("who's in engineering?"));
+        assert!(!is_status_check("tell me about sarah"));
+        assert!(!is_status_check("what's our enps?"));
+        assert!(!is_status_check("show me the sales team"));
+    }
+
+    // ========================================
+    // Employee Summary Formatting Tests (Phase 2.7.5)
+    // ========================================
+
+    #[test]
+    fn test_format_employee_summaries_empty() {
+        let summaries: Vec<EmployeeSummary> = vec![];
+        let result = format_employee_summaries(&summaries, None);
+        assert!(result.is_empty());
+    }
+
+    #[test]
+    fn test_format_employee_summaries_single() {
+        let summaries = vec![EmployeeSummary {
+            id: "1".to_string(),
+            full_name: "Sarah Chen".to_string(),
+            department: Some("Marketing".to_string()),
+            job_title: Some("Marketing Manager".to_string()),
+            status: "active".to_string(),
+            hire_date: Some("2020-03-15".to_string()),
+        }];
+
+        let result = format_employee_summaries(&summaries, None);
+
+        assert!(result.contains("EMPLOYEES (1):"));
+        assert!(result.contains("Sarah Chen"));
+        assert!(result.contains("Marketing Manager"));
+        assert!(result.contains("Marketing"));
+        assert!(result.contains("active"));
+        assert!(result.contains("hired 2020-03-15"));
+    }
+
+    #[test]
+    fn test_format_employee_summaries_multiple() {
+        let summaries = vec![
+            EmployeeSummary {
+                id: "1".to_string(),
+                full_name: "Sarah Chen".to_string(),
+                department: Some("Marketing".to_string()),
+                job_title: Some("Marketing Manager".to_string()),
+                status: "active".to_string(),
+                hire_date: Some("2020-03-15".to_string()),
+            },
+            EmployeeSummary {
+                id: "2".to_string(),
+                full_name: "John Smith".to_string(),
+                department: Some("Engineering".to_string()),
+                job_title: Some("Senior Engineer".to_string()),
+                status: "active".to_string(),
+                hire_date: Some("2019-01-10".to_string()),
+            },
+        ];
+
+        let result = format_employee_summaries(&summaries, None);
+
+        assert!(result.contains("EMPLOYEES (2):"));
+        assert!(result.contains("Sarah Chen"));
+        assert!(result.contains("John Smith"));
+    }
+
+    #[test]
+    fn test_format_employee_summaries_with_total_count() {
+        let summaries = vec![EmployeeSummary {
+            id: "1".to_string(),
+            full_name: "Sarah Chen".to_string(),
+            department: Some("Marketing".to_string()),
+            job_title: Some("Marketing Manager".to_string()),
+            status: "active".to_string(),
+            hire_date: None,
+        }];
+
+        // Showing 1 of 28 employees
+        let result = format_employee_summaries(&summaries, Some(28));
+
+        assert!(result.contains("EMPLOYEES (showing 1 of 28):"));
+    }
+
+    #[test]
+    fn test_format_employee_summaries_total_equals_shown() {
+        let summaries = vec![
+            EmployeeSummary {
+                id: "1".to_string(),
+                full_name: "Sarah Chen".to_string(),
+                department: Some("Marketing".to_string()),
+                job_title: Some("Manager".to_string()),
+                status: "active".to_string(),
+                hire_date: None,
+            },
+            EmployeeSummary {
+                id: "2".to_string(),
+                full_name: "John Smith".to_string(),
+                department: Some("Engineering".to_string()),
+                job_title: Some("Engineer".to_string()),
+                status: "active".to_string(),
+                hire_date: None,
+            },
+        ];
+
+        // Total equals shown count — should not say "showing x of y"
+        let result = format_employee_summaries(&summaries, Some(2));
+
+        assert!(result.contains("EMPLOYEES (2):"));
+        assert!(!result.contains("showing"));
+    }
+
+    #[test]
+    fn test_format_employee_summaries_missing_fields() {
+        let summaries = vec![EmployeeSummary {
+            id: "1".to_string(),
+            full_name: "New Hire".to_string(),
+            department: None,
+            job_title: None,
+            status: "active".to_string(),
+            hire_date: None,
+        }];
+
+        let result = format_employee_summaries(&summaries, None);
+
+        // Should use defaults for missing fields
+        assert!(result.contains("New Hire"));
+        assert!(result.contains("No title"));
+        assert!(result.contains("Unassigned"));
+        assert!(!result.contains("hired")); // No hire date
+    }
+
+    // ========================================
+    // Edge Case Tests (Phase 2.7.5)
+    // ========================================
+
+    #[test]
+    fn test_classify_empty_query() {
+        let mentions = extract_mentions("");
+        assert_eq!(classify_query("", &mentions), QueryType::General);
+    }
+
+    #[test]
+    fn test_classify_single_word_query() {
+        // Single words should generally be General
+        let mentions = extract_mentions("help");
+        assert_eq!(classify_query("help", &mentions), QueryType::General);
+
+        // Unless it's a clear keyword
+        let mentions = extract_mentions("turnover");
+        assert_eq!(classify_query("turnover", &mentions), QueryType::Attrition);
+    }
+
+    #[test]
+    fn test_classify_case_insensitive() {
+        // classify_query converts to lowercase internally, so keywords work regardless of case
+        // Note: extract_mentions is case-sensitive for name detection (capitalized words = names)
+        // so we test with lowercase to avoid name extraction interference
+
+        // Lowercase aggregate query
+        let mentions = extract_mentions("how many employees do we have?");
+        assert_eq!(
+            classify_query("how many employees do we have?", &mentions),
+            QueryType::Aggregate
+        );
+
+        // Mixed case - title case shouldn't break aggregate detection
+        let mentions = extract_mentions("What's our total headcount?");
+        assert_eq!(
+            classify_query("What's our total headcount?", &mentions),
+            QueryType::Aggregate
+        );
+
+        // Lowercase attrition
+        let mentions = extract_mentions("who left the company?");
+        assert_eq!(
+            classify_query("who left the company?", &mentions),
+            QueryType::Attrition
+        );
+    }
+
+    #[test]
+    fn test_classify_with_punctuation() {
+        // Punctuation shouldn't break classification
+        let mentions = extract_mentions("Who left??? Tell me!");
+        assert_eq!(classify_query("Who left??? Tell me!", &mentions), QueryType::Attrition);
+    }
+
+    #[test]
+    fn test_employee_summary_size_budget() {
+        // Each summary should be ~70 chars to stay within context budget
+        let summaries: Vec<EmployeeSummary> = (0..30)
+            .map(|i| EmployeeSummary {
+                id: format!("{}", i),
+                full_name: format!("Employee Name {}", i),
+                department: Some("Engineering".to_string()),
+                job_title: Some("Software Engineer".to_string()),
+                status: "active".to_string(),
+                hire_date: Some("2023-01-01".to_string()),
+            })
+            .collect();
+
+        let result = format_employee_summaries(&summaries, Some(100));
+
+        // 30 summaries should stay well under 3000 chars
+        assert!(
+            result.len() < 3000,
+            "Summary list too large: {} chars",
+            result.len()
+        );
     }
 }

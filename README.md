@@ -35,12 +35,12 @@ A desktop AI assistant for HR professionals that keeps your employee data local 
 |-------|--------|-------------|
 | 0. Pre-flight | ✅ Done | Tooling verified |
 | 1. Foundation | ✅ Done | App runs, Claude API streaming, network detection |
-| 2. Context | 🔨 In Progress | AI knows your company (2.6 done, 2.7 remaining) |
-| 3. Protection | ⏳ Planned | PII auto-redaction |
+| 2. Context | ✅ Done | AI knows your company, query-adaptive retrieval, 63 tests |
+| 3. Protection | 🔨 Next | PII auto-redaction |
 | 4. Polish | ⏳ Planned | Onboarding, export, digest |
 | 5. Launch | ⏳ Planned | Beta users, payment |
 
-**Current:** Phase 2.7.0 complete — Selected employee prioritization in context builder. Next: 2.7.1-2.7.4 (context scaling) or Pause Point 2A verification.
+**Current:** Phase 2 complete — Pause Point 2A verified. Ready for Phase 3 (PII Protection).
 
 ## Key Features (Planned)
 
@@ -105,4 +105,4 @@ Proprietary. See LICENSE file for details.
 ---
 
 *Last updated: December 2025*
-*Status: Phase 2.3 complete (Context Builder)*
+*Status: Phase 2 complete — Ready for Phase 3 (PII Protection)*

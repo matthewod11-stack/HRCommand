@@ -198,21 +198,21 @@ This is a **long-running, multi-session implementation**. Follow these rules:
 - [x] 2.7.2 Implement QueryType enum and classify_query() function
 - [x] 2.7.3 Refactor build_chat_context() for query-adaptive retrieval
 - [x] 2.7.4 Update format functions and system prompt with aggregates
-- [ ] 2.7.5 Add unit tests for classification and aggregates
+- [x] 2.7.5 Add unit tests for classification and aggregates
 
-### Pause Point 2A
+### Pause Point 2A ✓ VERIFIED
 **Verification Required:**
-- [ ] Can import employee CSV/Excel and see employees with demographics
-- [ ] Can import performance ratings and reviews
-- [ ] Can import eNPS survey data
-- [ ] Can edit individual employee
-- [ ] Asking "Who's been here longest?" returns correct answer
-- [ ] Asking "Who's underperforming?" uses ratings data
-- [ ] Asking "What's our eNPS?" calculates correctly
-- [ ] Asking about employee by name includes their performance context
-- [ ] Conversation sidebar shows history
-- [ ] Search finds past conversations
-- [ ] Memory references past discussions naturally
+- [x] Can import employee CSV/Excel and see employees with demographics
+- [x] Can import performance ratings and reviews
+- [x] Can import eNPS survey data
+- [x] Can edit individual employee
+- [x] Asking "Who's been here longest?" returns correct answer
+- [x] Asking "Who's underperforming?" uses ratings data
+- [x] Asking "What's our eNPS?" calculates correctly
+- [x] Asking about employee by name includes their performance context
+- [x] Conversation sidebar shows history
+- [x] Search finds past conversations
+- [x] Memory references past discussions naturally
 
 ---
 
