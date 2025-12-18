@@ -10,6 +10,55 @@
 Most recent session should be first.
 -->
 
+## Session 2025-12-17 (Phase 2.6 Planning — UI Polish + Stickiness)
+
+**Phase:** 2.6 — Stickiness Features + UI Polish
+**Focus:** Manual testing, UI feedback collection, and Phase 2.6 planning
+
+### Completed
+- [x] Tested app manually with `cargo tauri dev`
+- [x] Verified Phase 2.5 features working (tabbed sidebar, conversations, search)
+- [x] Collected UI feedback from manual testing
+- [x] Created detailed implementation plan for Phase 2.6
+
+### UI Feedback Identified
+1. **Markdown rendering** — `**bold**` shows literally, needs react-markdown
+2. **Email overflow** — Long emails extend beyond container
+3. **Manager ID display** — Shows raw ID, should show manager name
+4. **eNPS/Reviews tiles** — Should be clickable to expand full content
+5. **Employee filters** — Need department and manager filters (in addition to status)
+6. **Context limitation** — By design (10 employees max), Claude appropriately suggests adding more data
+
+### Plan Created
+**Location:** `~/.claude/plans/silly-splashing-eagle.md`
+
+**8 tasks identified:**
+| # | Task | Key File |
+|---|------|----------|
+| 1 | Markdown rendering | MessageBubble.tsx |
+| 2 | Fix email overflow | EmployeeDetail.tsx |
+| 3 | Show manager name | EmployeeDetail.tsx |
+| 4 | Expandable tiles | Modal.tsx (new), EmployeeDetail.tsx |
+| 5 | Dept/manager filters | EmployeePanel.tsx |
+| 6 | PromptSuggestions | PromptSuggestions.tsx (new) |
+| 7 | Contextual prompts | usePromptSuggestions.ts (new) |
+| 8 | Empty state guidance | MessageList.tsx |
+
+**Dependencies:** `npm install react-markdown remark-gfm`
+
+### Verification
+- [x] TypeScript type-check passes
+- [x] Frontend build succeeds (539KB)
+
+### Next Session Should
+1. **Follow the plan** at `~/.claude/plans/silly-splashing-eagle.md`
+2. Start with `npm install react-markdown remark-gfm`
+3. Implement tasks 1-5 (UI fixes + filters) first
+4. Then tasks 6-8 (stickiness features)
+5. Run Pause Point 2A verification checklist
+
+---
+
 ## Session 2025-12-17 (Phase 2.5 — Conversation Management Frontend)
 
 **Phase:** 2.5 — Conversation Management

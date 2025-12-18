@@ -174,7 +174,17 @@ This is a **long-running, multi-session implementation**. Follow these rules:
 - [x] 2.5.4 Add "New conversation" action
 - [x] 2.5.5 Wire sidebar to chat area
 
-### 2.6 Stickiness Features
+### 2.6 Stickiness Features + UI Polish
+> **Implementation Plan:** `~/.claude/plans/silly-splashing-eagle.md`
+
+#### UI Polish (from testing feedback)
+- [ ] 2.6.0a Add react-markdown for chat message rendering
+- [ ] 2.6.0b Fix email overflow in EmployeeDetail
+- [ ] 2.6.0c Show manager name instead of ID
+- [ ] 2.6.0d Make eNPS/review tiles expandable (modal)
+- [ ] 2.6.0e Add department and manager filters to EmployeePanel
+
+#### Stickiness Features
 - [ ] 2.6.1 Create PromptSuggestions component
 - [ ] 2.6.2 Implement contextual prompt generation
 - [ ] 2.6.3 Create empty state guidance
