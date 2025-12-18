@@ -57,11 +57,17 @@ User types message → scanPii() → if had_pii:
 - [x] TypeScript type-check passes
 - [x] Production build succeeds (711KB)
 - [x] 126 Rust tests pass (1 pre-existing file_parser failure)
+- [x] **Manual testing passed:**
+  - [x] SSN redaction → `[SSN_REDACTED]` + notification
+  - [x] Credit card redaction → `[CC_REDACTED]` + notification
+  - [x] Bank account redaction → `[BANK_ACCT_REDACTED]` + notification
+  - [x] Multiple PII types in one message
+  - [x] No notification for clean messages
+  - [x] Dismiss button works
 
 ### Next Session Should
-1. **Manual testing:** Test PII redaction with SSN, credit card, bank account
-2. Continue Phase 3.4: Implement audit.rs for redaction logging
-3. Phase 3.5: Error handling and offline mode
+1. Continue Phase 3.4: Implement audit.rs for redaction logging
+2. Phase 3.5: Error handling and offline mode
 
 ---
 
