@@ -202,7 +202,10 @@ export function EmployeeDetail() {
   // Modal state for expandable tiles
   const [selectedRating, setSelectedRating] = useState<PerformanceRating | null>(null);
   const [selectedEnps, setSelectedEnps] = useState<EnpsResponse | null>(null);
-  const [selectedReview, setSelectedReview] = useState<PerformanceReview | null>(null);
+  const [selectedReviewIndex, setSelectedReviewIndex] = useState<number | null>(null);
+
+  // Derived review from index
+  const selectedReview = selectedReviewIndex !== null ? reviews[selectedReviewIndex] : null;
 
   // Fetch performance data when employee changes
   useEffect(() => {
@@ -419,7 +422,7 @@ export function EmployeeDetail() {
             <SectionHeader title="Performance Reviews" count={reviews.length} />
             <button
               type="button"
-              onClick={() => setSelectedReview(reviews[0])}
+              onClick={() => setSelectedReviewIndex(0)}
               className="w-full text-left bg-white/40 rounded-lg p-3 border border-stone-200/40 hover:bg-white/80 hover:border-stone-300/60 transition-colors cursor-pointer"
             >
               <p className="text-sm text-stone-600">
@@ -531,13 +534,40 @@ export function EmployeeDetail() {
 
       {/* Review Detail Modal */}
       <Modal
-        isOpen={!!selectedReview}
-        onClose={() => setSelectedReview(null)}
+        isOpen={selectedReviewIndex !== null}
+        onClose={() => setSelectedReviewIndex(null)}
         title="Performance Review"
         maxWidth="max-w-2xl"
       >
-        {selectedReview && (
+        {selectedReview && selectedReviewIndex !== null && (
           <div className="space-y-5">
+            {/* Navigation header */}
+            <div className="flex items-center justify-between">
+              <button
+                onClick={() => setSelectedReviewIndex(Math.max(0, selectedReviewIndex - 1))}
+                disabled={selectedReviewIndex === 0}
+                className="p-1.5 rounded-lg text-stone-400 hover:text-stone-600 hover:bg-stone-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                aria-label="Previous review"
+              >
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+                </svg>
+              </button>
+              <span className="text-sm text-stone-500">
+                {selectedReviewIndex + 1} of {reviews.length}
+              </span>
+              <button
+                onClick={() => setSelectedReviewIndex(Math.min(reviews.length - 1, selectedReviewIndex + 1))}
+                disabled={selectedReviewIndex === reviews.length - 1}
+                className="p-1.5 rounded-lg text-stone-400 hover:text-stone-600 hover:bg-stone-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                aria-label="Next review"
+              >
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+                </svg>
+              </button>
+            </div>
+
             <div className="flex items-center justify-between text-sm">
               <span className="text-stone-500">Review Date</span>
               <span className="font-medium">{formatDate(selectedReview.review_date)}</span>

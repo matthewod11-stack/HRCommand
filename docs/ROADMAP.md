@@ -193,6 +193,7 @@ This is a **long-running, multi-session implementation**. Follow these rules:
 > **Architecture Doc:** [CONTEXT_SCALING_ARCHITECTURE.md](./CONTEXT_SCALING_ARCHITECTURE.md)
 > **Problem:** Current 10-employee limit prevents accurate aggregate queries at scale
 
+- [ ] 2.7.0 Pass selected_employee_id from UI to context builder (prioritize selected employee)
 - [ ] 2.7.1 Add OrgAggregates struct and build_org_aggregates() SQL queries
 - [ ] 2.7.2 Implement QueryType enum and classify_query() function
 - [ ] 2.7.3 Refactor build_chat_context() for query-adaptive retrieval
