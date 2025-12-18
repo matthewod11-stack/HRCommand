@@ -28,10 +28,11 @@ HRCommand/
 ├── features.json             # Pass/fail feature tracking
 │
 ├── docs/
-│   ├── PROGRESS.md           # Session log (most recent at TOP)
+│   ├── PROGRESS.md           # Session log (last 5-10 sessions)
 │   ├── ROADMAP.md            # Task checklist with phases
 │   ├── SESSION_PROTOCOL.md   # How to run sessions
 │   ├── KNOWN_ISSUES.md       # Blockers + locked decisions
+│   ├── archive/              # Archived progress logs (Phases 0-2)
 │   └── reference/            # Archive: feedback, decisions log
 │
 ├── scripts/
@@ -65,7 +66,7 @@ Follow the **single-feature-per-session rule** to prevent scope creep.
 
 ### Before Working
 1. Run `./scripts/dev-init.sh`
-2. Read `docs/PROGRESS.md` for context
+2. Read most recent entry in `docs/PROGRESS.md` (historical entries in `docs/archive/`)
 3. Check `docs/ROADMAP.md` for next task
 4. Check `docs/KNOWN_ISSUES.md` for blockers
 
@@ -76,6 +77,14 @@ Follow the **single-feature-per-session rule** to prevent scope creep.
 4. Update `README.md` if phase status changed
 5. Commit with descriptive message
 
+### Progress Log Maintenance
+When `docs/PROGRESS.md` exceeds **10 sessions**, archive older entries:
+1. Move entries beyond the last 5-7 to `docs/archive/PROGRESS_PHASES_X-Y.md`
+2. Keep the file header and template comment
+3. Update archive filename to reflect phases covered
+
+**Why this works:** Archive files are never read at session start — only when tracing historical decisions. Their size doesn't affect context. Only `PROGRESS.md` needs to stay small.
+
 ### Session End Prompt
 ```
 Before ending: Please follow session end protocol:
@@ -84,7 +93,8 @@ Before ending: Please follow session end protocol:
 3. Update features.json with pass/fail status
 4. Check off completed task in docs/ROADMAP.md
 5. Update README.md project status table if phase changed
-6. Commit with descriptive message
+6. If PROGRESS.md > 10 sessions, archive older entries
+7. Commit with descriptive message
 
 What's the "Next Session Should" note for PROGRESS.md?
 ```
