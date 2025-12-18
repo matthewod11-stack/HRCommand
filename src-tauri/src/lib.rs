@@ -106,6 +106,17 @@ async fn is_online() -> bool {
 }
 
 // ============================================================================
+// PII Scanning Commands
+// ============================================================================
+
+/// Scan text for PII and return redaction result
+/// Used by frontend before sending messages to Claude API
+#[tauri::command]
+fn scan_pii(text: String) -> pii::RedactionResult {
+    pii::scan_and_redact(&text)
+}
+
+// ============================================================================
 // Company Profile Commands
 // ============================================================================
 
@@ -925,7 +936,9 @@ pub fn run() {
             get_setting,
             set_setting,
             delete_setting,
-            has_setting
+            has_setting,
+            // PII scanning
+            scan_pii
         ])
         .setup(|app| {
             let handle = app.handle().clone();

@@ -227,15 +227,15 @@ This is a **long-running, multi-session implementation**. Follow these rules:
 - [x] 3.1.4 Add bank account detection (with context)
 - [x] 3.1.5 Create unit tests for PII patterns
 
-### 3.2 Auto-Redaction
-- [ ] 3.2.1 Implement scan_and_redact function
-- [ ] 3.2.2 Replace PII with placeholders ([SSN_REDACTED], etc.)
-- [ ] 3.2.3 Return redaction list for notification
+### 3.2 Auto-Redaction ✓ COMPLETE
+- [x] 3.2.1 Implement scan_and_redact function
+- [x] 3.2.2 Replace PII with placeholders ([SSN_REDACTED], etc.)
+- [x] 3.2.3 Return redaction list for notification
 
-### 3.3 Notification UI
-- [ ] 3.3.1 Create PIINotification component
-- [ ] 3.3.2 Show brief notification on redaction
-- [ ] 3.3.3 Auto-dismiss after 3 seconds
+### 3.3 Notification UI ✓ COMPLETE
+- [x] 3.3.1 Create PIINotification component
+- [x] 3.3.2 Show brief notification on redaction
+- [x] 3.3.3 Auto-dismiss after 3 seconds
 
 ### 3.4 Audit Logging
 - [ ] 3.4.1 Implement audit.rs

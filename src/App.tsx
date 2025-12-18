@@ -4,6 +4,7 @@ import { EmployeeProvider } from './contexts/EmployeeContext';
 import { ConversationProvider, useConversations } from './contexts/ConversationContext';
 import { AppShell } from './components/layout/AppShell';
 import { ChatInput, MessageList } from './components/chat';
+import { PIINotification } from './components/shared';
 import { ApiKeyInput } from './components/settings';
 import { CompanySetup } from './components/company';
 import { EmployeeDetail, EmployeeEdit } from './components/employees';
@@ -15,7 +16,14 @@ import { hasApiKey, hasCompany } from './lib/tauri-commands';
 
 function ChatArea() {
   // Get conversation state from context
-  const { messages, isLoading, sendMessage, startNewConversation } = useConversations();
+  const {
+    messages,
+    isLoading,
+    sendMessage,
+    startNewConversation,
+    piiNotification,
+    clearPiiNotification,
+  } = useConversations();
 
   // Get selected employee from context (for prioritizing in context builder)
   const { selectedEmployeeId } = useEmployees();
@@ -137,6 +145,11 @@ function ChatArea() {
 
   return (
     <div className="h-full flex flex-col">
+      {/* PII redaction notification */}
+      <PIINotification
+        summary={piiNotification}
+        onDismiss={clearPiiNotification}
+      />
       <MessageList
         messages={messages}
         isLoading={isLoading}

@@ -11,6 +11,60 @@
 Most recent session should be first.
 -->
 
+## Session 2025-12-18 (Phase 3.2-3.3 — Auto-Redaction + Notification)
+
+**Phase:** 3.2-3.3 — Auto-Redaction & Notification UI
+**Focus:** Wire PII scanner into chat flow, create notification component
+
+### Completed
+- [x] 3.2.1 Implement scan_and_redact function (already in pii.rs)
+- [x] 3.2.2 Replace PII with placeholders (already in pii.rs)
+- [x] 3.2.3 Return redaction list for notification (Tauri command + frontend wiring)
+- [x] 3.3.1 Create PIINotification component
+- [x] 3.3.2 Show brief notification on redaction
+- [x] 3.3.3 Auto-dismiss after 3 seconds
+
+### Files Created
+```
+src/components/shared/PIINotification.tsx    - Amber notification with shield icon, 3s auto-dismiss
+```
+
+### Files Modified
+```
+src-tauri/src/lib.rs                         - Added scan_pii Tauri command
+src/lib/tauri-commands.ts                    - Added PiiMatch, RedactionResult types, scanPii() wrapper
+src/components/shared/index.ts               - Export PIINotification
+src/contexts/ConversationContext.tsx         - PII scan in sendMessage(), notification state
+src/App.tsx                                  - Render PIINotification in ChatArea
+docs/ROADMAP.md                              - Marked 3.2.1-3.2.3, 3.3.1-3.3.3 complete
+features.json                                - auto-redaction + pii-notification-ui → pass (17 total)
+```
+
+### Architecture
+```
+User types message → scanPii() → if had_pii:
+  → Use redacted_text for message bubble
+  → Show amber notification with summary
+  → Claude receives clean data
+```
+
+**Key Design Decisions:**
+- **Frontend-first redaction:** User sees redacted text in their own message for transparency
+- **Fail open:** If scan fails, continue with original content (usability over security)
+- **No blocking modals:** Auto-redact and notify briefly (per design spec)
+
+### Verification
+- [x] TypeScript type-check passes
+- [x] Production build succeeds (711KB)
+- [x] 126 Rust tests pass (1 pre-existing file_parser failure)
+
+### Next Session Should
+1. **Manual testing:** Test PII redaction with SSN, credit card, bank account
+2. Continue Phase 3.4: Implement audit.rs for redaction logging
+3. Phase 3.5: Error handling and offline mode
+
+---
+
 ## Session 2025-12-18 (Process — PROGRESS.md Context Optimization)
 
 **Phase:** N/A — Process improvement

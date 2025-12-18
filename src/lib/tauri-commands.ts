@@ -1095,3 +1095,39 @@ export async function bulkImportEnps(responses: ImportEnps[]): Promise<BulkImpor
 export async function verifyDataIntegrity(): Promise<IntegrityCheckResult[]> {
   return invoke('verify_data_integrity');
 }
+
+// =============================================================================
+// Phase 3.2 - PII Scanning
+// =============================================================================
+
+/** Types of PII that can be detected */
+export type PiiType = 'ssn' | 'credit_card' | 'bank_account';
+
+/** A single PII match found in text */
+export interface PiiMatch {
+  pii_type: PiiType;
+  start: number;
+  end: number;
+  // Note: matched_text is not serialized for security
+}
+
+/** Result of scanning and redacting text for PII */
+export interface RedactionResult {
+  /** Text with PII replaced by placeholders */
+  redacted_text: string;
+  /** List of detected PII instances */
+  matches: PiiMatch[];
+  /** Whether any PII was found */
+  had_pii: boolean;
+  /** Human-readable summary (e.g., "Redacted: 1 SSN, 2 credit cards") */
+  summary: string | null;
+}
+
+/**
+ * Scan text for PII and redact if found
+ * Returns the redacted text and summary of what was found
+ * Used before sending messages to Claude API
+ */
+export async function scanPii(text: string): Promise<RedactionResult> {
+  return invoke('scan_pii', { text });
+}

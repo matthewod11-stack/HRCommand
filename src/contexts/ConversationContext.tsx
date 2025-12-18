@@ -23,6 +23,7 @@ import {
   getSystemPrompt,
   generateConversationSummary,
   saveConversationSummary,
+  scanPii,
   type ConversationListItem,
   type ChatMessage,
   type StreamChunk,
@@ -55,6 +56,10 @@ interface ConversationContextValue {
   deleteConversation: (id: string) => Promise<void>;
   setSearchQuery: (query: string) => void;
   refreshConversations: () => Promise<void>;
+
+  // PII redaction notification
+  piiNotification: string | null;
+  clearPiiNotification: () => void;
 }
 
 // =============================================================================
@@ -110,6 +115,15 @@ export function ConversationProvider({ children }: ConversationProviderProps) {
   const [searchQuery, setSearchQueryState] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const searchTimeoutRef = useRef<number | null>(null);
+
+  // ---------------------------------------------------------------------------
+  // PII notification state
+  // ---------------------------------------------------------------------------
+  const [piiNotification, setPiiNotification] = useState<string | null>(null);
+
+  const clearPiiNotification = useCallback(() => {
+    setPiiNotification(null);
+  }, []);
 
   // ---------------------------------------------------------------------------
   // Fetch conversation list
@@ -240,11 +254,24 @@ export function ConversationProvider({ children }: ConversationProviderProps) {
   // Send message to Claude
   // ---------------------------------------------------------------------------
   const sendMessage = useCallback(async (content: string, selectedEmployeeId?: string | null) => {
-    // Add user message
+    // Scan for PII and redact if found
+    let messageContent = content;
+    try {
+      const redactionResult = await scanPii(content);
+      if (redactionResult.had_pii) {
+        messageContent = redactionResult.redacted_text;
+        setPiiNotification(redactionResult.summary);
+      }
+    } catch (err) {
+      // If PII scan fails, continue with original content (fail open for usability)
+      console.error('[PII] Scan failed:', err);
+    }
+
+    // Add user message (with potentially redacted content)
     const userMessage: Message = {
       id: crypto.randomUUID(),
       role: 'user',
-      content,
+      content: messageContent,
       timestamp: new Date().toISOString(),
     };
     setMessages((prev) => [...prev, userMessage]);
@@ -432,6 +459,10 @@ export function ConversationProvider({ children }: ConversationProviderProps) {
     deleteConversation,
     setSearchQuery,
     refreshConversations,
+
+    // PII redaction notification
+    piiNotification,
+    clearPiiNotification,
   };
 
   return (
