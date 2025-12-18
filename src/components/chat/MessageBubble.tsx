@@ -3,7 +3,13 @@
  *
  * Displays a single chat message with appropriate styling for user or assistant messages.
  * Follows the HR Command Center "Warm Editorial" design aesthetic.
+ *
+ * Assistant messages are rendered as Markdown (supporting bold, lists, code, etc.)
+ * User messages are rendered as plain text to preserve what they typed.
  */
+
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 /**
  * Formats an ISO timestamp string to a user-friendly time display
@@ -63,9 +69,29 @@ export function MessageBubble({
           }
         `}
       >
-        <p className="text-base leading-relaxed whitespace-pre-wrap break-words">
-          {content || '\u00A0'}
-        </p>
+        {isUser ? (
+          // User messages: plain text preserves exactly what they typed
+          <p className="text-base leading-relaxed whitespace-pre-wrap break-words">
+            {content || '\u00A0'}
+          </p>
+        ) : (
+          // Assistant messages: render as Markdown
+          <div className="prose prose-stone prose-sm max-w-none break-words
+            prose-p:my-2 prose-p:leading-relaxed
+            prose-headings:font-semibold prose-headings:text-stone-900
+            prose-h1:text-lg prose-h2:text-base prose-h3:text-sm
+            prose-ul:my-2 prose-ol:my-2 prose-li:my-0.5
+            prose-code:bg-stone-200 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-code:text-sm prose-code:font-mono prose-code:before:content-none prose-code:after:content-none
+            prose-pre:bg-stone-800 prose-pre:text-stone-100 prose-pre:rounded-lg prose-pre:my-2
+            prose-a:text-primary-600 prose-a:underline hover:prose-a:text-primary-700
+            prose-strong:font-semibold prose-strong:text-stone-900
+            prose-blockquote:border-l-primary-400 prose-blockquote:text-stone-600
+          ">
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>
+              {content || '\u00A0'}
+            </ReactMarkdown>
+          </div>
+        )}
 
         {showTimestamp && formattedTime && (
           <span

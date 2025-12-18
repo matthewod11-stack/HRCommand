@@ -1,6 +1,7 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useEmployees } from '../../contexts/EmployeeContext';
 import { RATING_LABELS } from '../../lib/types';
+import { getDepartments } from '../../lib/tauri-commands';
 
 // =============================================================================
 // Helper Components
@@ -99,6 +100,44 @@ function StatusFilterTabs({
           </span>
         </button>
       ))}
+    </div>
+  );
+}
+
+function FilterDropdown({
+  label,
+  value,
+  options,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  options: { value: string; label: string }[];
+  onChange: (value: string) => void;
+}) {
+  return (
+    <div className="flex-1 min-w-0">
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="
+          w-full px-2 py-1.5
+          bg-white/60 border border-stone-200/60
+          rounded-lg
+          text-xs text-stone-700
+          focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400
+          transition-all duration-200
+          cursor-pointer
+        "
+        aria-label={label}
+      >
+        <option value="">{label}</option>
+        {options.map((opt) => (
+          <option key={opt.value} value={opt.value}>
+            {opt.label}
+          </option>
+        ))}
+      </select>
     </div>
   );
 }
@@ -240,6 +279,25 @@ export function EmployeePanel() {
   } = useEmployees();
 
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
+  const [departmentFilter, setDepartmentFilter] = useState('');
+  const [managerFilter, setManagerFilter] = useState('');
+  const [departments, setDepartments] = useState<string[]>([]);
+
+  // Fetch departments on mount
+  useEffect(() => {
+    getDepartments()
+      .then(setDepartments)
+      .catch((err) => console.error('Failed to load departments:', err));
+  }, []);
+
+  // Build manager options from employees (only those who are managers)
+  const managerOptions = useMemo(() => {
+    const managerIds = new Set(employees.map((e) => e.manager_id).filter(Boolean));
+    return employees
+      .filter((e) => managerIds.has(e.id))
+      .map((e) => ({ value: e.id, label: e.full_name }))
+      .sort((a, b) => a.label.localeCompare(b.label));
+  }, [employees]);
 
   // Calculate counts for tabs
   const statusCounts = useMemo(() => {
@@ -251,11 +309,41 @@ export function EmployeePanel() {
     };
   }, [employees, totalCount]);
 
+  // Build and apply combined filter
+  const applyFilters = (
+    status: StatusFilter,
+    department: string,
+    manager: string
+  ) => {
+    const filter: Record<string, string | undefined> = {};
+    if (status !== 'all') filter.status = status;
+    if (department) filter.department = department;
+    // Note: manager_id isn't in backend filter, handled via client-side filtering
+    setFilter(filter);
+    setManagerFilter(manager);
+  };
+
   // Update filter when status tab changes
   const handleStatusChange = (status: StatusFilter) => {
     setStatusFilter(status);
-    setFilter(status === 'all' ? {} : { status: status as 'active' | 'terminated' | 'leave' });
+    applyFilters(status, departmentFilter, managerFilter);
   };
+
+  const handleDepartmentChange = (department: string) => {
+    setDepartmentFilter(department);
+    applyFilters(statusFilter, department, managerFilter);
+  };
+
+  const handleManagerChange = (manager: string) => {
+    setManagerFilter(manager);
+    applyFilters(statusFilter, departmentFilter, manager);
+  };
+
+  // Client-side filter for manager (backend doesn't support manager_id filter)
+  const filteredEmployees = useMemo(() => {
+    if (!managerFilter) return employees;
+    return employees.filter((e) => e.manager_id === managerFilter);
+  }, [employees, managerFilter]);
 
   // Loading state
   if (isLoading) {
@@ -313,12 +401,28 @@ export function EmployeePanel() {
           onChange={handleStatusChange}
           counts={statusCounts}
         />
+
+        {/* Department & Manager filters */}
+        <div className="flex gap-2">
+          <FilterDropdown
+            label="All Departments"
+            value={departmentFilter}
+            options={departments.map((d) => ({ value: d, label: d }))}
+            onChange={handleDepartmentChange}
+          />
+          <FilterDropdown
+            label="All Managers"
+            value={managerFilter}
+            options={managerOptions}
+            onChange={handleManagerChange}
+          />
+        </div>
       </div>
 
       {/* Employee count + Import button */}
       <div className="mt-4 mb-2 flex items-center justify-between">
         <p className="text-xs font-medium text-stone-400 uppercase tracking-wider">
-          {employees.length} {employees.length === 1 ? 'Employee' : 'Employees'}
+          {filteredEmployees.length} {filteredEmployees.length === 1 ? 'Employee' : 'Employees'}
         </p>
         <button
           onClick={openImportWizard}
@@ -333,7 +437,7 @@ export function EmployeePanel() {
 
       {/* Employee list */}
       <div className="flex-1 overflow-y-auto -mx-2 px-2 space-y-2">
-        {employees.length === 0 ? (
+        {filteredEmployees.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 text-center">
             <svg
               className="w-12 h-12 text-stone-300 mb-3"
@@ -354,7 +458,7 @@ export function EmployeePanel() {
             </p>
           </div>
         ) : (
-          employees.map((employee) => (
+          filteredEmployees.map((employee) => (
             <EmployeeCard
               key={employee.id}
               name={employee.full_name}

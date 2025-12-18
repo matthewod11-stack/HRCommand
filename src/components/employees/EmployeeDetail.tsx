@@ -7,6 +7,7 @@ import {
   getReviewsForEmployee,
   getEnpsForEmployee,
 } from '../../lib/tauri-commands';
+import { Modal } from '../shared';
 
 // =============================================================================
 // Helper Functions
@@ -86,9 +87,14 @@ function getStatusBadge(status: string) {
 
 function InfoRow({ label, value }: { label: string; value?: string | null }) {
   return (
-    <div className="flex justify-between py-1.5">
-      <span className="text-stone-500 text-sm">{label}</span>
-      <span className="text-stone-700 text-sm font-medium">{value || '—'}</span>
+    <div className="flex justify-between gap-2 py-1.5">
+      <span className="text-stone-500 text-sm flex-shrink-0">{label}</span>
+      <span
+        className="text-stone-700 text-sm font-medium min-w-0 truncate text-right"
+        title={value || undefined}
+      >
+        {value || '—'}
+      </span>
     </div>
   );
 }
@@ -104,9 +110,19 @@ function SectionHeader({ title, count }: { title: string; count?: number }) {
   );
 }
 
-function RatingCard({ rating }: { rating: PerformanceRating }) {
+function RatingCard({
+  rating,
+  onClick,
+}: {
+  rating: PerformanceRating;
+  onClick?: () => void;
+}) {
   return (
-    <div className="p-3 bg-white/60 rounded-lg border border-stone-200/40">
+    <button
+      type="button"
+      onClick={onClick}
+      className="w-full text-left p-3 bg-white/60 rounded-lg border border-stone-200/40 hover:bg-white/80 hover:border-stone-300/60 transition-colors cursor-pointer"
+    >
       <div className="flex items-center justify-between mb-1">
         <span className="text-sm text-stone-600">{formatDate(rating.rating_date)}</span>
         <span className={`px-2 py-0.5 rounded text-sm font-medium ${getRatingColor(rating.overall_rating)}`}>
@@ -116,14 +132,24 @@ function RatingCard({ rating }: { rating: PerformanceRating }) {
       <p className="text-xs text-stone-400">
         {RATING_LABELS[Math.round(rating.overall_rating)] ?? 'Rating'}
       </p>
-    </div>
+    </button>
   );
 }
 
-function EnpsCard({ response }: { response: EnpsResponse }) {
+function EnpsCard({
+  response,
+  onClick,
+}: {
+  response: EnpsResponse;
+  onClick?: () => void;
+}) {
   const category = getEnpsCategory(response.score);
   return (
-    <div className="p-3 bg-white/60 rounded-lg border border-stone-200/40">
+    <button
+      type="button"
+      onClick={onClick}
+      className="w-full text-left p-3 bg-white/60 rounded-lg border border-stone-200/40 hover:bg-white/80 hover:border-stone-300/60 transition-colors cursor-pointer"
+    >
       <div className="flex items-center justify-between mb-1">
         <span className="text-sm text-stone-600">{response.survey_name || formatDate(response.survey_date)}</span>
         <span className={`px-2 py-0.5 rounded text-sm font-medium ${getEnpsBadgeStyle(response.score)}`}>
@@ -134,7 +160,7 @@ function EnpsCard({ response }: { response: EnpsResponse }) {
       {response.feedback_text && (
         <p className="text-xs text-stone-500 mt-2 line-clamp-2">{response.feedback_text}</p>
       )}
-    </div>
+    </button>
   );
 }
 
@@ -165,13 +191,18 @@ function EmptyState() {
 // =============================================================================
 
 export function EmployeeDetail() {
-  const { selectedEmployee, selectedEmployeeId, openEditModal } = useEmployees();
+  const { selectedEmployee, selectedEmployeeId, openEditModal, employees } = useEmployees();
 
   // Performance data state
   const [ratings, setRatings] = useState<PerformanceRating[]>([]);
   const [reviews, setReviews] = useState<PerformanceReview[]>([]);
   const [enpsResponses, setEnpsResponses] = useState<EnpsResponse[]>([]);
   const [isLoadingPerformance, setIsLoadingPerformance] = useState(false);
+
+  // Modal state for expandable tiles
+  const [selectedRating, setSelectedRating] = useState<PerformanceRating | null>(null);
+  const [selectedEnps, setSelectedEnps] = useState<EnpsResponse | null>(null);
+  const [selectedReview, setSelectedReview] = useState<PerformanceReview | null>(null);
 
   // Fetch performance data when employee changes
   useEffect(() => {
@@ -211,6 +242,11 @@ export function EmployeeDetail() {
   const statusBadge = getStatusBadge(selectedEmployee.status);
   const latestRating = ratings[0];
   const latestEnps = enpsResponses[0];
+
+  // Look up manager name from employees list
+  const manager = selectedEmployee.manager_id
+    ? employees.find((e) => e.id === selectedEmployee.manager_id)
+    : null;
 
   return (
     <div className="h-full flex flex-col overflow-hidden">
@@ -291,7 +327,10 @@ export function EmployeeDetail() {
             <InfoRow label="Hire Date" value={formatDate(selectedEmployee.hire_date)} />
             <InfoRow label="Location" value={selectedEmployee.work_state} />
             {selectedEmployee.manager_id && (
-              <InfoRow label="Manager ID" value={selectedEmployee.manager_id} />
+              <InfoRow
+                label="Manager"
+                value={manager?.full_name || `ID: ${selectedEmployee.manager_id}`}
+              />
             )}
           </div>
         </section>
@@ -338,7 +377,11 @@ export function EmployeeDetail() {
             <SectionHeader title="Performance Ratings" count={ratings.length} />
             <div className="space-y-2">
               {ratings.slice(0, 3).map((rating) => (
-                <RatingCard key={rating.id} rating={rating} />
+                <RatingCard
+                  key={rating.id}
+                  rating={rating}
+                  onClick={() => setSelectedRating(rating)}
+                />
               ))}
               {ratings.length > 3 && (
                 <button className="w-full text-xs text-primary-600 hover:text-primary-700 py-2">
@@ -355,7 +398,11 @@ export function EmployeeDetail() {
             <SectionHeader title="eNPS Responses" count={enpsResponses.length} />
             <div className="space-y-2">
               {enpsResponses.slice(0, 3).map((response) => (
-                <EnpsCard key={response.id} response={response} />
+                <EnpsCard
+                  key={response.id}
+                  response={response}
+                  onClick={() => setSelectedEnps(response)}
+                />
               ))}
               {enpsResponses.length > 3 && (
                 <button className="w-full text-xs text-primary-600 hover:text-primary-700 py-2">
@@ -370,7 +417,11 @@ export function EmployeeDetail() {
         {!isLoadingPerformance && reviews.length > 0 && (
           <section>
             <SectionHeader title="Performance Reviews" count={reviews.length} />
-            <div className="bg-white/40 rounded-lg p-3 border border-stone-200/40">
+            <button
+              type="button"
+              onClick={() => setSelectedReview(reviews[0])}
+              className="w-full text-left bg-white/40 rounded-lg p-3 border border-stone-200/40 hover:bg-white/80 hover:border-stone-300/60 transition-colors cursor-pointer"
+            >
               <p className="text-sm text-stone-600">
                 {reviews.length} review{reviews.length !== 1 ? 's' : ''} on file
               </p>
@@ -379,7 +430,7 @@ export function EmployeeDetail() {
                   <span className="font-medium">Latest strengths:</span> {reviews[0].strengths}
                 </p>
               )}
-            </div>
+            </button>
           </section>
         )}
 
@@ -403,6 +454,133 @@ export function EmployeeDetail() {
           </div>
         )}
       </div>
+
+      {/* Rating Detail Modal */}
+      <Modal
+        isOpen={!!selectedRating}
+        onClose={() => setSelectedRating(null)}
+        title="Performance Rating"
+      >
+        {selectedRating && (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <span className="text-stone-500">Date</span>
+              <span className="font-medium">{formatDate(selectedRating.rating_date)}</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-stone-500">Overall Rating</span>
+              <span className={`px-3 py-1 rounded-lg text-lg font-semibold ${getRatingColor(selectedRating.overall_rating)}`}>
+                {selectedRating.overall_rating.toFixed(1)}
+              </span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-stone-500">Performance Level</span>
+              <span className="font-medium">
+                {RATING_LABELS[Math.round(selectedRating.overall_rating)] ?? 'Rating'}
+              </span>
+            </div>
+            {selectedRating.goals_rating && (
+              <div className="flex items-center justify-between">
+                <span className="text-stone-500">Goals Rating</span>
+                <span className="font-medium">{selectedRating.goals_rating.toFixed(1)}</span>
+              </div>
+            )}
+            {selectedRating.competencies_rating && (
+              <div className="flex items-center justify-between">
+                <span className="text-stone-500">Competencies Rating</span>
+                <span className="font-medium">{selectedRating.competencies_rating.toFixed(1)}</span>
+              </div>
+            )}
+          </div>
+        )}
+      </Modal>
+
+      {/* eNPS Detail Modal */}
+      <Modal
+        isOpen={!!selectedEnps}
+        onClose={() => setSelectedEnps(null)}
+        title="eNPS Response"
+      >
+        {selectedEnps && (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <span className="text-stone-500">Survey</span>
+              <span className="font-medium">
+                {selectedEnps.survey_name || formatDate(selectedEnps.survey_date)}
+              </span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-stone-500">Score</span>
+              <span className={`px-3 py-1 rounded-lg text-lg font-semibold ${getEnpsBadgeStyle(selectedEnps.score)}`}>
+                {selectedEnps.score}
+              </span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-stone-500">Category</span>
+              <span className="font-medium capitalize">{getEnpsCategory(selectedEnps.score)}</span>
+            </div>
+            {selectedEnps.feedback_text && (
+              <div className="pt-4 border-t border-stone-200">
+                <p className="text-sm text-stone-500 mb-2">Feedback</p>
+                <p className="text-stone-700 whitespace-pre-wrap">{selectedEnps.feedback_text}</p>
+              </div>
+            )}
+          </div>
+        )}
+      </Modal>
+
+      {/* Review Detail Modal */}
+      <Modal
+        isOpen={!!selectedReview}
+        onClose={() => setSelectedReview(null)}
+        title="Performance Review"
+        maxWidth="max-w-2xl"
+      >
+        {selectedReview && (
+          <div className="space-y-5">
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-stone-500">Review Date</span>
+              <span className="font-medium">{formatDate(selectedReview.review_date)}</span>
+            </div>
+
+            {selectedReview.strengths && (
+              <div>
+                <h4 className="text-sm font-medium text-stone-700 mb-2">Strengths</h4>
+                <p className="text-stone-600 text-sm whitespace-pre-wrap bg-emerald-50 rounded-lg p-3 border border-emerald-100">
+                  {selectedReview.strengths}
+                </p>
+              </div>
+            )}
+
+            {selectedReview.areas_for_improvement && (
+              <div>
+                <h4 className="text-sm font-medium text-stone-700 mb-2">Areas for Improvement</h4>
+                <p className="text-stone-600 text-sm whitespace-pre-wrap bg-amber-50 rounded-lg p-3 border border-amber-100">
+                  {selectedReview.areas_for_improvement}
+                </p>
+              </div>
+            )}
+
+            {selectedReview.goals_next_period && (
+              <div>
+                <h4 className="text-sm font-medium text-stone-700 mb-2">Goals for Next Period</h4>
+                <p className="text-stone-600 text-sm whitespace-pre-wrap bg-blue-50 rounded-lg p-3 border border-blue-100">
+                  {selectedReview.goals_next_period}
+                </p>
+              </div>
+            )}
+
+            {selectedReview.manager_comments && (
+              <div>
+                <h4 className="text-sm font-medium text-stone-700 mb-2">Manager Comments</h4>
+                <p className="text-stone-600 text-sm whitespace-pre-wrap bg-stone-50 rounded-lg p-3 border border-stone-200">
+                  {selectedReview.manager_comments}
+                </p>
+              </div>
+            )}
+          </div>
+        )}
+      </Modal>
     </div>
   );
 }

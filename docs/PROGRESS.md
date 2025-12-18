@@ -10,6 +10,57 @@
 Most recent session should be first.
 -->
 
+## Session 2025-12-18 (Phase 2.6.0a — Markdown Rendering)
+
+**Phase:** 2.6 — UI Polish + Stickiness
+**Focus:** Add react-markdown for proper chat message rendering
+
+### Completed
+- [x] Installed react-markdown and remark-gfm dependencies
+- [x] Installed @tailwindcss/typography for prose classes
+- [x] Updated MessageBubble to render assistant messages as Markdown
+- [x] Configured prose styling for headings, lists, code, links, blockquotes
+- [x] User messages remain plain text (preserves what they typed)
+- [x] Fixed email overflow in EmployeeDetail InfoRow component
+- [x] Show manager name instead of ID (looks up from employees list)
+- [x] Created reusable Modal component (src/components/shared/Modal.tsx)
+- [x] Made performance rating, eNPS, and review tiles expandable with modals
+- [x] Added department and manager filter dropdowns to EmployeePanel
+
+### Files Modified
+```
+src/components/chat/MessageBubble.tsx       - Added ReactMarkdown for assistant messages
+src/components/employees/EmployeeDetail.tsx - Fixed InfoRow overflow, manager name, expandable tiles
+src/components/employees/EmployeePanel.tsx  - Added department and manager filter dropdowns
+src/components/shared/Modal.tsx             - NEW: Reusable modal component
+src/components/shared/index.ts              - Export Modal
+tailwind.config.js                          - Added @tailwindcss/typography plugin
+package.json                                - Added react-markdown, remark-gfm, @tailwindcss/typography
+```
+
+### Key Implementation Details
+- **ReactMarkdown** with **remark-gfm** plugin for GitHub Flavored Markdown (tables, strikethrough, etc.)
+- **Tailwind Typography** (`prose` classes) provides styled rendering for markdown content
+- Custom prose modifiers match the "Warm Editorial" design:
+  - Code blocks: stone-200 inline, stone-800 for pre blocks
+  - Links: primary-600 with underline
+  - Blockquotes: primary-400 left border
+
+### Bundle Impact
+- Bundle size: 539KB → 697KB (+158KB for markdown dependencies)
+
+### Verification
+- [x] TypeScript type-check passes
+- [x] Vite build succeeds (697KB)
+- [x] Rust compiles (22 pre-existing warnings)
+
+### Next Session Should
+1. Continue Phase 2.6: Fix email overflow in EmployeeDetail (2.6.0b)
+2. Or: Show manager name instead of ID (2.6.0c)
+3. Test markdown rendering manually with `cargo tauri dev`
+
+---
+
 ## Session 2025-12-17 (Phase 2.7 Planning — Context Scaling Architecture)
 
 **Phase:** 2.7 — Context Scaling

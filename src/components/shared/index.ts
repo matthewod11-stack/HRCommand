@@ -1,3 +1,4 @@
 // HR Command Center - Shared Components Barrel Export
 
+export { Modal } from './Modal';
 export { OfflineIndicator } from './OfflineIndicator';

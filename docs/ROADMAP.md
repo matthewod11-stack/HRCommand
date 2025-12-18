@@ -178,11 +178,11 @@ This is a **long-running, multi-session implementation**. Follow these rules:
 > **Implementation Plan:** `~/.claude/plans/silly-splashing-eagle.md`
 
 #### UI Polish (from testing feedback)
-- [ ] 2.6.0a Add react-markdown for chat message rendering
-- [ ] 2.6.0b Fix email overflow in EmployeeDetail
-- [ ] 2.6.0c Show manager name instead of ID
-- [ ] 2.6.0d Make eNPS/review tiles expandable (modal)
-- [ ] 2.6.0e Add department and manager filters to EmployeePanel
+- [x] 2.6.0a Add react-markdown for chat message rendering
+- [x] 2.6.0b Fix email overflow in EmployeeDetail
+- [x] 2.6.0c Show manager name instead of ID
+- [x] 2.6.0d Make eNPS/review tiles expandable (modal)
+- [x] 2.6.0e Add department and manager filters to EmployeePanel
 
 #### Stickiness Features
 - [ ] 2.6.1 Create PromptSuggestions component
