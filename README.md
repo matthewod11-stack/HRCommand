@@ -36,11 +36,11 @@ A desktop AI assistant for HR professionals that keeps your employee data local 
 | 0. Pre-flight | ✅ Done | Tooling verified |
 | 1. Foundation | ✅ Done | App runs, Claude API streaming, network detection |
 | 2. Context | ✅ Done | AI knows your company, query-adaptive retrieval, 63 tests |
-| 3. Protection | 🔨 Next | PII auto-redaction |
+| 3. Protection | 🔨 In Progress | PII scanner complete (31 tests), wiring to chat next |
 | 4. Polish | ⏳ Planned | Onboarding, export, digest |
 | 5. Launch | ⏳ Planned | Beta users, payment |
 
-**Current:** Phase 2 complete — Pause Point 2A verified. Ready for Phase 3 (PII Protection).
+**Current:** Phase 3.1 complete — PII detection module (SSN, CC, bank accounts). Next: wire to chat flow.
 
 ## Key Features (Planned)
 

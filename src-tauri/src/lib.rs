@@ -17,6 +17,7 @@ mod memory;
 mod network;
 mod performance_ratings;
 mod performance_reviews;
+mod pii;
 mod review_cycles;
 mod settings;
 

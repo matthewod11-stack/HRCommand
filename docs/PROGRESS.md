@@ -10,6 +10,60 @@
 Most recent session should be first.
 -->
 
+## Session 2025-12-18 (Phase 3.1 — PII Scanner)
+
+**Phase:** 3.1 — PII Scanner
+**Focus:** Implement core PII detection module for financial data redaction
+
+### Completed
+- [x] 3.1.1 Implement pii.rs with regex patterns
+- [x] 3.1.2 Add SSN detection (XXX-XX-XXXX, XXX XX XXXX, XXXXXXXXX formats)
+- [x] 3.1.3 Add credit card detection (Visa, MasterCard, Amex, Discover)
+- [x] 3.1.4 Add bank account detection (with context keywords)
+- [x] 3.1.5 Create unit tests for PII patterns (31 tests)
+
+### Files Created
+```
+src-tauri/src/pii.rs               - PII detection module (~450 LOC, 31 tests)
+```
+
+### Files Modified
+```
+src-tauri/Cargo.toml               - Added regex = "1" dependency
+src-tauri/src/lib.rs               - Registered pii module
+docs/ROADMAP.md                    - Marked 3.1.1-3.1.5 complete
+features.json                      - Updated pii-scanner status to pass (15 total)
+```
+
+### Key Implementation Details
+- **PiiType enum:** SSN, CreditCard, BankAccount with placeholders and labels
+- **PiiMatch struct:** Tracks type, position, and matched text
+- **RedactionResult struct:** Redacted text, matches list, summary for notifications
+
+| Pattern | Validation | Notes |
+|---------|------------|-------|
+| SSN | Permissive (only rejects 000/00/0000 sections) | Catches test data, typos |
+| Credit Card | Luhn algorithm checksum | Visa, MC, Amex, Discover |
+| Bank Account | Context keywords within 50 chars | "account", "routing", "bank", etc. |
+
+### Design Decisions
+1. **Permissive SSN validation** — We detect 666 and 900+ area codes (traditionally invalid) because they could be typos or test data that should still be redacted
+2. **Luhn checksum for CC** — Reduces false positives while catching all major card types
+3. **Context-based bank detection** — Requires nearby keywords to avoid matching random numbers
+
+### Verification
+- [x] TypeScript type-check passes
+- [x] 126 Rust tests pass (1 pre-existing file_parser failure)
+- [x] 31 new PII tests all passing
+- [x] Production build succeeds (709KB)
+
+### Next Session Should
+1. Continue Phase 3.2: Implement scan_and_redact integration (wire pii.rs to chat flow)
+2. Phase 3.3: Create PIINotification component for brief redaction notifications
+3. Phase 3.4: Implement audit logging for redacted content
+
+---
+
 ## Session 2025-12-18 (Phase 2.7.5 + Bug Fixes + Pause Point 2A Verified)
 
 **Phase:** 2.7 — Context Scaling (COMPLETE)

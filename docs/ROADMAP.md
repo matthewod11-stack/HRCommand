@@ -220,12 +220,12 @@ This is a **long-running, multi-session implementation**. Follow these rules:
 
 **Goal:** Users can't accidentally leak sensitive data
 
-### 3.1 PII Scanner
-- [ ] 3.1.1 Implement pii.rs with regex patterns
-- [ ] 3.1.2 Add SSN detection (XXX-XX-XXXX, XXXXXXXXX)
-- [ ] 3.1.3 Add credit card detection
-- [ ] 3.1.4 Add bank account detection (with context)
-- [ ] 3.1.5 Create unit tests for PII patterns
+### 3.1 PII Scanner ✓ COMPLETE
+- [x] 3.1.1 Implement pii.rs with regex patterns
+- [x] 3.1.2 Add SSN detection (XXX-XX-XXXX, XXXXXXXXX)
+- [x] 3.1.3 Add credit card detection
+- [x] 3.1.4 Add bank account detection (with context)
+- [x] 3.1.5 Create unit tests for PII patterns
 
 ### 3.2 Auto-Redaction
 - [ ] 3.2.1 Implement scan_and_redact function
@@ -308,6 +308,7 @@ This is a **long-running, multi-session implementation**. Follow these rules:
 
 ---
 
+We'll pause before phase 5 and contemplate V2 features to implement prior to launch. 
 ## Phase 5: Launch
 
 **Goal:** Real users, real feedback
