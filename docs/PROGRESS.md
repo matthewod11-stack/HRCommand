@@ -19,6 +19,8 @@ Most recent session should be first.
 - [x] 2.6.1 Created PromptSuggestions component with two variants (welcome, inline)
 - [x] 2.6.2 Created usePromptSuggestions hook for context-aware prompt generation
 - [x] 2.6.3 Updated MessageList WelcomeContent to use contextual suggestions
+- [x] Added prev/next navigation to Performance Review modal (UX fix from testing)
+- [x] Tracked selected-employee-not-prioritized issue → Task 2.7.0
 
 ### Files Created
 ```
@@ -31,7 +33,9 @@ src/hooks/usePromptSuggestions.ts            - Context-aware prompt generation (
 src/components/chat/index.ts                 - Export PromptSuggestions
 src/hooks/index.ts                           - Export usePromptSuggestions
 src/components/chat/MessageList.tsx          - WelcomeContent uses contextual suggestions
-docs/ROADMAP.md                              - Marked 2.6.1-2.6.3 complete
+src/components/employees/EmployeeDetail.tsx  - Review modal prev/next navigation
+docs/ROADMAP.md                              - Marked 2.6.1-2.6.3 complete, added 2.7.0
+docs/KNOWN_ISSUES.md                         - Tracked selected-employee issue
 features.json                                - stickiness-features: pass (13 total)
 README.md                                    - Updated status
 ```
@@ -51,8 +55,10 @@ README.md                                    - Updated status
 - [x] Rust tests: 57 passed, 1 failed (pre-existing file_parser test)
 
 ### Next Session Should
-1. Run Pause Point 2A verification checklist (manual testing)
-2. Or start Phase 2.7: Context Scaling (query-adaptive retrieval)
+1. Run Pause Point 2A verification checklist (manual testing) — most items should pass
+2. Start Phase 2.7: Context Scaling (query-adaptive retrieval)
+   - Task 2.7.0: Pass selected_employee_id to context builder (fixes Amanda issue)
+   - Tasks 2.7.1-2.7.5: Org aggregates, query classification, adaptive retrieval
 3. Architecture doc: `docs/CONTEXT_SCALING_ARCHITECTURE.md`
 
 ---
