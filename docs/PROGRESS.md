@@ -10,6 +10,48 @@
 Most recent session should be first.
 -->
 
+## Session 2025-12-18 (Phase 2.7.0 — Selected Employee Prioritization)
+
+**Phase:** 2.7 — Context Scaling
+**Focus:** Pass selected employee ID from UI to context builder
+
+### Completed
+- [x] 2.7.0 Pass selected_employee_id from UI to context builder (prioritize selected employee)
+
+### Files Modified
+```
+src-tauri/src/context.rs           - Added selected_employee_id param to find_relevant_employees, build_chat_context, get_system_prompt_for_message
+src-tauri/src/lib.rs               - Updated build_chat_context and get_system_prompt Tauri commands to accept optional selected_employee_id
+src/lib/tauri-commands.ts          - Updated buildChatContext and getSystemPrompt wrappers with optional selectedEmployeeId param
+src/contexts/ConversationContext.tsx - Updated sendMessage to accept selectedEmployeeId, passed to getSystemPrompt
+src/App.tsx                        - ChatArea now gets selectedEmployeeId from EmployeeContext, passes to sendMessage
+docs/ROADMAP.md                    - Marked 2.7.0 complete
+docs/KNOWN_ISSUES.md               - Moved issue to resolved section
+```
+
+### Key Implementation Details
+- **Flow:** UI → ChatArea (useEmployees) → sendMessage(content, selectedEmployeeId) → getSystemPrompt → build_chat_context → find_relevant_employees
+- **Prioritization logic:** If selected_employee_id is provided:
+  1. Fetch the selected employee context first
+  2. Reduce the remaining limit by 1
+  3. Exclude selected employee from subsequent searches (avoid duplicates)
+  4. Prepend selected employee to final results
+- **finalize_results helper:** Closure that handles prepending and deduplication for all query types
+
+### Verification
+- [x] TypeScript type-check passes
+- [x] Rust cargo check passes (22 pre-existing warnings)
+- [x] All 25 context module tests pass
+- [x] Vite build succeeds (709KB)
+
+### Next Session Should
+1. Continue Phase 2.7: Context Scaling (query-adaptive retrieval)
+   - Task 2.7.1: Add OrgAggregates struct and build_org_aggregates() SQL queries
+   - Task 2.7.2: Implement QueryType enum and classify_query() function
+2. Or: Run Pause Point 2A verification checklist (manual testing)
+
+---
+
 ## Session 2025-12-18 (Phase 2.6 — Stickiness Features Complete)
 
 **Phase:** 2.6 — Stickiness Features

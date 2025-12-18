@@ -383,33 +383,64 @@ struct EnpsRow {
 
 /// Find employees matching the extracted mentions
 /// Routes to specialized retrieval functions based on query type (primary intent)
+/// If selected_employee_id is provided, that employee is always included first
 pub async fn find_relevant_employees(
     pool: &DbPool,
     mentions: &QueryMentions,
     limit: usize,
+    selected_employee_id: Option<&str>,
 ) -> Result<Vec<EmployeeContext>, ContextError> {
+    // If a specific employee is selected, always include them first
+    let (selected_employee, remaining_limit) = if let Some(id) = selected_employee_id {
+        match get_employee_context(pool, id).await {
+            Ok(emp) => (Some(emp), limit.saturating_sub(1)),
+            Err(_) => (None, limit), // ID not found, continue without
+        }
+    } else {
+        (None, limit)
+    };
+    // Helper to prepend selected employee and filter duplicates
+    let finalize_results = |mut employees: Vec<EmployeeContext>| {
+        if let Some(ref selected) = selected_employee {
+            // Remove selected employee if already in list (avoid duplicates)
+            employees.retain(|e| e.id != selected.id);
+            // Prepend selected employee
+            let mut result = vec![selected.clone()];
+            result.extend(employees);
+            result
+        } else {
+            employees
+        }
+    };
+
     // Priority 1: Underperformer queries (most specific)
     if mentions.is_underperformer_query {
-        return find_underperformers(pool, limit).await;
+        let employees = find_underperformers(pool, remaining_limit).await?;
+        return Ok(finalize_results(employees));
     }
 
     // Priority 2: Top performer queries
     if mentions.is_top_performer_query {
-        return find_top_performers(pool, limit).await;
+        let employees = find_top_performers(pool, remaining_limit).await?;
+        return Ok(finalize_results(employees));
     }
 
     // Priority 3: Tenure queries with direction
     if mentions.is_tenure_query {
-        return match mentions.tenure_direction {
-            Some(TenureDirection::Longest) => find_longest_tenure(pool, limit).await,
-            Some(TenureDirection::Newest) => find_newest_employees(pool, limit).await,
-            Some(TenureDirection::Anniversary) => find_upcoming_anniversaries(pool, limit).await,
-            None => find_longest_tenure(pool, limit).await, // Default to longest if direction unclear
+        let employees = match mentions.tenure_direction {
+            Some(TenureDirection::Longest) => find_longest_tenure(pool, remaining_limit).await?,
+            Some(TenureDirection::Newest) => find_newest_employees(pool, remaining_limit).await?,
+            Some(TenureDirection::Anniversary) => find_upcoming_anniversaries(pool, remaining_limit).await?,
+            None => find_longest_tenure(pool, remaining_limit).await?, // Default to longest if direction unclear
         };
+        return Ok(finalize_results(employees));
     }
 
     // Priority 4: Name-based search (explicit employee mentions)
     let mut employee_ids: Vec<String> = Vec::new();
+
+    // Exclude selected employee from search (will be prepended later)
+    let selected_id = selected_employee.as_ref().map(|e| e.id.as_str());
 
     for name in &mentions.names {
         let pattern = format!("%{}%", name);
@@ -421,7 +452,7 @@ pub async fn find_relevant_employees(
         .await?;
 
         for (id,) in rows {
-            if !employee_ids.contains(&id) {
+            if !employee_ids.contains(&id) && Some(id.as_str()) != selected_id {
                 employee_ids.push(id);
             }
         }
@@ -438,7 +469,7 @@ pub async fn find_relevant_employees(
         .await?;
 
         for (id,) in rows {
-            if !employee_ids.contains(&id) {
+            if !employee_ids.contains(&id) && Some(id.as_str()) != selected_id {
                 employee_ids.push(id);
             }
         }
@@ -449,17 +480,19 @@ pub async fn find_relevant_employees(
         let rows: Vec<(String,)> = sqlx::query_as(
             "SELECT id FROM employees WHERE status = 'active' ORDER BY RANDOM() LIMIT ?"
         )
-        .bind(limit as i64)
+        .bind(remaining_limit as i64)
         .fetch_all(pool)
         .await?;
 
         for (id,) in rows {
-            employee_ids.push(id);
+            if Some(id.as_str()) != selected_id {
+                employee_ids.push(id);
+            }
         }
     }
 
     // Limit results
-    employee_ids.truncate(limit);
+    employee_ids.truncate(remaining_limit);
 
     // Fetch full employee context for each ID
     let mut employees = Vec::new();
@@ -469,7 +502,7 @@ pub async fn find_relevant_employees(
         }
     }
 
-    Ok(employees)
+    Ok(finalize_results(employees))
 }
 
 /// Get full context for a single employee including performance and eNPS
@@ -1079,9 +1112,11 @@ Answer questions as Alex would—practical, human, and grounded in real HR exper
 // ============================================================================
 
 /// Build complete context for a chat message
+/// If selected_employee_id is provided, that employee is always included first
 pub async fn build_chat_context(
     pool: &DbPool,
     user_message: &str,
+    selected_employee_id: Option<&str>,
 ) -> Result<ChatContext, ContextError> {
     // Extract mentions from user message
     let mentions = extract_mentions(user_message);
@@ -1089,8 +1124,8 @@ pub async fn build_chat_context(
     // Get company context
     let company = get_company_context(pool).await?;
 
-    // Find relevant employees
-    let employees = find_relevant_employees(pool, &mentions, MAX_EMPLOYEES_IN_CONTEXT).await?;
+    // Find relevant employees (with selected employee prioritized)
+    let employees = find_relevant_employees(pool, &mentions, MAX_EMPLOYEES_IN_CONTEXT, selected_employee_id).await?;
     let employee_ids_used: Vec<String> = employees.iter().map(|e| e.id.clone()).collect();
 
     // Find relevant past conversation memories (resilient - don't fail if memory lookup errors)
@@ -1118,11 +1153,13 @@ pub async fn build_chat_context(
 }
 
 /// Get the system prompt for a chat message
+/// If selected_employee_id is provided, that employee is always included first
 pub async fn get_system_prompt_for_message(
     pool: &DbPool,
     user_message: &str,
+    selected_employee_id: Option<&str>,
 ) -> Result<(String, Vec<String>), ContextError> {
-    let context = build_chat_context(pool, user_message).await?;
+    let context = build_chat_context(pool, user_message, selected_employee_id).await?;
 
     // Fetch user_name from settings (if set)
     let user_name = crate::settings::get_setting(pool, "user_name")

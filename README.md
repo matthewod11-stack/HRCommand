@@ -40,7 +40,7 @@ A desktop AI assistant for HR professionals that keeps your employee data local 
 | 4. Polish | ⏳ Planned | Onboarding, export, digest |
 | 5. Launch | ⏳ Planned | Beta users, payment |
 
-**Current:** Phase 2.6 complete — Stickiness features with contextual prompt suggestions. Next: 2.7 Context scaling or Pause Point 2A verification.
+**Current:** Phase 2.7.0 complete — Selected employee prioritization in context builder. Next: 2.7.1-2.7.4 (context scaling) or Pause Point 2A verification.
 
 ## Key Features (Planned)
 

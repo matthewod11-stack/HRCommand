@@ -17,6 +17,9 @@ function ChatArea() {
   // Get conversation state from context
   const { messages, isLoading, sendMessage, startNewConversation } = useConversations();
 
+  // Get selected employee from context (for prioritizing in context builder)
+  const { selectedEmployeeId } = useEmployees();
+
   // Gating state (API key and company profile checks)
   const [hasKey, setHasKey] = useState<boolean | null>(null);
   const [hasCompanyProfile, setHasCompanyProfile] = useState<boolean | null>(null);
@@ -60,9 +63,10 @@ function ChatArea() {
 
   const handleSubmit = useCallback(
     async (content: string) => {
-      await sendMessage(content);
+      // Pass selected employee ID to prioritize in context builder
+      await sendMessage(content, selectedEmployeeId);
     },
-    [sendMessage]
+    [sendMessage, selectedEmployeeId]
   );
 
   const handlePromptClick = useCallback(

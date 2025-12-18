@@ -58,16 +58,6 @@ These decisions were made during planning and should NOT be revisited during imp
 
 ## Open Issues
 
-### [PHASE-2.6] Selected employee not prioritized in context
-**Status:** Open (scheduled for 2.7.0)
-**Severity:** Medium
-**Discovered:** 2025-12-18
-**Description:** When a user selects an employee from the People tab and asks a question about them (e.g., "How does Amanda compare to the team?"), the context builder doesn't know about the selection. It extracts "Amanda" from the query and returns all employees with that name instead of prioritizing the selected one.
-**Workaround:** Use the employee's full name in the query, or rely on Claude to disambiguate.
-**Resolution:** Task 2.7.0 — Pass selected_employee_id from UI to context builder
-
----
-
 ### [PHASE-2.1] file_parser::tests::test_normalize_header test failure
 **Status:** Open
 **Severity:** Low
@@ -80,7 +70,13 @@ These decisions were made during planning and should NOT be revisited during imp
 
 ## Resolved Issues
 
-*(Move issues here when resolved)*
+### [PHASE-2.6] Selected employee not prioritized in context
+**Status:** Resolved
+**Severity:** Medium
+**Discovered:** 2025-12-18
+**Resolved:** 2025-12-18
+**Description:** When a user selects an employee from the People tab and asks a question about them (e.g., "How does Amanda compare to the team?"), the context builder didn't know about the selection. It extracted "Amanda" from the query and returned all employees with that name instead of prioritizing the selected one.
+**Resolution:** Task 2.7.0 implemented — `selected_employee_id` is now passed from UI → ConversationContext → getSystemPrompt → build_chat_context → find_relevant_employees. The selected employee is always fetched first and prepended to the context results.
 
 ---
 

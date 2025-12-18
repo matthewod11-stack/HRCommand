@@ -49,7 +49,7 @@ interface ConversationContextValue {
   isSearching: boolean;
 
   // Actions
-  sendMessage: (content: string) => Promise<void>;
+  sendMessage: (content: string, selectedEmployeeId?: string | null) => Promise<void>;
   loadConversation: (id: string) => Promise<void>;
   startNewConversation: () => Promise<void>;
   deleteConversation: (id: string) => Promise<void>;
@@ -239,7 +239,7 @@ export function ConversationProvider({ children }: ConversationProviderProps) {
   // ---------------------------------------------------------------------------
   // Send message to Claude
   // ---------------------------------------------------------------------------
-  const sendMessage = useCallback(async (content: string) => {
+  const sendMessage = useCallback(async (content: string, selectedEmployeeId?: string | null) => {
     // Add user message
     const userMessage: Message = {
       id: crypto.randomUUID(),
@@ -297,8 +297,8 @@ export function ConversationProvider({ children }: ConversationProviderProps) {
           content: m.content,
         }));
 
-      // Build system prompt with context
-      const [systemPrompt] = await getSystemPrompt(content);
+      // Build system prompt with context (prioritize selected employee if any)
+      const [systemPrompt] = await getSystemPrompt(content, selectedEmployeeId);
 
       // Call Claude API with streaming
       await sendChatMessageStreaming(apiMessages, systemPrompt);

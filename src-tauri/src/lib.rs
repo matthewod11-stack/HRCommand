@@ -630,21 +630,25 @@ fn map_enps_columns(
 // ============================================================================
 
 /// Build chat context for a user message (extracts mentions, finds employees)
+/// If selected_employee_id is provided, that employee is always included first
 #[tauri::command]
 async fn build_chat_context(
     state: tauri::State<'_, Database>,
     user_message: String,
+    selected_employee_id: Option<String>,
 ) -> Result<context::ChatContext, context::ContextError> {
-    context::build_chat_context(&state.pool, &user_message).await
+    context::build_chat_context(&state.pool, &user_message, selected_employee_id.as_deref()).await
 }
 
 /// Get the system prompt for a chat message
+/// If selected_employee_id is provided, that employee is always included first
 #[tauri::command]
 async fn get_system_prompt(
     state: tauri::State<'_, Database>,
     user_message: String,
+    selected_employee_id: Option<String>,
 ) -> Result<(String, Vec<String>), context::ContextError> {
-    context::get_system_prompt_for_message(&state.pool, &user_message).await
+    context::get_system_prompt_for_message(&state.pool, &user_message, selected_employee_id.as_deref()).await
 }
 
 /// Get employee context by ID (for debugging/display)

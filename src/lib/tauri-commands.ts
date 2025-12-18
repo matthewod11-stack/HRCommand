@@ -610,19 +610,33 @@ export interface ChatContext {
  * Build chat context for a user message
  * Extracts mentions, finds relevant employees, and gathers company data
  * @param userMessage - The user's message to analyze
+ * @param selectedEmployeeId - Optional employee ID to prioritize (always included first)
  */
-export async function buildChatContext(userMessage: string): Promise<ChatContext> {
-  return invoke('build_chat_context', { userMessage });
+export async function buildChatContext(
+  userMessage: string,
+  selectedEmployeeId?: string | null
+): Promise<ChatContext> {
+  return invoke('build_chat_context', {
+    userMessage,
+    selectedEmployeeId: selectedEmployeeId ?? null
+  });
 }
 
 /**
  * Get the system prompt for a chat message
  * Returns the full system prompt and list of employee IDs used
  * @param userMessage - The user's message to analyze
+ * @param selectedEmployeeId - Optional employee ID to prioritize (always included first)
  * @returns Tuple of [system_prompt, employee_ids_used]
  */
-export async function getSystemPrompt(userMessage: string): Promise<[string, string[]]> {
-  return invoke('get_system_prompt', { userMessage });
+export async function getSystemPrompt(
+  userMessage: string,
+  selectedEmployeeId?: string | null
+): Promise<[string, string[]]> {
+  return invoke('get_system_prompt', {
+    userMessage,
+    selectedEmployeeId: selectedEmployeeId ?? null
+  });
 }
 
 /**
