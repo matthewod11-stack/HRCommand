@@ -48,7 +48,7 @@
     },
     "context-builder": {
       "status": "pass",
-      "notes": "2.3.1-2.3.6 + 2.7.0 complete: context.rs, Alex persona, employee context, user_name, token budget, selected employee prioritization. 25 context tests passing."
+      "notes": "2.3.1-2.3.6 + 2.7.0-2.7.2 complete: context.rs, Alex persona, employee context, user_name, token budget, selected employee prioritization, OrgAggregates, classify_query(). 43 context tests passing."
     },
     "cross-conversation-memory": {
       "status": "pass",

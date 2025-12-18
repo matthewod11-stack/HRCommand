@@ -46,6 +46,87 @@ const MAX_EMPLOYEE_CONTEXT_CHARS: usize = MAX_EMPLOYEE_CONTEXT_TOKENS * CHARS_PE
 const MAX_EMPLOYEES_IN_CONTEXT: usize = 10;
 
 // ============================================================================
+// Query Classification Types (Phase 2.7)
+// ============================================================================
+
+/// Query classification result for adaptive context retrieval
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum QueryType {
+    /// Stats questions: "How many...", "What's our...", "Overall..."
+    Aggregate,
+    /// Roster questions: "Who's in...", "Show me...", "List all..."
+    List,
+    /// Named employee questions: "Tell me about Sarah", "What's John's rating?"
+    Individual,
+    /// Ranking questions: "Top performers", "Who's struggling", "Best in Sales"
+    Comparison,
+    /// Turnover questions: "Who left", "Attrition rate", "Recent departures"
+    Attrition,
+    /// Can't determine — use fallback behavior
+    General,
+}
+
+// ============================================================================
+// Organization Aggregate Types (Phase 2.7)
+// ============================================================================
+
+/// Organization-wide aggregate statistics
+/// Computed from full database for every query (~2K chars when formatted)
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OrgAggregates {
+    // Headcount
+    pub total_employees: i64,
+    pub active_count: i64,
+    pub terminated_count: i64,
+    pub on_leave_count: i64,
+
+    // By department (sorted by count descending)
+    pub by_department: Vec<DepartmentCount>,
+
+    // Performance (active employees only, most recent rating per employee)
+    pub avg_rating: Option<f64>,
+    pub rating_distribution: RatingDistribution,
+    pub employees_with_no_rating: i64,
+
+    // Engagement (reuses existing EnpsAggregate)
+    pub enps: EnpsAggregate,
+
+    // Attrition (YTD)
+    pub attrition: AttritionStats,
+}
+
+/// Department headcount with percentage
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DepartmentCount {
+    pub name: String,
+    pub count: i64,
+    pub percentage: f64,
+}
+
+/// Performance rating distribution buckets
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+pub struct RatingDistribution {
+    /// Rating >= 4.5
+    pub exceptional: i64,
+    /// Rating 3.5 - 4.49
+    pub exceeds: i64,
+    /// Rating 2.5 - 3.49
+    pub meets: i64,
+    /// Rating < 2.5
+    pub needs_improvement: i64,
+}
+
+/// Year-to-date attrition statistics
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+pub struct AttritionStats {
+    pub terminations_ytd: i64,
+    pub voluntary: i64,
+    pub involuntary: i64,
+    pub avg_tenure_months: Option<f64>,
+    pub turnover_rate_annualized: Option<f64>,
+}
+
+// ============================================================================
 // Error Types
 // ============================================================================
 
@@ -297,12 +378,20 @@ pub fn extract_mentions(query: &str) -> QueryMentions {
 
         // Skip common non-name capitalized words
         let skip_words = [
+            // Common question/sentence starters
             "I", "The", "What", "Who", "How", "When", "Where", "Why",
             "Can", "Could", "Would", "Should", "Is", "Are", "Was", "Were",
+            "Tell", "Show", "List", "Give", "Help", "Please", "Hello",
+            // HR acronyms and terms
             "HR", "HR's", "PIP", "Q1", "Q2", "Q3", "Q4", "FY", "YTD",
+            // Days and months
             "Monday", "Tuesday", "Wednesday", "Thursday", "Friday",
             "January", "February", "March", "April", "May", "June",
             "July", "August", "September", "October", "November", "December",
+            // Department names (should not be treated as person names)
+            "Engineering", "Marketing", "Sales", "Finance", "Operations",
+            "Product", "Design", "Legal", "IT", "Research", "Development",
+            "Executive", "Support", "Success",
         ];
 
         if skip_words.contains(&clean_word) {
@@ -344,6 +433,153 @@ pub fn extract_mentions(query: &str) -> QueryMentions {
     }
 
     mentions
+}
+
+// ============================================================================
+// Query Classification (Phase 2.7)
+// ============================================================================
+
+/// Classify a query to determine the appropriate context retrieval strategy.
+/// Uses priority-based logic to handle ambiguous queries.
+///
+/// Priority order:
+/// 1. Individual - explicit names always win
+/// 2. Comparison - ranking/filtering queries
+/// 3. Attrition - turnover-specific queries
+/// 4. List - roster requests
+/// 5. Aggregate - stats/counts/status checks
+/// 6. General - fallback
+pub fn classify_query(message: &str, mentions: &QueryMentions) -> QueryType {
+    let lower = message.to_lowercase();
+
+    // Priority 1: Individual (explicit names always win, unless aggregate query)
+    if !mentions.names.is_empty() && !mentions.wants_aggregate {
+        return QueryType::Individual;
+    }
+
+    // Priority 2: Comparison (ranking/filtering)
+    if mentions.is_top_performer_query || mentions.is_underperformer_query {
+        return QueryType::Comparison;
+    }
+
+    // Priority 3: Attrition (turnover-specific)
+    if is_attrition_query(&lower) {
+        return QueryType::Attrition;
+    }
+
+    // Priority 4: List (roster requests)
+    if is_list_query(&lower, mentions) {
+        return QueryType::List;
+    }
+
+    // Priority 5: Aggregate (stats/counts or status checks)
+    if mentions.wants_aggregate || is_aggregate_query(&lower) || is_status_check(&lower) {
+        return QueryType::Aggregate;
+    }
+
+    // Fallback
+    QueryType::General
+}
+
+/// Check if query is attrition/turnover focused
+fn is_attrition_query(lower: &str) -> bool {
+    let attrition_keywords = [
+        "attrition",
+        "turnover",
+        "who left",
+        "who's left",
+        "departed",
+        "terminated",
+        "resignation",
+        "quit",
+        "recent departures",
+        "offboarding",
+        "left the company",
+        "left this year",
+        "voluntary departure",
+        "involuntary termination",
+    ];
+
+    attrition_keywords.iter().any(|kw| lower.contains(kw))
+}
+
+/// Check if query is a list/roster request
+fn is_list_query(lower: &str, mentions: &QueryMentions) -> bool {
+    let list_keywords = [
+        "who's in",
+        "who is in",
+        "show me",
+        "list all",
+        "list the",
+        "all employees",
+        "everyone in",
+        "people in",
+        "members of",
+        "the team in",
+        "employees in",
+    ];
+
+    // Direct list keyword match
+    if list_keywords.iter().any(|kw| lower.contains(kw)) {
+        return true;
+    }
+
+    // Department mentioned without aggregate keywords = likely wants roster
+    if !mentions.departments.is_empty()
+        && !mentions.wants_aggregate
+        && !mentions.is_top_performer_query
+        && !mentions.is_underperformer_query
+    {
+        // Check for roster-style phrasing
+        let roster_patterns = ["who", "show", "list", "tell me about the"];
+        if roster_patterns.iter().any(|p| lower.contains(p)) {
+            return true;
+        }
+    }
+
+    false
+}
+
+/// Check if query wants aggregate stats (broader than wants_aggregate flag)
+fn is_aggregate_query(lower: &str) -> bool {
+    let aggregate_keywords = [
+        "how many",
+        "what's our",
+        "what is our",
+        "total number",
+        "count of",
+        "average",
+        "overall",
+        "company-wide",
+        "org-wide",
+        "percentage",
+        "rate",
+        "headcount",
+        "breakdown",
+        "distribution",
+        "summary",
+        "statistics",
+        "metrics",
+    ];
+
+    aggregate_keywords.iter().any(|kw| lower.contains(kw))
+}
+
+/// Check if query is a status check (e.g., "How's X doing?")
+/// These are aggregate-style questions even without explicit aggregate keywords
+fn is_status_check(lower: &str) -> bool {
+    let status_patterns = [
+        "how's the",
+        "how is the",
+        "how are the",
+        "how's our",
+        "how is our",
+        "doing overall",
+        "team doing",
+        "department doing",
+    ];
+
+    status_patterns.iter().any(|p| lower.contains(p))
 }
 
 // ============================================================================
@@ -877,6 +1113,341 @@ pub fn format_aggregate_enps(enps: &EnpsAggregate) -> String {
 }
 
 // ============================================================================
+// Organization Aggregates (Phase 2.7)
+// ============================================================================
+
+/// Build organization-wide aggregates from the full database
+/// These are computed for every query to give Claude accurate org-level context
+pub async fn build_org_aggregates(pool: &DbPool) -> Result<OrgAggregates, ContextError> {
+    // 1. Headcount by status
+    let headcount = fetch_headcount_by_status(pool).await?;
+
+    // 2. Headcount by department
+    let by_department = fetch_headcount_by_department(pool, headcount.active_count).await?;
+
+    // 3. Performance distribution (most recent rating per active employee)
+    let (avg_rating, rating_distribution, employees_with_no_rating) =
+        fetch_performance_distribution(pool, headcount.active_count).await?;
+
+    // 4. eNPS (reuse existing function)
+    let enps = calculate_aggregate_enps(pool).await?;
+
+    // 5. Attrition YTD
+    let attrition = fetch_attrition_stats(pool, headcount.active_count).await?;
+
+    Ok(OrgAggregates {
+        total_employees: headcount.total,
+        active_count: headcount.active_count,
+        terminated_count: headcount.terminated_count,
+        on_leave_count: headcount.on_leave_count,
+        by_department,
+        avg_rating,
+        rating_distribution,
+        employees_with_no_rating,
+        enps,
+        attrition,
+    })
+}
+
+/// Internal struct for headcount query result
+struct HeadcountResult {
+    total: i64,
+    active_count: i64,
+    terminated_count: i64,
+    on_leave_count: i64,
+}
+
+/// Fetch headcount by status
+async fn fetch_headcount_by_status(pool: &DbPool) -> Result<HeadcountResult, ContextError> {
+    let row = sqlx::query(
+        r#"
+        SELECT
+            COUNT(*) as total,
+            SUM(CASE WHEN status = 'active' THEN 1 ELSE 0 END) as active,
+            SUM(CASE WHEN status = 'terminated' THEN 1 ELSE 0 END) as terminated,
+            SUM(CASE WHEN status = 'leave' THEN 1 ELSE 0 END) as on_leave
+        FROM employees
+        "#,
+    )
+    .fetch_one(pool)
+    .await?;
+
+    Ok(HeadcountResult {
+        total: row.get::<i64, _>("total"),
+        active_count: row.get::<i64, _>("active"),
+        terminated_count: row.get::<i64, _>("terminated"),
+        on_leave_count: row.get::<i64, _>("on_leave"),
+    })
+}
+
+/// Fetch headcount by department (active employees only)
+async fn fetch_headcount_by_department(
+    pool: &DbPool,
+    total_active: i64,
+) -> Result<Vec<DepartmentCount>, ContextError> {
+    let rows = sqlx::query(
+        r#"
+        SELECT
+            COALESCE(department, 'Unassigned') as department,
+            COUNT(*) as count
+        FROM employees
+        WHERE status = 'active'
+        GROUP BY department
+        ORDER BY count DESC
+        "#,
+    )
+    .fetch_all(pool)
+    .await?;
+
+    let departments: Vec<DepartmentCount> = rows
+        .iter()
+        .map(|row| {
+            let name: String = row.get("department");
+            let count: i64 = row.get("count");
+            let percentage = if total_active > 0 {
+                (count as f64 / total_active as f64) * 100.0
+            } else {
+                0.0
+            };
+            DepartmentCount {
+                name,
+                count,
+                percentage,
+            }
+        })
+        .collect();
+
+    Ok(departments)
+}
+
+/// Fetch performance rating distribution (most recent rating per active employee)
+async fn fetch_performance_distribution(
+    pool: &DbPool,
+    total_active: i64,
+) -> Result<(Option<f64>, RatingDistribution, i64), ContextError> {
+    // Get most recent rating per active employee
+    let row = sqlx::query(
+        r#"
+        WITH latest_ratings AS (
+            SELECT
+                pr.employee_id,
+                pr.overall_rating,
+                ROW_NUMBER() OVER (PARTITION BY pr.employee_id ORDER BY rc.end_date DESC) as rn
+            FROM performance_ratings pr
+            JOIN review_cycles rc ON pr.review_cycle_id = rc.id
+            JOIN employees e ON pr.employee_id = e.id
+            WHERE e.status = 'active'
+        )
+        SELECT
+            AVG(overall_rating) as avg_rating,
+            SUM(CASE WHEN overall_rating >= 4.5 THEN 1 ELSE 0 END) as exceptional,
+            SUM(CASE WHEN overall_rating >= 3.5 AND overall_rating < 4.5 THEN 1 ELSE 0 END) as exceeds,
+            SUM(CASE WHEN overall_rating >= 2.5 AND overall_rating < 3.5 THEN 1 ELSE 0 END) as meets,
+            SUM(CASE WHEN overall_rating < 2.5 THEN 1 ELSE 0 END) as needs_improvement,
+            COUNT(*) as rated_count
+        FROM latest_ratings
+        WHERE rn = 1
+        "#,
+    )
+    .fetch_one(pool)
+    .await?;
+
+    let avg_rating: Option<f64> = row.get("avg_rating");
+    let rated_count: i64 = row.get("rated_count");
+    let employees_with_no_rating = total_active - rated_count;
+
+    let distribution = RatingDistribution {
+        exceptional: row.get("exceptional"),
+        exceeds: row.get("exceeds"),
+        meets: row.get("meets"),
+        needs_improvement: row.get("needs_improvement"),
+    };
+
+    Ok((avg_rating, distribution, employees_with_no_rating))
+}
+
+/// Fetch attrition stats for YTD
+async fn fetch_attrition_stats(
+    pool: &DbPool,
+    current_active: i64,
+) -> Result<AttritionStats, ContextError> {
+    // Get YTD termination stats
+    let row = sqlx::query(
+        r#"
+        SELECT
+            COUNT(*) as terminations,
+            SUM(CASE WHEN termination_reason = 'voluntary' THEN 1 ELSE 0 END) as voluntary,
+            SUM(CASE WHEN termination_reason = 'involuntary' THEN 1 ELSE 0 END) as involuntary,
+            AVG(
+                CAST((julianday(termination_date) - julianday(hire_date)) / 30.0 AS REAL)
+            ) as avg_tenure_months
+        FROM employees
+        WHERE status = 'terminated'
+          AND termination_date >= date('now', 'start of year')
+        "#,
+    )
+    .fetch_one(pool)
+    .await?;
+
+    let terminations_ytd: i64 = row.get("terminations");
+    let voluntary: i64 = row.get("voluntary");
+    let involuntary: i64 = row.get("involuntary");
+    let avg_tenure_months: Option<f64> = row.get("avg_tenure_months");
+
+    // Calculate annualized turnover rate
+    // Formula: (terminations / avg headcount) * (12 / months elapsed) * 100
+    let turnover_rate_annualized = calculate_turnover_rate(pool, terminations_ytd, current_active).await?;
+
+    Ok(AttritionStats {
+        terminations_ytd,
+        voluntary,
+        involuntary,
+        avg_tenure_months,
+        turnover_rate_annualized,
+    })
+}
+
+/// Calculate annualized turnover rate
+async fn calculate_turnover_rate(
+    pool: &DbPool,
+    terminations_ytd: i64,
+    current_active: i64,
+) -> Result<Option<f64>, ContextError> {
+    if terminations_ytd == 0 {
+        return Ok(Some(0.0));
+    }
+
+    // Get months elapsed this year
+    let row = sqlx::query(
+        r#"
+        SELECT
+            (julianday('now') - julianday(date('now', 'start of year'))) / 30.0 as months_elapsed
+        "#,
+    )
+    .fetch_one(pool)
+    .await?;
+
+    let months_elapsed: f64 = row.get("months_elapsed");
+
+    if months_elapsed <= 0.0 {
+        return Ok(None);
+    }
+
+    // Approximate average headcount = current active + half of terminations
+    let avg_headcount = current_active as f64 + (terminations_ytd as f64 / 2.0);
+
+    if avg_headcount <= 0.0 {
+        return Ok(None);
+    }
+
+    // Annualized rate = (terminations / avg headcount) * (12 / months elapsed) * 100
+    let rate = (terminations_ytd as f64 / avg_headcount) * (12.0 / months_elapsed) * 100.0;
+
+    Ok(Some(rate))
+}
+
+/// Format organization aggregates for inclusion in system prompt
+/// Produces a compact (~1.5-2K chars) summary of org-wide stats
+pub fn format_org_aggregates(agg: &OrgAggregates, company_name: Option<&str>) -> String {
+    let mut lines = Vec::new();
+
+    // Header
+    lines.push("ORGANIZATION DATA:".to_string());
+    lines.push(String::new());
+
+    // Workforce summary
+    if let Some(name) = company_name {
+        lines.push(format!("COMPANY: {}", name));
+    }
+    lines.push(format!(
+        "WORKFORCE: {} employees",
+        agg.total_employees
+    ));
+    lines.push(format!(
+        "• Active: {} | Terminated: {} | On Leave: {}",
+        agg.active_count, agg.terminated_count, agg.on_leave_count
+    ));
+    lines.push(String::new());
+
+    // Departments (compact format for space efficiency)
+    if !agg.by_department.is_empty() {
+        lines.push("DEPARTMENTS:".to_string());
+        let dept_strs: Vec<String> = agg
+            .by_department
+            .iter()
+            .take(8) // Limit to 8 departments to save space
+            .map(|d| format!("{}: {} ({:.0}%)", d.name, d.count, d.percentage))
+            .collect();
+        // Group 3 departments per line for compactness
+        for chunk in dept_strs.chunks(3) {
+            lines.push(format!("• {}", chunk.join(" • ")));
+        }
+        lines.push(String::new());
+    }
+
+    // Performance
+    lines.push(format!(
+        "PERFORMANCE ({} active employees):",
+        agg.active_count
+    ));
+    if let Some(avg) = agg.avg_rating {
+        let label = rating_label(avg);
+        lines.push(format!("• Avg rating: {:.1} ({})", avg, label));
+    } else {
+        lines.push("• No performance data available".to_string());
+    }
+    let dist = &agg.rating_distribution;
+    if dist.exceptional > 0 || dist.exceeds > 0 || dist.meets > 0 || dist.needs_improvement > 0 {
+        lines.push(format!(
+            "• Distribution: Exceptional: {} | Exceeds: {} | Meets: {} | Needs Improvement: {}",
+            dist.exceptional, dist.exceeds, dist.meets, dist.needs_improvement
+        ));
+    }
+    if agg.employees_with_no_rating > 0 {
+        lines.push(format!(
+            "• Employees with no rating: {}",
+            agg.employees_with_no_rating
+        ));
+    }
+    lines.push(String::new());
+
+    // Engagement (eNPS)
+    lines.push("ENGAGEMENT:".to_string());
+    let sign = if agg.enps.score >= 0 { "+" } else { "" };
+    lines.push(format!(
+        "• eNPS: {}{} (Promoters: {}, Passives: {}, Detractors: {})",
+        sign, agg.enps.score, agg.enps.promoters, agg.enps.passives, agg.enps.detractors
+    ));
+    lines.push(format!(
+        "• Response rate: {:.0}% ({} of {} active)",
+        agg.enps.response_rate, agg.enps.total_responses, agg.active_count
+    ));
+    lines.push(String::new());
+
+    // Attrition
+    lines.push("ATTRITION (YTD):".to_string());
+    if agg.attrition.terminations_ytd > 0 {
+        lines.push(format!(
+            "• Terminations: {} (Voluntary: {}, Involuntary: {})",
+            agg.attrition.terminations_ytd,
+            agg.attrition.voluntary,
+            agg.attrition.involuntary
+        ));
+        if let Some(tenure) = agg.attrition.avg_tenure_months {
+            let years = tenure / 12.0;
+            lines.push(format!("• Avg tenure at exit: {:.1} years", years));
+        }
+        if let Some(rate) = agg.attrition.turnover_rate_annualized {
+            lines.push(format!("• Turnover rate: {:.1}% annualized", rate));
+        }
+    } else {
+        lines.push("• No terminations YTD".to_string());
+    }
+
+    lines.join("\n")
+}
+
+// ============================================================================
 // Context Formatting
 // ============================================================================
 
@@ -1374,5 +1945,378 @@ mod tests {
     fn test_get_max_conversation_tokens() {
         // Should return the constant value
         assert_eq!(get_max_conversation_tokens(), 150_000);
+    }
+
+    // ========================================
+    // Organization Aggregates Tests (Phase 2.7)
+    // ========================================
+
+    #[test]
+    fn test_format_org_aggregates_basic() {
+        let agg = OrgAggregates {
+            total_employees: 100,
+            active_count: 82,
+            terminated_count: 12,
+            on_leave_count: 6,
+            by_department: vec![
+                DepartmentCount { name: "Engineering".to_string(), count: 28, percentage: 34.1 },
+                DepartmentCount { name: "Sales".to_string(), count: 18, percentage: 22.0 },
+                DepartmentCount { name: "Marketing".to_string(), count: 12, percentage: 14.6 },
+            ],
+            avg_rating: Some(3.4),
+            rating_distribution: RatingDistribution {
+                exceptional: 8,
+                exceeds: 32,
+                meets: 38,
+                needs_improvement: 4,
+            },
+            employees_with_no_rating: 12,
+            enps: EnpsAggregate {
+                score: 12,
+                promoters: 34,
+                passives: 28,
+                detractors: 20,
+                total_responses: 67,
+                response_rate: 81.7,
+            },
+            attrition: AttritionStats {
+                terminations_ytd: 12,
+                voluntary: 8,
+                involuntary: 4,
+                avg_tenure_months: Some(27.6),
+                turnover_rate_annualized: Some(14.6),
+            },
+        };
+
+        let formatted = format_org_aggregates(&agg, Some("Acme Corp"));
+
+        // Check key sections are present
+        assert!(formatted.contains("ORGANIZATION DATA:"));
+        assert!(formatted.contains("COMPANY: Acme Corp"));
+        assert!(formatted.contains("WORKFORCE: 100 employees"));
+        assert!(formatted.contains("Active: 82"));
+        assert!(formatted.contains("Terminated: 12"));
+        assert!(formatted.contains("On Leave: 6"));
+
+        // Check departments
+        assert!(formatted.contains("DEPARTMENTS:"));
+        assert!(formatted.contains("Engineering: 28"));
+        assert!(formatted.contains("Sales: 18"));
+
+        // Check performance
+        assert!(formatted.contains("PERFORMANCE (82 active employees):"));
+        assert!(formatted.contains("Avg rating: 3.4 (Meets Expectations)"));
+        assert!(formatted.contains("Exceptional: 8"));
+
+        // Check engagement
+        assert!(formatted.contains("ENGAGEMENT:"));
+        assert!(formatted.contains("eNPS: +12"));
+        assert!(formatted.contains("Promoters: 34"));
+
+        // Check attrition
+        assert!(formatted.contains("ATTRITION (YTD):"));
+        assert!(formatted.contains("Terminations: 12"));
+        assert!(formatted.contains("Voluntary: 8"));
+        assert!(formatted.contains("Turnover rate: 14.6%"));
+    }
+
+    #[test]
+    fn test_format_org_aggregates_empty_data() {
+        let agg = OrgAggregates {
+            total_employees: 0,
+            active_count: 0,
+            terminated_count: 0,
+            on_leave_count: 0,
+            by_department: vec![],
+            avg_rating: None,
+            rating_distribution: RatingDistribution::default(),
+            employees_with_no_rating: 0,
+            enps: EnpsAggregate {
+                score: 0,
+                promoters: 0,
+                passives: 0,
+                detractors: 0,
+                total_responses: 0,
+                response_rate: 0.0,
+            },
+            attrition: AttritionStats::default(),
+        };
+
+        let formatted = format_org_aggregates(&agg, None);
+
+        // Should still produce valid output
+        assert!(formatted.contains("ORGANIZATION DATA:"));
+        assert!(formatted.contains("WORKFORCE: 0 employees"));
+        assert!(formatted.contains("No performance data available"));
+        assert!(formatted.contains("No terminations YTD"));
+    }
+
+    #[test]
+    fn test_format_org_aggregates_negative_enps() {
+        let agg = OrgAggregates {
+            total_employees: 50,
+            active_count: 45,
+            terminated_count: 5,
+            on_leave_count: 0,
+            by_department: vec![],
+            avg_rating: Some(2.8),
+            rating_distribution: RatingDistribution {
+                exceptional: 2,
+                exceeds: 10,
+                meets: 25,
+                needs_improvement: 8,
+            },
+            employees_with_no_rating: 0,
+            enps: EnpsAggregate {
+                score: -15,
+                promoters: 10,
+                passives: 15,
+                detractors: 20,
+                total_responses: 45,
+                response_rate: 100.0,
+            },
+            attrition: AttritionStats::default(),
+        };
+
+        let formatted = format_org_aggregates(&agg, Some("Test Corp"));
+
+        // Negative eNPS should not have + sign
+        assert!(formatted.contains("eNPS: -15"));
+        assert!(!formatted.contains("eNPS: +-15"));
+    }
+
+    #[test]
+    fn test_rating_distribution_default() {
+        let dist = RatingDistribution::default();
+        assert_eq!(dist.exceptional, 0);
+        assert_eq!(dist.exceeds, 0);
+        assert_eq!(dist.meets, 0);
+        assert_eq!(dist.needs_improvement, 0);
+    }
+
+    #[test]
+    fn test_attrition_stats_default() {
+        let stats = AttritionStats::default();
+        assert_eq!(stats.terminations_ytd, 0);
+        assert_eq!(stats.voluntary, 0);
+        assert_eq!(stats.involuntary, 0);
+        assert!(stats.avg_tenure_months.is_none());
+        assert!(stats.turnover_rate_annualized.is_none());
+    }
+
+    #[test]
+    fn test_query_type_serialization() {
+        // Verify QueryType can be serialized/deserialized
+        let types = vec![
+            QueryType::Aggregate,
+            QueryType::List,
+            QueryType::Individual,
+            QueryType::Comparison,
+            QueryType::Attrition,
+            QueryType::General,
+        ];
+
+        for qt in types {
+            let serialized = serde_json::to_string(&qt).unwrap();
+            let deserialized: QueryType = serde_json::from_str(&serialized).unwrap();
+            assert_eq!(qt, deserialized);
+        }
+    }
+
+    #[test]
+    fn test_format_org_aggregates_size_budget() {
+        // Verify formatted output stays within reasonable size (~2K chars)
+        let agg = OrgAggregates {
+            total_employees: 500,
+            active_count: 450,
+            terminated_count: 40,
+            on_leave_count: 10,
+            by_department: vec![
+                DepartmentCount { name: "Engineering".to_string(), count: 150, percentage: 33.3 },
+                DepartmentCount { name: "Sales".to_string(), count: 100, percentage: 22.2 },
+                DepartmentCount { name: "Marketing".to_string(), count: 60, percentage: 13.3 },
+                DepartmentCount { name: "Operations".to_string(), count: 50, percentage: 11.1 },
+                DepartmentCount { name: "Finance".to_string(), count: 40, percentage: 8.9 },
+                DepartmentCount { name: "HR".to_string(), count: 30, percentage: 6.7 },
+                DepartmentCount { name: "Legal".to_string(), count: 15, percentage: 3.3 },
+                DepartmentCount { name: "Executive".to_string(), count: 5, percentage: 1.1 },
+            ],
+            avg_rating: Some(3.6),
+            rating_distribution: RatingDistribution {
+                exceptional: 45,
+                exceeds: 180,
+                meets: 200,
+                needs_improvement: 25,
+            },
+            employees_with_no_rating: 50,
+            enps: EnpsAggregate {
+                score: 25,
+                promoters: 180,
+                passives: 150,
+                detractors: 70,
+                total_responses: 400,
+                response_rate: 88.9,
+            },
+            attrition: AttritionStats {
+                terminations_ytd: 40,
+                voluntary: 30,
+                involuntary: 10,
+                avg_tenure_months: Some(36.0),
+                turnover_rate_annualized: Some(8.5),
+            },
+        };
+
+        let formatted = format_org_aggregates(&agg, Some("Large Enterprise Corp"));
+
+        // Should stay under 2500 chars for reasonable context budget
+        assert!(
+            formatted.len() < 2500,
+            "Formatted output too large: {} chars",
+            formatted.len()
+        );
+    }
+
+    // ========================================
+    // Query Classification Tests (Phase 2.7.2)
+    // ========================================
+
+    #[test]
+    fn test_classify_aggregate_queries() {
+        // "How many employees?" → Aggregate
+        let mentions = extract_mentions("How many employees do we have?");
+        assert_eq!(classify_query("How many employees do we have?", &mentions), QueryType::Aggregate);
+
+        // "What's our eNPS?" → Aggregate
+        let mentions = extract_mentions("What's our eNPS?");
+        assert_eq!(classify_query("What's our eNPS?", &mentions), QueryType::Aggregate);
+
+        // "Average performance rating?" → Aggregate
+        let mentions = extract_mentions("What's the average performance rating?");
+        assert_eq!(classify_query("What's the average performance rating?", &mentions), QueryType::Aggregate);
+
+        // "Company headcount" → Aggregate
+        let mentions = extract_mentions("What's our total headcount?");
+        assert_eq!(classify_query("What's our total headcount?", &mentions), QueryType::Aggregate);
+    }
+
+    #[test]
+    fn test_classify_list_queries() {
+        // "Who's in Engineering?" → List
+        let mentions = extract_mentions("Who's in Engineering?");
+        assert_eq!(classify_query("Who's in Engineering?", &mentions), QueryType::List);
+
+        // "Show me everyone in Sales" → List
+        let mentions = extract_mentions("Show me everyone in Sales");
+        assert_eq!(classify_query("Show me everyone in Sales", &mentions), QueryType::List);
+
+        // "List all employees in Marketing" → List
+        let mentions = extract_mentions("List all employees in Marketing");
+        assert_eq!(classify_query("List all employees in Marketing", &mentions), QueryType::List);
+    }
+
+    #[test]
+    fn test_classify_individual_queries() {
+        // "Tell me about Sarah Chen" → Individual
+        let mentions = extract_mentions("Tell me about Sarah Chen");
+        assert_eq!(classify_query("Tell me about Sarah Chen", &mentions), QueryType::Individual);
+
+        // "What's John's rating?" → Individual
+        let mentions = extract_mentions("What's John's rating?");
+        assert_eq!(classify_query("What's John's rating?", &mentions), QueryType::Individual);
+
+        // "Is Marcus struggling?" → Individual
+        let mentions = extract_mentions("Is Marcus struggling?");
+        assert_eq!(classify_query("Is Marcus struggling?", &mentions), QueryType::Individual);
+    }
+
+    #[test]
+    fn test_classify_comparison_queries() {
+        // "Who are our top performers?" → Comparison
+        let mentions = extract_mentions("Who are our top performers?");
+        assert_eq!(classify_query("Who are our top performers?", &mentions), QueryType::Comparison);
+
+        // "Who's underperforming?" → Comparison
+        let mentions = extract_mentions("Who's underperforming?");
+        assert_eq!(classify_query("Who's underperforming?", &mentions), QueryType::Comparison);
+
+        // "Show me the star employees" → Comparison
+        let mentions = extract_mentions("Show me the star employees");
+        assert_eq!(classify_query("Show me the star employees", &mentions), QueryType::Comparison);
+
+        // "Who needs improvement?" → Comparison
+        let mentions = extract_mentions("Who needs improvement?");
+        assert_eq!(classify_query("Who needs improvement?", &mentions), QueryType::Comparison);
+    }
+
+    #[test]
+    fn test_classify_attrition_queries() {
+        // "Who left this year?" → Attrition
+        let mentions = extract_mentions("Who left this year?");
+        assert_eq!(classify_query("Who left this year?", &mentions), QueryType::Attrition);
+
+        // "What's our turnover rate?" → Attrition (not Aggregate because turnover is attrition-specific)
+        let mentions = extract_mentions("What's our turnover rate?");
+        assert_eq!(classify_query("What's our turnover rate?", &mentions), QueryType::Attrition);
+
+        // "Recent departures" → Attrition
+        let mentions = extract_mentions("Show me recent departures");
+        assert_eq!(classify_query("Show me recent departures", &mentions), QueryType::Attrition);
+
+        // "Who's been terminated?" → Attrition
+        let mentions = extract_mentions("Who's been terminated?");
+        assert_eq!(classify_query("Who's been terminated?", &mentions), QueryType::Attrition);
+    }
+
+    #[test]
+    fn test_classify_status_check_queries() {
+        // "How's the Engineering team doing?" → Aggregate (status check)
+        let mentions = extract_mentions("How's the Engineering team doing?");
+        assert_eq!(classify_query("How's the Engineering team doing?", &mentions), QueryType::Aggregate);
+
+        // "How is the Sales department doing?" → Aggregate
+        let mentions = extract_mentions("How is the Sales department doing?");
+        assert_eq!(classify_query("How is the Sales department doing?", &mentions), QueryType::Aggregate);
+    }
+
+    #[test]
+    fn test_classify_general_fallback() {
+        // Vague question with no clear intent → General
+        let mentions = extract_mentions("Tell me something interesting");
+        assert_eq!(classify_query("Tell me something interesting", &mentions), QueryType::General);
+
+        // Simple greeting → General
+        let mentions = extract_mentions("Hello, can you help me?");
+        assert_eq!(classify_query("Hello, can you help me?", &mentions), QueryType::General);
+    }
+
+    #[test]
+    fn test_classify_priority_individual_over_aggregate() {
+        // Name + aggregate phrasing without wants_aggregate flag → Individual wins
+        // "Tell me about Sarah's performance" has a name, should be Individual
+        let mentions = extract_mentions("Tell me about Sarah's performance");
+        assert_eq!(classify_query("Tell me about Sarah's performance", &mentions), QueryType::Individual);
+    }
+
+    #[test]
+    fn test_classify_priority_comparison_over_list() {
+        // "Top performers in Engineering" → Comparison (not List)
+        let mentions = extract_mentions("Who are the top performers in Engineering?");
+        assert_eq!(classify_query("Who are the top performers in Engineering?", &mentions), QueryType::Comparison);
+    }
+
+    #[test]
+    fn test_classify_priority_attrition_over_list() {
+        // "Who left the Engineering team?" → Attrition (not List)
+        let mentions = extract_mentions("Who left the Engineering team?");
+        assert_eq!(classify_query("Who left the Engineering team?", &mentions), QueryType::Attrition);
+    }
+
+    #[test]
+    fn test_classify_aggregate_with_name_and_wants_aggregate() {
+        // "What's our company eNPS?" with aggregate flag → Aggregate even if names detected
+        let mentions = extract_mentions("What's our company eNPS?");
+        // The wants_aggregate flag should be set, so it goes to Aggregate
+        assert!(mentions.wants_aggregate);
+        assert_eq!(classify_query("What's our company eNPS?", &mentions), QueryType::Aggregate);
     }
 }

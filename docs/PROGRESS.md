@@ -10,6 +10,107 @@
 Most recent session should be first.
 -->
 
+## Session 2025-12-18 (Phase 2.7.2 — Query Classification)
+
+**Phase:** 2.7 — Context Scaling
+**Focus:** Implement classify_query() function with priority-based classification
+
+### Completed
+- [x] 2.7.2 Implement QueryType enum and classify_query() function
+
+### Files Modified
+```
+src-tauri/src/context.rs           - Added classify_query() function with priority logic
+                                   - Added helper functions: is_attrition_query(), is_list_query(), is_aggregate_query(), is_status_check()
+                                   - Enhanced skip_words list to exclude department names from name extraction
+                                   - Added 12 new unit tests (43 total context tests)
+docs/ROADMAP.md                    - Marked 2.7.2 complete
+```
+
+### Key Implementation Details
+- **Priority Order (highest to lowest):**
+  1. Individual - explicit employee names always win (unless wants_aggregate)
+  2. Comparison - ranking/filtering queries (top performers, underperformers)
+  3. Attrition - turnover-specific queries
+  4. List - roster requests
+  5. Aggregate - stats/counts/status checks
+  6. General - fallback
+
+- **Helper Functions:**
+  - `is_attrition_query()` - Detects turnover keywords (departed, terminated, quit, etc.)
+  - `is_list_query()` - Detects roster patterns ("who's in", "show me", "list all")
+  - `is_aggregate_query()` - Detects stat keywords (how many, total, average, percentage)
+  - `is_status_check()` - Detects team health queries ("how's the team doing")
+
+- **Skip Words Enhancement:**
+  - Added department names (Engineering, Sales, etc.) to prevent false name detection
+  - Added common sentence starters (Tell, Show, List, Help, Hello)
+
+### Verification
+- [x] TypeScript type-check passes
+- [x] Rust cargo check passes
+- [x] All 43 context module tests pass (12 new classification tests)
+
+### Next Session Should
+1. Continue Phase 2.7.3: Refactor build_chat_context() for query-adaptive retrieval
+   - Call classify_query() at the start
+   - Call build_org_aggregates() for all queries
+   - Route to appropriate retrieval function based on QueryType
+2. Phase 2.7.4: Update system prompt to include aggregates section
+
+---
+
+## Session 2025-12-18 (Phase 2.7.1 — Organization Aggregates)
+
+**Phase:** 2.7 — Context Scaling
+**Focus:** Add OrgAggregates struct and build_org_aggregates() SQL queries
+
+### Completed
+- [x] 2.7.1 Add OrgAggregates struct and build_org_aggregates() SQL queries
+
+### Files Modified
+```
+src-tauri/src/context.rs           - Added QueryType enum, OrgAggregates, DepartmentCount, RatingDistribution, AttritionStats structs
+                                   - Added build_org_aggregates() with 5 SQL helper functions
+                                   - Added format_org_aggregates() for system prompt formatting
+                                   - Added 7 new unit tests (32 total context tests)
+docs/ROADMAP.md                    - Marked 2.7.1 complete
+```
+
+### Key Implementation Details
+- **New Types Added:**
+  - `QueryType` enum: Aggregate, List, Individual, Comparison, Attrition, General
+  - `OrgAggregates` struct: Total headcount, status breakdown, by-department, performance distribution, eNPS, attrition
+  - `DepartmentCount`: Department name, count, percentage
+  - `RatingDistribution`: Exceptional, Exceeds, Meets, Needs Improvement buckets
+  - `AttritionStats`: YTD terminations, voluntary/involuntary, avg tenure, turnover rate
+
+- **SQL Queries Implemented (5):**
+  1. `fetch_headcount_by_status()` - Total, active, terminated, on_leave counts
+  2. `fetch_headcount_by_department()` - Department breakdown with percentages
+  3. `fetch_performance_distribution()` - Most recent rating per employee, avg, buckets
+  4. `fetch_attrition_stats()` - YTD terminations with tenure calculation
+  5. `calculate_turnover_rate()` - Annualized turnover formula
+
+- **Format Function:**
+  - `format_org_aggregates()` produces ~1.5-2K char summary
+  - Compact department grouping (3 per line)
+  - Proper +/- sign handling for eNPS
+  - Size budget test ensures <2500 chars
+
+### Verification
+- [x] TypeScript type-check passes
+- [x] Rust cargo check passes (pre-existing warnings only)
+- [x] All 32 context module tests pass (7 new)
+
+### Next Session Should
+1. Continue Phase 2.7.2: Implement classify_query() function
+   - Use QueryType enum with priority-based classification
+   - Add keyword pattern matching functions
+2. Phase 2.7.3: Wire aggregates into build_chat_context()
+
+---
+
 ## Session 2025-12-18 (Phase 2.7.0 — Selected Employee Prioritization)
 
 **Phase:** 2.7 — Context Scaling
