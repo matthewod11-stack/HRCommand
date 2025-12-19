@@ -11,6 +11,49 @@
 Most recent session should be first.
 -->
 
+## Session 2025-12-19 (Phase 4.3 Planning — Data Export/Import)
+
+**Phase:** 4.3 — Data Export/Import
+**Focus:** Design implementation plan for encrypted backup/restore functionality
+
+### User Decisions
+| Decision | Choice |
+|----------|--------|
+| Export scope | Full backup (all 9 tables) |
+| Encryption | AES-256-GCM with Argon2 key derivation |
+| Import mode | Replace-all (clear existing data first) |
+
+### Plan Created
+**Plan File:** `~/.claude/plans/delegated-sleeping-stardust.md`
+
+**Scope:** ~1,200 LOC across 7 files
+- New Rust module: `backup.rs` (~750 LOC)
+- New React component: `BackupRestore.tsx` (~350 LOC)
+- New dependencies: aes-gcm, argon2, flate2, rand
+
+### Key Design Decisions
+- **File format:** `.hrbackup` — compressed JSON encrypted with AES-256-GCM
+- **Password:** Minimum 8 characters, Argon2id for key derivation
+- **Security:** Authenticated encryption, random salt/nonce per backup
+- **FK-safe ordering:** 9 tables cleared/restored respecting foreign key constraints
+
+### Files Changed
+```
+docs/ROADMAP.md    - Added plan reference to 4.3 section
+```
+
+### Verification
+- [x] TypeScript type-check passes
+- [x] Production build succeeds
+- [x] Rust tests pass (137 pass, 1 pre-existing file_parser failure)
+
+### Next Session Should
+1. Start implementation from plan: `~/.claude/plans/delegated-sleeping-stardust.md`
+2. Begin with Rust backend (4.3.1 + 4.3.2), then frontend (4.3.3)
+3. Run `cargo test` after adding encryption helpers
+
+---
+
 ## Session 2025-12-19 (Phase 4.2 Implementation — Settings Panel + Pause Point 4A)
 
 **Phase:** 4.2 — Settings Panel
