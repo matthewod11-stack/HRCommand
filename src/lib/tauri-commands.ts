@@ -1131,3 +1131,109 @@ export interface RedactionResult {
 export async function scanPii(text: string): Promise<RedactionResult> {
   return invoke('scan_pii', { text });
 }
+
+// =============================================================================
+// Phase 3.4 - Audit Logging
+// =============================================================================
+
+/**
+ * Full audit log entry from database
+ */
+export interface AuditEntry {
+  id: string;
+  conversation_id: string | null;
+  request_redacted: string;
+  response_text: string;
+  context_used: string | null; // JSON array of employee IDs
+  created_at: string;
+}
+
+/**
+ * Lightweight audit entry for list display
+ */
+export interface AuditListItem {
+  id: string;
+  conversation_id: string | null;
+  request_preview: string; // First 100 chars
+  response_preview: string; // First 100 chars
+  employee_count: number;
+  created_at: string;
+}
+
+/**
+ * Input for creating an audit entry
+ */
+export interface CreateAuditEntryInput {
+  conversation_id?: string;
+  request_redacted: string;
+  response_text: string;
+  employee_ids_used: string[];
+}
+
+/**
+ * Filter options for listing/exporting audit entries
+ */
+export interface AuditFilter {
+  conversation_id?: string;
+  start_date?: string; // ISO 8601 format
+  end_date?: string; // ISO 8601 format
+}
+
+/**
+ * CSV export result
+ */
+export interface ExportResult {
+  csv_content: string;
+  row_count: number;
+}
+
+/**
+ * Create an audit log entry after a Claude API interaction
+ * Called by frontend after streaming response completes
+ * @param input - Audit entry data (conversation_id, redacted request, response, employee IDs)
+ */
+export async function createAuditEntry(
+  input: CreateAuditEntryInput
+): Promise<AuditEntry> {
+  return invoke('create_audit_entry', { input });
+}
+
+/**
+ * Get a single audit entry by ID
+ * @param id - The audit entry ID
+ */
+export async function getAuditEntry(id: string): Promise<AuditEntry> {
+  return invoke('get_audit_entry', { id });
+}
+
+/**
+ * List audit entries with optional filtering
+ * Returns lightweight items sorted by created_at (most recent first)
+ * @param filter - Optional filter by conversation_id or date range
+ * @param limit - Max entries to return (default: 50)
+ * @param offset - Number of entries to skip (default: 0)
+ */
+export async function listAuditEntries(
+  filter?: AuditFilter,
+  limit?: number,
+  offset?: number
+): Promise<AuditListItem[]> {
+  return invoke('list_audit_entries', { filter, limit, offset });
+}
+
+/**
+ * Count audit entries matching filter (for pagination)
+ * @param filter - Optional filter by conversation_id or date range
+ */
+export async function countAuditEntries(filter?: AuditFilter): Promise<number> {
+  return invoke('count_audit_entries', { filter });
+}
+
+/**
+ * Export audit log to CSV format
+ * Response is truncated to first 500 chars per entry
+ * @param filter - Optional filter by conversation_id or date range
+ */
+export async function exportAuditLog(filter?: AuditFilter): Promise<ExportResult> {
+  return invoke('export_audit_log', { filter });
+}

@@ -11,6 +11,55 @@
 Most recent session should be first.
 -->
 
+## Session 2025-12-18 (Phase 3.4 — Audit Logging)
+
+**Phase:** 3.4 — Audit Logging
+**Focus:** Implement audit.rs module to log all Claude API interactions for compliance
+
+### Completed
+- [x] 3.4.1 Implement audit.rs module with types, CRUD operations, CSV export
+- [x] 3.4.2 Log redacted requests and responses
+- [x] 3.4.3 Store context employee IDs used (JSON array in context_used column)
+- [x] 3.4.4 Add audit log export capability (CSV format, backend-only)
+
+### Files Created
+```
+src-tauri/src/audit.rs              - Audit logging module (~280 LOC, 11 tests)
+```
+
+### Files Modified
+```
+src-tauri/src/lib.rs                - Added mod audit, 5 Tauri commands
+src/lib/tauri-commands.ts           - Added 5 audit command wrappers + types
+src/contexts/ConversationContext.tsx - Capture employee IDs, accumulate response, create audit entry
+docs/ROADMAP.md                     - Marked 3.4.1-3.4.4 complete
+features.json                       - audit-logging → pass (18 total)
+```
+
+### Architecture
+```
+User sends message → PII scan (redacted) → getSystemPrompt (employee_ids captured)
+    → Claude API streaming → accumulate response chunks
+    → on done: createAuditEntry(conversation_id, redacted_request, response, employee_ids)
+```
+
+**Key Design Decisions:**
+- **Fire-and-forget:** Audit entry creation is async; failures logged but don't block chat
+- **Backend-only export:** CSV export via Tauri command; UI deferred to Phase 4 Settings
+- **Response truncation:** CSV export truncates response to 500 chars per entry
+
+### Verification
+- [x] TypeScript type-check passes
+- [x] Production build succeeds (705KB)
+- [x] 137 Rust tests pass (1 pre-existing file_parser failure)
+- [x] 11 new audit tests all passing
+
+### Next Session Should
+1. Continue Phase 3.5: Error handling (ErrorState component, graceful errors, offline mode)
+2. Run Pause Point 3A verification checklist (manual testing)
+
+---
+
 ## Session 2025-12-18 (Phase 3.2-3.3 — Auto-Redaction + Notification)
 
 **Phase:** 3.2-3.3 — Auto-Redaction & Notification UI

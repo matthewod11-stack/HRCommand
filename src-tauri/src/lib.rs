@@ -17,6 +17,7 @@ mod memory;
 mod network;
 mod performance_ratings;
 mod performance_reviews;
+mod audit;
 mod pii;
 mod review_cycles;
 mod settings;
@@ -114,6 +115,58 @@ async fn is_online() -> bool {
 #[tauri::command]
 fn scan_pii(text: String) -> pii::RedactionResult {
     pii::scan_and_redact(&text)
+}
+
+// ============================================================================
+// Audit Logging Commands
+// ============================================================================
+
+/// Create an audit log entry after a Claude API interaction
+/// Called by frontend after streaming response completes
+#[tauri::command]
+async fn create_audit_entry(
+    state: tauri::State<'_, Database>,
+    input: audit::CreateAuditEntry,
+) -> Result<audit::AuditEntry, audit::AuditError> {
+    audit::create_audit_entry(&state.pool, input).await
+}
+
+/// Get a single audit entry by ID
+#[tauri::command]
+async fn get_audit_entry(
+    state: tauri::State<'_, Database>,
+    id: String,
+) -> Result<audit::AuditEntry, audit::AuditError> {
+    audit::get_audit_entry(&state.pool, &id).await
+}
+
+/// List audit entries with optional filtering
+#[tauri::command]
+async fn list_audit_entries(
+    state: tauri::State<'_, Database>,
+    filter: Option<audit::AuditFilter>,
+    limit: Option<i64>,
+    offset: Option<i64>,
+) -> Result<Vec<audit::AuditListItem>, audit::AuditError> {
+    audit::list_audit_entries(&state.pool, filter, limit, offset).await
+}
+
+/// Count audit entries matching filter (for pagination)
+#[tauri::command]
+async fn count_audit_entries(
+    state: tauri::State<'_, Database>,
+    filter: Option<audit::AuditFilter>,
+) -> Result<i64, audit::AuditError> {
+    audit::count_audit_entries(&state.pool, filter).await
+}
+
+/// Export audit log to CSV format
+#[tauri::command]
+async fn export_audit_log(
+    state: tauri::State<'_, Database>,
+    filter: Option<audit::AuditFilter>,
+) -> Result<audit::ExportResult, audit::AuditError> {
+    audit::export_to_csv(&state.pool, filter).await
 }
 
 // ============================================================================
@@ -938,7 +991,13 @@ pub fn run() {
             delete_setting,
             has_setting,
             // PII scanning
-            scan_pii
+            scan_pii,
+            // Audit logging
+            create_audit_entry,
+            get_audit_entry,
+            list_audit_entries,
+            count_audit_entries,
+            export_audit_log
         ])
         .setup(|app| {
             let handle = app.handle().clone();

@@ -24,6 +24,7 @@ import {
   generateConversationSummary,
   saveConversationSummary,
   scanPii,
+  createAuditEntry,
   type ConversationListItem,
   type ChatMessage,
   type StreamChunk,
@@ -101,6 +102,13 @@ export function ConversationProvider({ children }: ConversationProviderProps) {
 
   // Track previous isLoading for auto-save trigger
   const prevIsLoading = useRef(false);
+
+  // ---------------------------------------------------------------------------
+  // Audit logging state (refs to avoid re-renders)
+  // ---------------------------------------------------------------------------
+  const redactedMessageRef = useRef<string | null>(null);
+  const employeeIdsRef = useRef<string[]>([]);
+  const accumulatedResponseRef = useRef<string>('');
 
   // ---------------------------------------------------------------------------
   // Conversation list state
@@ -267,6 +275,9 @@ export function ConversationProvider({ children }: ConversationProviderProps) {
       console.error('[PII] Scan failed:', err);
     }
 
+    // Store redacted message for audit logging
+    redactedMessageRef.current = messageContent;
+
     // Add user message (with potentially redacted content)
     const userMessage: Message = {
       id: crypto.randomUUID(),
@@ -296,9 +307,31 @@ export function ConversationProvider({ children }: ConversationProviderProps) {
         const { chunk, done } = event.payload;
 
         if (done) {
+          // Get the full accumulated response before resetting
+          const fullResponse = accumulatedResponseRef.current;
+
+          // Create audit entry (fire-and-forget, don't block on errors)
+          createAuditEntry({
+            conversation_id: conversationId,
+            request_redacted: redactedMessageRef.current ?? '',
+            response_text: fullResponse,
+            employee_ids_used: employeeIdsRef.current,
+          }).catch((err) => {
+            // Log but don't fail - audit is non-critical
+            console.error('[Audit] Failed to create entry:', err);
+          });
+
+          // Reset refs for next message
+          redactedMessageRef.current = null;
+          employeeIdsRef.current = [];
+          accumulatedResponseRef.current = '';
+
           streamingMessageId.current = null;
           setIsLoading(false);
         } else {
+          // Accumulate response for audit logging
+          accumulatedResponseRef.current += chunk;
+
           setMessages((prev) =>
             prev.map((msg) =>
               msg.id === assistantId
@@ -325,7 +358,11 @@ export function ConversationProvider({ children }: ConversationProviderProps) {
         }));
 
       // Build system prompt with context (prioritize selected employee if any)
-      const [systemPrompt] = await getSystemPrompt(content, selectedEmployeeId);
+      const [systemPrompt, employeeIds] = await getSystemPrompt(content, selectedEmployeeId);
+      employeeIdsRef.current = employeeIds;
+
+      // Reset accumulated response for this message
+      accumulatedResponseRef.current = '';
 
       // Call Claude API with streaming
       await sendChatMessageStreaming(apiMessages, systemPrompt);
