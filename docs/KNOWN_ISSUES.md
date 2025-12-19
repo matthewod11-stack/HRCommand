@@ -292,6 +292,44 @@ These decisions were explicitly deferred to V1.1 or later:
 | Very long conversation history | 2 | Medium | Memory retrieval may slow down |
 | Offline during onboarding | 4 | Low | Can't validate API key offline |
 | License server unreachable | 5 | Medium | Need grace period strategy |
+| Long performance reviews in context | 2.7 | Medium | See note below |
+
+### Performance Review Length vs Context Budget
+
+**Discovered:** 2025-12-19
+**Status:** Needs Investigation
+
+Current test data has 1-2 sentence performance reviews. Real-world reviews could be multiple paragraphs (500-2000+ words each). This impacts the context management work from Phase 2.7:
+
+**Considerations:**
+- Token budget for employee context may need adjustment
+- May need to summarize/truncate long reviews before including in context
+- Could implement a "review highlights" extraction (key strengths, areas for improvement)
+- Consider only including most recent review vs all reviews
+- Full-text search already indexes reviews - could retrieve only relevant excerpts
+
+**Revisit When:** Testing with realistic multi-paragraph review data
+
+---
+
+## UI Polish (Future)
+
+### Conversation Sidebar Title Truncation
+
+**Discovered:** 2025-12-19
+**Status:** Low priority polish item
+
+The conversation card title text in the sidebar is too large/not adaptive. Titles almost never fit in the available space, resulting in ellipsis truncation ("Betty's Performance ...").
+
+**Potential Fixes:**
+- Reduce title font size (currently appears to be text-lg/font-semibold)
+- Use smaller font with more lines (2-line clamp instead of 1)
+- Show full title on hover (tooltip)
+- Auto-generate shorter titles (currently using Claude, could request brevity)
+- Responsive font size based on title length
+
+**Component:** `src/components/conversations/ConversationCard.tsx`
+**Revisit When:** Phase 4 Polish
 
 ---
 

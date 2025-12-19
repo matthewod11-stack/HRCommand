@@ -249,13 +249,13 @@ This is a **long-running, multi-session implementation**. Follow these rules:
 - [x] 3.5.3 Show "Retry" and "Copy Message" actions
 - [x] 3.5.4 Implement read-only offline mode (ChatInput disabled when offline)
 
-### Pause Point 3A
+### Pause Point 3A ✓ VERIFIED
 **Verification Required:**
-- [ ] Pasting SSN auto-redacts before sending
-- [ ] Notification shows briefly
-- [ ] Audit log captures redacted content
-- [ ] Offline mode allows browsing but not chatting
-- [ ] API errors show friendly messages
+- [x] Pasting SSN auto-redacts before sending
+- [x] Notification shows briefly
+- [x] Audit log captures redacted content
+- [x] Offline mode allows browsing but not chatting
+- [x] API errors show friendly messages
 
 ---
 
