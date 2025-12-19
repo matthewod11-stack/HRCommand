@@ -279,6 +279,9 @@ This is a **long-running, multi-session implementation**. Follow these rules:
 - [x] 4.1.10 App.tsx integration (replace ChatArea gating)
 
 ### 4.2 Settings Panel
+> **Implementation Plan:** `~/.claude/plans/cozy-crafting-metcalfe.md`
+> **Estimated:** ~225 LOC | 7 files
+
 - [ ] 4.2.1 Create SettingsPanel component
 - [ ] 4.2.2 API key management (change/remove)
 - [ ] 4.2.3 Company profile editing

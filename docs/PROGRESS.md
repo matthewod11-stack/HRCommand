@@ -11,6 +11,43 @@
 Most recent session should be first.
 -->
 
+## Session 2025-12-19 (Phase 4.2 Planning — Settings Panel)
+
+**Phase:** 4.2 — Settings Panel
+**Focus:** Design implementation plan for Settings Panel modal
+
+### Completed
+- [x] Explored settings infrastructure (settings.rs, tauri-commands.ts)
+- [x] Explored UI patterns (Modal, ApiKeyInput compact mode, CompanySetup compact mode)
+- [x] Explored API key/company/database path components
+- [x] Created comprehensive implementation plan
+
+### Plan Created
+**Plan File:** `~/.claude/plans/cozy-crafting-metcalfe.md`
+
+**Scope:** ~225 LOC across 7 files
+- Add `get_data_path` Tauri command (Rust + TS wrapper)
+- Create `SettingsPanel.tsx` modal component
+- Wire up to AppShell header settings icon
+- Reuse ApiKeyInput + CompanySetup in compact mode
+
+### Key Findings
+- Settings icon in AppShell header exists but has no onClick handler
+- Modal component supports `maxWidth` prop for wider settings panel
+- ApiKeyInput and CompanySetup both have `compact={true}` mode ready for use
+- Telemetry setting already stored as `telemetry_enabled` in settings table
+
+### Verification
+- [x] TypeScript type-check passes
+- [x] Production build succeeds
+- [x] Rust tests pass (137 pass, 1 pre-existing file_parser failure)
+
+### Next Session Should
+1. Execute plan from `~/.claude/plans/cozy-crafting-metcalfe.md`
+2. Run Pause Point 4A verification after implementation
+
+---
+
 ## Session 2025-12-19 (Phase 4.1 Implementation — Onboarding Flow)
 
 **Phase:** 4.1 — Onboarding Flow
