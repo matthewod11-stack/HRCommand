@@ -300,13 +300,13 @@ This is a **long-running, multi-session implementation**. Follow these rules:
 - [x] Can edit company profile from settings
 - [x] Data location displays correctly
 
-### 4.3 Data Export/Import
+### 4.3 Data Export/Import ✓ COMPLETE
 > **Implementation Plan:** `~/.claude/plans/delegated-sleeping-stardust.md`
-> **Scope:** ~1,200 LOC | AES-256-GCM encryption | Full backup of all 9 tables
+> **Completed:** ~800 LOC Rust + ~280 LOC TypeScript/React | AES-256-GCM encryption | Full backup of all 9 tables
 
-- [ ] 4.3.1 Implement encrypted data export
-- [ ] 4.3.2 Implement data import from backup
-- [ ] 4.3.3 Add export/import to Settings panel
+- [x] 4.3.1 Implement encrypted data export
+- [x] 4.3.2 Implement data import from backup
+- [x] 4.3.3 Add export/import to Settings panel
 
 ### 4.4 Monday Digest
 - [ ] 4.4.1 Create MondayDigest component

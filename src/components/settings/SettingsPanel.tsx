@@ -9,6 +9,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Modal } from '../shared/Modal';
 import { ApiKeyInput } from './ApiKeyInput';
 import { CompanySetup } from '../company/CompanySetup';
+import { BackupRestore } from './BackupRestore';
 import { getDataPath, getSetting, setSetting } from '../../lib/tauri-commands';
 
 interface SettingsPanelProps {
@@ -129,6 +130,14 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
               )}
             </button>
           </div>
+        </section>
+
+        {/* Backup & Restore Section */}
+        <section>
+          <h3 className="text-sm font-medium text-stone-500 uppercase tracking-wider mb-3">
+            Backup & Restore
+          </h3>
+          <BackupRestore onImportComplete={onClose} />
         </section>
 
         {/* Privacy Section */}

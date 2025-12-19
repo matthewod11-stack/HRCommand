@@ -18,6 +18,7 @@ mod network;
 mod performance_ratings;
 mod performance_reviews;
 mod audit;
+mod backup;
 mod pii;
 mod review_cycles;
 mod settings;
@@ -899,6 +900,38 @@ fn get_data_path(app: tauri::AppHandle) -> Result<String, String> {
     Ok(path.to_string_lossy().to_string())
 }
 
+// ============================================================================
+// Backup & Restore Commands
+// ============================================================================
+
+/// Export all database tables to an encrypted backup file
+#[tauri::command]
+async fn export_backup(
+    state: tauri::State<'_, Database>,
+    password: String,
+) -> Result<backup::ExportResult, backup::BackupError> {
+    backup::export_backup(&state.pool, &password).await
+}
+
+/// Validate a backup file and return its metadata (without importing)
+#[tauri::command]
+fn validate_backup(
+    encrypted_data: Vec<u8>,
+    password: String,
+) -> Result<backup::BackupMetadata, backup::BackupError> {
+    backup::validate_backup(&encrypted_data, &password)
+}
+
+/// Import data from an encrypted backup, replacing all existing data
+#[tauri::command]
+async fn import_backup(
+    state: tauri::State<'_, Database>,
+    encrypted_data: Vec<u8>,
+    password: String,
+) -> Result<backup::ImportResult, backup::BackupError> {
+    backup::import_backup(&state.pool, &encrypted_data, &password).await
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -1011,7 +1044,11 @@ pub fn run() {
             count_audit_entries,
             export_audit_log,
             // Data path
-            get_data_path
+            get_data_path,
+            // Backup & restore
+            export_backup,
+            validate_backup,
+            import_backup
         ])
         .setup(|app| {
             let handle = app.handle().clone();

@@ -37,10 +37,10 @@ A desktop AI assistant for HR professionals that keeps your employee data local 
 | 1. Foundation | ✅ Done | App runs, Claude API streaming, network detection |
 | 2. Context | ✅ Done | AI knows your company, query-adaptive retrieval, 63 tests |
 | 3. Protection | ✅ Done | PII redaction, audit logging, error handling, offline mode |
-| 4. Polish | 🚧 In Progress | Onboarding flow (4.1) complete |
+| 4. Polish | 🚧 In Progress | Onboarding (4.1), Settings (4.2), Backup/Restore (4.3) complete |
 | 5. Launch | ⏳ Planned | Beta users, payment |
 
-**Current:** Phase 4.2 — Settings Panel next.
+**Current:** Phase 4.4 — Monday Digest next.
 
 ## Key Features (Planned)
 

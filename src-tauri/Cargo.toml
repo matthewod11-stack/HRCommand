@@ -41,6 +41,12 @@ calamine = "0.26"
 # PII detection
 regex = "1"
 
+# Encryption & compression for backup
+aes-gcm = "0.10"
+argon2 = "0.5"
+flate2 = "1.0"
+rand = "0.8"
+
 [profile.release]
 panic = "abort"
 codegen-units = 1

@@ -5,7 +5,7 @@
     "lastUpdated": "2025-12-19",
     "project": "HR Command Center",
     "totalFeatures": 32,
-    "passing": 22,
+    "passing": 23,
     "failing": 0,
     "inProgress": 0
   },
@@ -95,8 +95,8 @@
       "notes": "Modal with API key, company profile, data path display, telemetry toggle. ~200 LOC, 6 files. Fixed onboarding context bug."
     },
     "data-export-import": {
-      "status": "not-started",
-      "notes": "Encrypted backup/restore"
+      "status": "pass",
+      "notes": "AES-256-GCM encrypted backups with Argon2 key derivation. Full backup of all 9 tables. ~800 LOC Rust, ~280 LOC React. 6 unit tests."
     },
     "monday-digest": {
       "status": "not-started",

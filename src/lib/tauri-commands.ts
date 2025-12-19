@@ -1245,3 +1245,125 @@ export async function countAuditEntries(filter?: AuditFilter): Promise<number> {
 export async function exportAuditLog(filter?: AuditFilter): Promise<ExportResult> {
   return invoke('export_audit_log', { filter });
 }
+
+// =============================================================================
+// Phase 4.3 - Backup & Restore
+// =============================================================================
+
+/**
+ * Table counts for backup metadata
+ */
+export interface BackupTableCounts {
+  employees: number;
+  conversations: number;
+  company: number;
+  settings: number;
+  audit_log: number;
+  review_cycles: number;
+  performance_ratings: number;
+  performance_reviews: number;
+  enps_responses: number;
+}
+
+/**
+ * Metadata about a backup file
+ */
+export interface BackupMetadata {
+  version: string;
+  created_at: string; // ISO 8601 format
+  app_version: string;
+  table_counts: BackupTableCounts;
+}
+
+/**
+ * Result from exporting a backup
+ */
+export interface BackupExportResult {
+  /** The encrypted backup data as byte array */
+  encrypted_data: number[];
+  /** Suggested filename for the backup */
+  filename: string;
+  /** Count of records exported per table */
+  table_counts: BackupTableCounts;
+}
+
+/**
+ * Result from importing a backup
+ */
+export interface BackupImportResult {
+  /** Count of records restored per table */
+  restored_counts: BackupTableCounts;
+  /** Any warnings encountered during import */
+  warnings: string[];
+}
+
+/**
+ * Export all database tables to an encrypted backup
+ * Uses AES-256-GCM encryption with Argon2 key derivation
+ * @param password - Password for encryption (minimum 8 characters)
+ * @returns Export result with encrypted data and table counts
+ */
+export async function exportBackup(password: string): Promise<BackupExportResult> {
+  return invoke('export_backup', { password });
+}
+
+/**
+ * Validate a backup file and return its metadata (without importing)
+ * Use this to preview a backup before importing
+ * @param encryptedData - The encrypted backup data as Uint8Array
+ * @param password - Password to decrypt the backup
+ * @returns Backup metadata if valid
+ * @throws Error if password is wrong or backup is invalid
+ */
+export async function validateBackup(
+  encryptedData: Uint8Array,
+  password: string
+): Promise<BackupMetadata> {
+  return invoke('validate_backup', {
+    encryptedData: Array.from(encryptedData),
+    password
+  });
+}
+
+/**
+ * Import data from an encrypted backup, replacing all existing data
+ * WARNING: This deletes all current data before restoring!
+ * @param encryptedData - The encrypted backup data as Uint8Array
+ * @param password - Password to decrypt the backup
+ * @returns Import result with restored counts and any warnings
+ * @throws Error if password is wrong or backup is invalid
+ */
+export async function importBackup(
+  encryptedData: Uint8Array,
+  password: string
+): Promise<BackupImportResult> {
+  return invoke('import_backup', {
+    encryptedData: Array.from(encryptedData),
+    password
+  });
+}
+
+/**
+ * Helper to read a backup file as Uint8Array for importing
+ */
+export async function readBackupFileAsBytes(file: File): Promise<Uint8Array> {
+  const buffer = await file.arrayBuffer();
+  return new Uint8Array(buffer);
+}
+
+/**
+ * Helper to download encrypted backup data as a file
+ * @param data - The encrypted data bytes
+ * @param filename - The filename to use
+ */
+export function downloadBackupFile(data: number[], filename: string): void {
+  const blob = new Blob([new Uint8Array(data)], { type: 'application/octet-stream' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
