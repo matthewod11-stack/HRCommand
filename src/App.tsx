@@ -5,15 +5,12 @@ import { ConversationProvider, useConversations } from './contexts/ConversationC
 import { AppShell } from './components/layout/AppShell';
 import { ChatInput, MessageList } from './components/chat';
 import { PIINotification } from './components/shared';
-import { ApiKeyInput } from './components/settings';
-import { CompanySetup } from './components/company';
 import { EmployeeDetail, EmployeeEdit } from './components/employees';
 import { ImportWizard } from './components/import';
 import { TestDataImporter } from './components/dev/TestDataImporter';
+import { OnboardingProvider, OnboardingFlow, useOnboarding } from './components/onboarding';
 import { useEmployees } from './contexts/EmployeeContext';
 import { useNetwork } from './hooks';
-import { Company } from './lib/types';
-import { hasApiKey, hasCompany } from './lib/tauri-commands';
 
 function ChatArea() {
   // Get conversation state from context
@@ -33,34 +30,6 @@ function ChatArea() {
   // Get network state for offline mode
   const { isOnline, isApiReachable } = useNetwork();
   const isOffline = !isOnline || !isApiReachable;
-
-  // Gating state (API key and company profile checks)
-  const [hasKey, setHasKey] = useState<boolean | null>(null);
-  const [hasCompanyProfile, setHasCompanyProfile] = useState<boolean | null>(null);
-
-  // Check for API key and company profile on mount
-  useEffect(() => {
-    hasApiKey()
-      .then(setHasKey)
-      .catch(() => setHasKey(false));
-  }, []);
-
-  // Check company profile after API key is confirmed
-  useEffect(() => {
-    if (hasKey === true) {
-      hasCompany()
-        .then(setHasCompanyProfile)
-        .catch(() => setHasCompanyProfile(false));
-    }
-  }, [hasKey]);
-
-  const handleApiKeySaved = useCallback(() => {
-    setHasKey(true);
-  }, []);
-
-  const handleCompanySaved = useCallback((_company: Company) => {
-    setHasCompanyProfile(true);
-  }, []);
 
   // Keyboard shortcut: Cmd+N to start a new conversation
   useEffect(() => {
@@ -96,65 +65,6 @@ function ChatArea() {
       console.error('[ChatArea] Failed to copy to clipboard:', err);
     });
   }, []);
-
-  // Show nothing while checking for API key
-  if (hasKey === null) {
-    return (
-      <div className="h-full flex items-center justify-center">
-        <div className="text-stone-400 text-sm">Loading...</div>
-      </div>
-    );
-  }
-
-  // Show API key setup if not configured
-  if (!hasKey) {
-    return (
-      <div className="h-full flex flex-col items-center justify-center p-8">
-        <div className="w-full max-w-md">
-          <h2 className="font-display text-2xl text-stone-800 mb-2 text-center">
-            Welcome to HR Command Center
-          </h2>
-          <p className="text-stone-600 text-center mb-6">
-            Enter your Anthropic API key to get started.
-          </p>
-          <ApiKeyInput onSave={handleApiKeySaved} />
-        </div>
-      </div>
-    );
-  }
-
-  // Show loading while checking company profile
-  if (hasCompanyProfile === null) {
-    return (
-      <div className="h-full flex items-center justify-center">
-        <div className="text-stone-400 text-sm">Checking company profile...</div>
-      </div>
-    );
-  }
-
-  // Show company setup if not configured
-  if (!hasCompanyProfile) {
-    return (
-      <div className="h-full flex flex-col items-center justify-center p-8">
-        <div className="w-full max-w-lg">
-          <div className="mb-8 text-center">
-            <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-primary-100 flex items-center justify-center">
-              <svg className="w-8 h-8 text-primary-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-              </svg>
-            </div>
-            <h2 className="font-display text-2xl text-stone-800 mb-2">
-              Set Up Your Company
-            </h2>
-            <p className="text-stone-600">
-              This helps Claude provide context-aware HR guidance.
-            </p>
-          </div>
-          <CompanySetup onSave={handleCompanySaved} />
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="h-full flex flex-col">
@@ -250,11 +160,15 @@ function TestDataModal({
   );
 }
 
-function App() {
+// Inner component that conditionally renders onboarding or main app
+function AppContent() {
+  const { isLoading, isCompleted } = useOnboarding();
   const [isTestDataModalOpen, setIsTestDataModalOpen] = useState(false);
 
-  // Keyboard shortcut: Cmd+Shift+T to open test data importer
+  // Keyboard shortcut: Cmd+Shift+T to open test data importer (only after onboarding)
   useEffect(() => {
+    if (!isCompleted) return;
+
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.metaKey && e.shiftKey && e.key === 't') {
         e.preventDefault();
@@ -264,8 +178,26 @@ function App() {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
+  }, [isCompleted]);
 
+  // Show loading state while checking onboarding status
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-stone-50 to-stone-100">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-10 h-10 border-4 border-primary-200 border-t-primary-500 rounded-full animate-spin" />
+          <p className="text-stone-500">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show onboarding if not completed
+  if (!isCompleted) {
+    return <OnboardingFlow />;
+  }
+
+  // Main app after onboarding is complete
   return (
     <LayoutProvider>
       <ConversationProvider>
@@ -282,6 +214,14 @@ function App() {
         </EmployeeProvider>
       </ConversationProvider>
     </LayoutProvider>
+  );
+}
+
+function App() {
+  return (
+    <OnboardingProvider>
+      <AppContent />
+    </OnboardingProvider>
   );
 }
 

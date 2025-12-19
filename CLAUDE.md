@@ -103,23 +103,21 @@ What's the "Next Session Should" note for PROGRESS.md?
 
 ## Current Phase
 
-**Phase:** 4.1 (Onboarding Flow)
-**Status:** Planning complete, ready for implementation
-
-**Implementation Plan:** `~/.claude/plans/snazzy-bubbling-boole.md`
+**Phase:** 4.2 (Settings Panel)
+**Status:** Ready to begin
 
 **Completed Phases:**
 - Phase 1 (Foundation) ✓
 - Phase 2 (Context) ✓ — Pause Point 2A verified
 - Phase 3 (Protection) ✓ — Pause Point 3A verified
+- Phase 4.1 (Onboarding Flow) ✓ — 11 files, ~1,100 LOC
 
-**Phase 4.1 Tasks (Onboarding Flow):**
-1. Create OnboardingContext.tsx (state + persistence)
-2. Create OnboardingFlow.tsx + StepIndicator.tsx
-3. Steps 1-7 components (Welcome, ApiKey, Company, EmployeeImport, Disclaimer, Telemetry, FirstPrompt)
-4. App.tsx integration (replace ChatArea gating)
-
-**Estimated:** ~1,100 LOC | 11 new files | 2-3 sessions
+**Phase 4.2 Tasks (Settings Panel):**
+1. Create SettingsPanel component
+2. API key management (change/remove)
+3. Company profile editing
+4. Data location display
+5. Telemetry toggle
 
 ---
 

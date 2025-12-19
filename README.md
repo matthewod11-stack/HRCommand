@@ -37,10 +37,10 @@ A desktop AI assistant for HR professionals that keeps your employee data local 
 | 1. Foundation | ✅ Done | App runs, Claude API streaming, network detection |
 | 2. Context | ✅ Done | AI knows your company, query-adaptive retrieval, 63 tests |
 | 3. Protection | ✅ Done | PII redaction, audit logging, error handling, offline mode |
-| 4. Polish | 🚧 In Progress | Onboarding flow (4.1) planned |
+| 4. Polish | 🚧 In Progress | Onboarding flow (4.1) complete |
 | 5. Launch | ⏳ Planned | Beta users, payment |
 
-**Current:** Phase 4.1 — Onboarding Flow planned, ready for implementation.
+**Current:** Phase 4.2 — Settings Panel next.
 
 ## Key Features (Planned)
 
@@ -109,4 +109,4 @@ Proprietary. See LICENSE file for details.
 ---
 
 *Last updated: December 2025*
-*Status: Phase 4.1 — Onboarding Flow planning complete*
+*Status: Phase 4.1 — Onboarding Flow implementation complete*

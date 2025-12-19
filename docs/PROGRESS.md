@@ -11,6 +11,72 @@
 Most recent session should be first.
 -->
 
+## Session 2025-12-19 (Phase 4.1 Implementation — Onboarding Flow)
+
+**Phase:** 4.1 — Onboarding Flow
+**Focus:** Implement the 7-step onboarding wizard
+
+### Completed
+- [x] 4.1.1 Create OnboardingContext.tsx (state + persistence)
+- [x] 4.1.2 Create OnboardingFlow.tsx + StepIndicator.tsx
+- [x] 4.1.3 Step 1: WelcomeStep.tsx (logo, value props, CTA)
+- [x] 4.1.4 Step 2: ApiKeyStep.tsx (wraps ApiKeyInput)
+- [x] 4.1.5 Step 3: CompanyStep.tsx (wraps CompanySetup)
+- [x] 4.1.6 Step 4: EmployeeImportStep.tsx (auto-loads Acme Corp sample data)
+- [x] 4.1.7 Step 5: DisclaimerStep.tsx (legal acknowledgment with checkbox)
+- [x] 4.1.8 Step 6: TelemetryStep.tsx (anonymous crash reports toggle)
+- [x] 4.1.9 Step 7: FirstPromptStep.tsx (celebration + prompt suggestions)
+- [x] 4.1.10 App.tsx integration (OnboardingProvider, removed ChatArea gating)
+
+### Files Created (11 files, ~1,100 LOC)
+```
+src/components/onboarding/
+├── OnboardingContext.tsx      (118 LOC) - State management + persistence
+├── OnboardingFlow.tsx         (260 LOC) - Main wizard container
+├── StepIndicator.tsx          (48 LOC)  - Progress dots
+├── index.ts                   (17 LOC)  - Exports
+└── steps/
+    ├── WelcomeStep.tsx        (94 LOC)  - Logo + value props
+    ├── ApiKeyStep.tsx         (56 LOC)  - Wraps ApiKeyInput
+    ├── CompanyStep.tsx        (50 LOC)  - Wraps CompanySetup
+    ├── EmployeeImportStep.tsx (180 LOC) - Auto-loads sample data
+    ├── DisclaimerStep.tsx     (120 LOC) - Legal acknowledgment
+    ├── TelemetryStep.tsx      (135 LOC) - Anonymous crash reports
+    └── FirstPromptStep.tsx    (95 LOC)  - Prompt suggestions
+```
+
+### Files Modified
+```
+src/App.tsx                    - OnboardingProvider integration, simplified ChatArea
+```
+
+### Architecture
+```
+App.tsx
+└── OnboardingProvider           ← New context provider
+    └── AppContent
+        ├── isCompleted=false → OnboardingFlow (7-step wizard)
+        └── isCompleted=true  → LayoutProvider + main app
+```
+
+**Key Design Decisions:**
+- **Context-based state:** OnboardingContext manages step tracking + persistence via settings table
+- **Wrapper pattern:** Steps 2-3 wrap existing ApiKeyInput/CompanySetup components
+- **Resume support:** Saves current step to settings, resumes on app restart
+- **Auto-advance:** Required steps advance on completion; optional steps have "Skip" option
+
+### Verification
+- [x] TypeScript type-check passes
+- [x] Production build succeeds (742KB)
+- [x] Rust tests pass (137 pass, 1 pre-existing file_parser failure)
+
+### Next Session Should
+1. Test the onboarding flow end-to-end (manual testing)
+2. Begin Phase 4.2 — Settings Panel
+3. Consider Pause Point 4A verification after Settings Panel
+
+---
+
 ## Session 2025-12-19 (Phase 4.1 Planning — Onboarding Flow)
 
 **Phase:** 4.1 — Onboarding Flow

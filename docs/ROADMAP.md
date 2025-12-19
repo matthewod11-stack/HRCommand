@@ -263,20 +263,20 @@ This is a **long-running, multi-session implementation**. Follow these rules:
 
 **Goal:** Feels like a real product
 
-### 4.1 Onboarding Flow
+### 4.1 Onboarding Flow ✓ COMPLETE
 > **Implementation Plan:** `~/.claude/plans/snazzy-bubbling-boole.md`
-> **Estimated:** ~1,100 LOC | 11 new files | 2-3 sessions
+> **Completed:** ~1,100 LOC | 11 new files | 1 session
 
-- [ ] 4.1.1 Create OnboardingContext.tsx (state + persistence)
-- [ ] 4.1.2 Create OnboardingFlow.tsx + StepIndicator.tsx
-- [ ] 4.1.3 Step 1: WelcomeStep.tsx
-- [ ] 4.1.4 Step 2: ApiKeyStep.tsx (wraps ApiKeyInput)
-- [ ] 4.1.5 Step 3: CompanyStep.tsx (wraps CompanySetup)
-- [ ] 4.1.6 Step 4: EmployeeImportStep.tsx (auto-loads sample data)
-- [ ] 4.1.7 Step 5: DisclaimerStep.tsx
-- [ ] 4.1.8 Step 6: TelemetryStep.tsx
-- [ ] 4.1.9 Step 7: FirstPromptStep.tsx
-- [ ] 4.1.10 App.tsx integration (replace ChatArea gating)
+- [x] 4.1.1 Create OnboardingContext.tsx (state + persistence)
+- [x] 4.1.2 Create OnboardingFlow.tsx + StepIndicator.tsx
+- [x] 4.1.3 Step 1: WelcomeStep.tsx
+- [x] 4.1.4 Step 2: ApiKeyStep.tsx (wraps ApiKeyInput)
+- [x] 4.1.5 Step 3: CompanyStep.tsx (wraps CompanySetup)
+- [x] 4.1.6 Step 4: EmployeeImportStep.tsx (auto-loads sample data)
+- [x] 4.1.7 Step 5: DisclaimerStep.tsx
+- [x] 4.1.8 Step 6: TelemetryStep.tsx
+- [x] 4.1.9 Step 7: FirstPromptStep.tsx
+- [x] 4.1.10 App.tsx integration (replace ChatArea gating)
 
 ### 4.2 Settings Panel
 - [ ] 4.2.1 Create SettingsPanel component
