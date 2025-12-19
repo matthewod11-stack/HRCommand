@@ -278,27 +278,27 @@ This is a **long-running, multi-session implementation**. Follow these rules:
 - [x] 4.1.9 Step 7: FirstPromptStep.tsx
 - [x] 4.1.10 App.tsx integration (replace ChatArea gating)
 
-### 4.2 Settings Panel
+### 4.2 Settings Panel ✓ COMPLETE
 > **Implementation Plan:** `~/.claude/plans/cozy-crafting-metcalfe.md`
-> **Estimated:** ~225 LOC | 7 files
+> **Completed:** ~200 LOC | 6 files | 1 session
 
-- [ ] 4.2.1 Create SettingsPanel component
-- [ ] 4.2.2 API key management (change/remove)
-- [ ] 4.2.3 Company profile editing
-- [ ] 4.2.4 Data location display
-- [ ] 4.2.5 Telemetry toggle
+- [x] 4.2.1 Create SettingsPanel component
+- [x] 4.2.2 API key management (change/remove)
+- [x] 4.2.3 Company profile editing
+- [x] 4.2.4 Data location display
+- [x] 4.2.5 Telemetry toggle
 
-### Pause Point 4A (Onboarding + Settings)
+### Pause Point 4A (Onboarding + Settings) ✓ VERIFIED
 **Verification Required:**
-- [ ] Fresh install goes through 7-step onboarding smoothly
-- [ ] Onboarding resumes correctly if exited mid-flow
-- [ ] Sample data auto-loads on employee import step
-- [ ] Disclaimer checkbox required before continuing
-- [ ] Telemetry preference persists
-- [ ] Settings panel opens from main app
-- [ ] Can change/remove API key from settings
-- [ ] Can edit company profile from settings
-- [ ] Data location displays correctly
+- [x] Fresh install goes through 7-step onboarding smoothly
+- [x] Onboarding resumes correctly if exited mid-flow
+- [x] Sample data auto-loads on employee import step
+- [x] Disclaimer checkbox required before continuing
+- [x] Telemetry preference persists
+- [x] Settings panel opens from main app
+- [x] Can change/remove API key from settings
+- [x] Can edit company profile from settings
+- [x] Data location displays correctly
 
 ### 4.3 Data Export/Import
 - [ ] 4.3.1 Implement encrypted data export

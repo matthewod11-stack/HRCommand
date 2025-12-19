@@ -284,6 +284,39 @@ These decisions were explicitly deferred to V1.1 or later:
 
 ---
 
+### Beginner-Friendly API Key Setup Guide
+**Status:** Deferred to V2
+**Decision Date:** 2025-12-19
+**Context:** The current API key setup in onboarding just links to console.anthropic.com with minimal guidance. This assumes users know what Anthropic is and how to navigate a developer console — a big ask for HR professionals who may never have used an API before.
+
+**The Problem:**
+- Target users are HR leaders, not developers
+- "Get your key from console.anthropic.com" is intimidating jargon
+- No explanation of what an API key is or why it costs money
+- No guidance on account creation, billing setup, or key permissions
+
+**Proposed Solution — In-App Guided Walkthrough:**
+1. **What is this?** — Plain-English explanation: "An API key lets this app talk to Claude, our AI assistant. Think of it like a password that connects you to the brain behind the app."
+2. **Why does it cost money?** — Transparent pricing context: "Claude is powered by Anthropic. You pay them directly based on usage — typically $5-20/month for normal HR use."
+3. **Step-by-step screenshots:**
+   - Go to console.anthropic.com
+   - Create an account (or sign in)
+   - Add a payment method
+   - Create a new API key
+   - Copy and paste it here
+4. **Troubleshooting tips:** Common errors (invalid key, billing not set up, etc.)
+
+**Alternative Approaches:**
+- **Video walkthrough** — 2-minute Loom-style tutorial
+- **In-app iframe** — Embed Anthropic's console (probably not feasible)
+- **Concierge setup** — We generate keys on behalf of users (adds complexity, privacy concerns)
+
+**Complexity:** Low — mostly content/UX work, no code changes
+**Value:** High — removes biggest friction point for non-technical users
+**Revisit When:** Beta feedback confirms this is a blocker for adoption
+
+---
+
 ## Edge Cases to Handle
 
 | Case | Phase | Priority | Notes |

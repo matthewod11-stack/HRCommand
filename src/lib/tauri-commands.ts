@@ -700,6 +700,14 @@ export async function hasSetting(key: string): Promise<boolean> {
   return invoke('has_setting', { key });
 }
 
+/**
+ * Get the app data directory path (where SQLite database is stored)
+ * Returns path like ~/Library/Application Support/com.hrcommand.app/
+ */
+export async function getDataPath(): Promise<string> {
+  return invoke('get_data_path');
+}
+
 // =============================================================================
 // Phase 2.4 - Cross-Conversation Memory
 // =============================================================================

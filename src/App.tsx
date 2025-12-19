@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, Component, type ReactNode } from 'react';
 import { LayoutProvider } from './contexts/LayoutContext';
 import { EmployeeProvider } from './contexts/EmployeeContext';
 import { ConversationProvider, useConversations } from './contexts/ConversationContext';
@@ -7,10 +7,51 @@ import { ChatInput, MessageList } from './components/chat';
 import { PIINotification } from './components/shared';
 import { EmployeeDetail, EmployeeEdit } from './components/employees';
 import { ImportWizard } from './components/import';
+import { SettingsPanel } from './components/settings';
 import { TestDataImporter } from './components/dev/TestDataImporter';
 import { OnboardingProvider, OnboardingFlow, useOnboarding } from './components/onboarding';
 import { useEmployees } from './contexts/EmployeeContext';
 import { useNetwork } from './hooks';
+
+// Error Boundary to catch React render errors
+class ErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean; error: Error | null }> {
+  constructor(props: { children: ReactNode }) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    console.error('[ErrorBoundary] Caught error:', error);
+    console.error('[ErrorBoundary] Component stack:', errorInfo.componentStack);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="min-h-screen flex items-center justify-center bg-red-50 p-8">
+          <div className="max-w-xl bg-white rounded-xl shadow-lg p-6">
+            <h1 className="text-xl font-bold text-red-600 mb-4">Something went wrong</h1>
+            <pre className="bg-red-100 p-4 rounded text-sm overflow-auto text-red-800">
+              {this.state.error?.message}
+            </pre>
+            <button
+              onClick={() => window.location.reload()}
+              className="mt-4 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+            >
+              Reload App
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
 
 function ChatArea() {
   // Get conversation state from context
@@ -164,6 +205,8 @@ function TestDataModal({
 function AppContent() {
   const { isLoading, isCompleted } = useOnboarding();
   const [isTestDataModalOpen, setIsTestDataModalOpen] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+
 
   // Keyboard shortcut: Cmd+Shift+T to open test data importer (only after onboarding)
   useEffect(() => {
@@ -199,21 +242,30 @@ function AppContent() {
 
   // Main app after onboarding is complete
   return (
-    <LayoutProvider>
-      <ConversationProvider>
-        <EmployeeProvider>
-          <AppShell contextPanel={<EmployeeDetail />}>
-            <ChatArea />
-          </AppShell>
-          <EmployeeEditModal />
-          <ImportWizardModal />
-          <TestDataModal
-            isOpen={isTestDataModalOpen}
-            onClose={() => setIsTestDataModalOpen(false)}
-          />
-        </EmployeeProvider>
-      </ConversationProvider>
-    </LayoutProvider>
+    <ErrorBoundary>
+      <LayoutProvider>
+        <ConversationProvider>
+          <EmployeeProvider>
+            <AppShell
+              contextPanel={<EmployeeDetail />}
+              onSettingsClick={() => setIsSettingsOpen(true)}
+            >
+              <ChatArea />
+            </AppShell>
+            <EmployeeEditModal />
+            <ImportWizardModal />
+            <SettingsPanel
+              isOpen={isSettingsOpen}
+              onClose={() => setIsSettingsOpen(false)}
+            />
+            <TestDataModal
+              isOpen={isTestDataModalOpen}
+              onClose={() => setIsTestDataModalOpen(false)}
+            />
+          </EmployeeProvider>
+        </ConversationProvider>
+      </LayoutProvider>
+    </ErrorBoundary>
   );
 }
 

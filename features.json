@@ -5,7 +5,7 @@
     "lastUpdated": "2025-12-19",
     "project": "HR Command Center",
     "totalFeatures": 32,
-    "passing": 20,
+    "passing": 22,
     "failing": 0,
     "inProgress": 0
   },
@@ -91,8 +91,8 @@
       "notes": "7-step wizard complete: Welcome, API Key, Company, Employees (auto-loads sample), Disclaimer, Telemetry, First Prompt. 11 files, ~1,100 LOC."
     },
     "settings-panel": {
-      "status": "not-started",
-      "notes": "API key, company, data location"
+      "status": "pass",
+      "notes": "Modal with API key, company profile, data path display, telemetry toggle. ~200 LOC, 6 files. Fixed onboarding context bug."
     },
     "data-export-import": {
       "status": "not-started",
@@ -143,8 +143,8 @@
       "notes": "Phase 3 verified: PII redaction, notification, audit logging, error handling, offline mode all working"
     },
     "pause-4a": {
-      "status": "not-started",
-      "notes": "Onboarding complete"
+      "status": "pass",
+      "notes": "Phase 4A verified: Onboarding flow + Settings panel both complete and tested"
     },
     "pause-5a": {
       "status": "not-started",

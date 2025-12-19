@@ -11,6 +11,61 @@
 Most recent session should be first.
 -->
 
+## Session 2025-12-19 (Phase 4.2 Implementation — Settings Panel + Pause Point 4A)
+
+**Phase:** 4.2 — Settings Panel
+**Focus:** Implement Settings Panel modal and verify Pause Point 4A
+
+### Completed
+- [x] 4.2.1 Create SettingsPanel component (~175 LOC)
+- [x] 4.2.2 API key management (change/remove) via compact ApiKeyInput
+- [x] 4.2.3 Company profile editing via compact CompanySetup
+- [x] 4.2.4 Data location display with Copy button
+- [x] 4.2.5 Telemetry toggle (persists to settings)
+- [x] Added `get_data_path` Tauri command (Rust + TS wrapper)
+- [x] Wired settings icon in AppShell header
+- [x] Fixed critical bug: FirstPromptStep used usePromptSuggestions outside EmployeeProvider
+
+### Files Changed (6 files, ~200 LOC)
+```
+src-tauri/src/lib.rs              (+11) - get_data_path command
+src/lib/tauri-commands.ts         (+7)  - getDataPath wrapper
+src/components/settings/SettingsPanel.tsx (NEW, ~175 LOC)
+src/components/settings/index.ts  (+1)  - export
+src/components/layout/AppShell.tsx (+3) - onSettingsClick prop
+src/App.tsx                       (+15) - SettingsPanel integration + ErrorBoundary
+```
+
+### Bug Fix
+- **Issue:** Blank screen after onboarding completion
+- **Cause:** `FirstPromptStep` used `usePromptSuggestions()` which calls `useEmployees()`, but onboarding renders outside `EmployeeProvider`
+- **Fix:** Use static suggestions in `FirstPromptStep` instead of the hook
+
+### V2 Parking Lot Addition
+- Added "Beginner-Friendly API Key Setup Guide" to KNOWN_ISSUES.md — step-by-step screenshots and plain-English explanation for non-technical HR users
+
+### Pause Point 4A Verified
+- [x] Fresh install goes through 7-step onboarding smoothly
+- [x] Onboarding resumes correctly if exited mid-flow
+- [x] Sample data auto-loads on employee import step
+- [x] Disclaimer checkbox required before continuing
+- [x] Telemetry preference persists
+- [x] Settings panel opens from main app
+- [x] Can change/remove API key from settings
+- [x] Can edit company profile from settings
+- [x] Data location displays correctly
+
+### Verification
+- [x] TypeScript type-check passes
+- [x] Production build succeeds (747KB)
+- [x] Rust tests pass (137 pass, 1 pre-existing file_parser failure)
+
+### Next Session Should
+1. Continue with Phase 4.3 (Data Export/Import)
+2. Or Phase 4.4 (Monday Digest) — lower priority
+
+---
+
 ## Session 2025-12-19 (Phase 4.2 Planning — Settings Panel)
 
 **Phase:** 4.2 — Settings Panel

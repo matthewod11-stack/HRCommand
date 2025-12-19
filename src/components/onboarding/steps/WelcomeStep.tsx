@@ -21,7 +21,7 @@ export function WelcomeStep({ onContinue }: WelcomeStepProps) {
         Welcome to HR Command Center
       </h1>
       <p className="text-stone-500 mb-8">
-        Your company's HR brain — private, always in context
+        Your company's HR brain.
       </p>
 
       {/* Value Props */}

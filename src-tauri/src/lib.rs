@@ -887,6 +887,18 @@ async fn has_setting(
     settings::has_setting(&state.pool, &key).await
 }
 
+// ============================================================================
+// Data Path Commands
+// ============================================================================
+
+/// Get the app data directory path (where SQLite database is stored)
+#[tauri::command]
+fn get_data_path(app: tauri::AppHandle) -> Result<String, String> {
+    let path = app.path().app_data_dir()
+        .map_err(|e| e.to_string())?;
+    Ok(path.to_string_lossy().to_string())
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -997,7 +1009,9 @@ pub fn run() {
             get_audit_entry,
             list_audit_entries,
             count_audit_entries,
-            export_audit_log
+            export_audit_log,
+            // Data path
+            get_data_path
         ])
         .setup(|app| {
             let handle = app.handle().clone();

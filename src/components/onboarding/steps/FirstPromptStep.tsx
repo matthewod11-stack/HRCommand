@@ -1,8 +1,35 @@
 // HR Command Center - First Prompt Step (Step 7)
 // Celebration + contextual prompt suggestions to get started
 
-import { PromptSuggestions } from '../../chat/PromptSuggestions';
-import { usePromptSuggestions } from '../../../hooks/usePromptSuggestions';
+import { PromptSuggestions, type PromptSuggestion } from '../../chat/PromptSuggestions';
+
+/**
+ * Static suggestions for onboarding completion
+ * Note: We use static suggestions here because the EmployeeProvider
+ * isn't mounted during onboarding. These are generic "getting started" prompts.
+ */
+const ONBOARDING_SUGGESTIONS: PromptSuggestion[] = [
+  {
+    text: 'Who has an anniversary this month?',
+    icon: '🎂',
+    category: 'people',
+  },
+  {
+    text: "What's our team eNPS?",
+    icon: '📊',
+    category: 'analytics',
+  },
+  {
+    text: 'Who are our top performers?',
+    icon: '⭐',
+    category: 'analytics',
+  },
+  {
+    text: 'Help me draft a performance review',
+    icon: '✍️',
+    category: 'general',
+  },
+];
 
 interface FirstPromptStepProps {
   onStart: (prompt?: string) => void;
@@ -10,7 +37,7 @@ interface FirstPromptStepProps {
 }
 
 export function FirstPromptStep({ onStart }: FirstPromptStepProps) {
-  const { suggestions } = usePromptSuggestions();
+  const suggestions = ONBOARDING_SUGGESTIONS;
 
   const handleSuggestionClick = (prompt: string) => {
     // Immediately start with this prompt
@@ -45,7 +72,7 @@ export function FirstPromptStep({ onStart }: FirstPromptStepProps) {
         <p className="text-sm text-stone-500 mb-3">Try one of these to get started:</p>
         <PromptSuggestions
           variant="welcome"
-          suggestions={suggestions.slice(0, 4)}
+          suggestions={suggestions}
           onSelect={handleSuggestionClick}
         />
       </div>
