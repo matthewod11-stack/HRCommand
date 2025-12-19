@@ -285,6 +285,18 @@ This is a **long-running, multi-session implementation**. Follow these rules:
 - [ ] 4.2.4 Data location display
 - [ ] 4.2.5 Telemetry toggle
 
+### Pause Point 4A (Onboarding + Settings)
+**Verification Required:**
+- [ ] Fresh install goes through 7-step onboarding smoothly
+- [ ] Onboarding resumes correctly if exited mid-flow
+- [ ] Sample data auto-loads on employee import step
+- [ ] Disclaimer checkbox required before continuing
+- [ ] Telemetry preference persists
+- [ ] Settings panel opens from main app
+- [ ] Can change/remove API key from settings
+- [ ] Can edit company profile from settings
+- [ ] Data location displays correctly
+
 ### 4.3 Data Export/Import
 - [ ] 4.3.1 Implement encrypted data export
 - [ ] 4.3.2 Implement data import from backup
@@ -303,9 +315,8 @@ This is a **long-running, multi-session implementation**. Follow these rules:
 - [ ] 4.5.4 Set up tauri-plugin-updater
 - [ ] 4.5.5 Configure GitHub Releases for updates
 
-### Pause Point 4A
+### Pause Point 4B (Distribution)
 **Verification Required:**
-- [ ] Fresh install goes through onboarding smoothly
 - [ ] Can export and re-import data
 - [ ] Monday digest appears with correct data
 - [ ] App is signed and notarized
