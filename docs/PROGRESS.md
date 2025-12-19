@@ -11,6 +11,63 @@
 Most recent session should be first.
 -->
 
+## Session 2025-12-19 (Phase 3.5 — Error Handling)
+
+**Phase:** 3.5 — Error Handling
+**Focus:** Implement error display, retry/copy actions, and offline mode for chat
+
+### Completed
+- [x] 3.5.1 Create ErrorMessage component with user-friendly error display
+- [x] 3.5.2 Implement error categorization (6 types: no_api_key, auth_error, rate_limit, network_error, api_error, unknown)
+- [x] 3.5.3 Add Retry and Copy Message actions for failed messages
+- [x] 3.5.4 Implement read-only offline mode (ChatInput disabled when offline)
+
+### Files Created
+```
+src/components/chat/ErrorMessage.tsx     - Error display component (~130 LOC)
+src/lib/error-utils.ts                   - Error categorization utility (~75 LOC)
+```
+
+### Files Modified
+```
+src/lib/types.ts                         - Added ChatError, ChatErrorType types
+src/contexts/ConversationContext.tsx     - Error handling in sendMessage, retryMessage handler
+src/components/chat/MessageList.tsx      - Renders ErrorMessage when message.error exists
+src/components/chat/ChatInput.tsx        - isOffline prop, amber styling, offline placeholder
+src/components/chat/index.ts             - Export ErrorMessage
+src/App.tsx                              - Wire network state, retry handler, copy handler
+docs/ROADMAP.md                          - Marked 3.5.1-3.5.4 complete
+features.json                            - error-handling → pass (19 total)
+```
+
+### Architecture
+```
+User sends message → try sendChatMessageStreaming
+  → on error: categorizeError() → ChatError object
+  → set message.error → render ErrorMessage
+  → Retry: removes failed msg, resends originalContent
+  → Copy: navigator.clipboard.writeText(originalContent)
+
+Network offline → isOffline prop → ChatInput amber border + disabled
+```
+
+**Key Design Decisions:**
+- **Separate ErrorMessage component:** Cleaner separation from MessageBubble, follows TypingIndicator pattern
+- **Error categorization:** Pattern matching on backend error strings for user-friendly messages
+- **Retryable vs non-retryable:** Network/rate limit errors are retryable; auth errors are not
+- **Offline preserves typing:** Users can type while offline, just can't submit
+
+### Verification
+- [x] TypeScript type-check passes
+- [x] Production build succeeds (717KB)
+- [x] 137 Rust tests pass (1 pre-existing file_parser failure)
+
+### Next Session Should
+1. Run Pause Point 3A verification checklist (manual testing)
+2. Begin Phase 4 (Polish) — start with 4.1.1 OnboardingFlow component
+
+---
+
 ## Session 2025-12-18 (Phase 3.4 — Audit Logging)
 
 **Phase:** 3.4 — Audit Logging

@@ -2,10 +2,10 @@
   "$schema": "./features.schema.json",
   "_meta": {
     "description": "Feature tracking for HR Command Center. Status: not-started | in-progress | pass | fail | blocked",
-    "lastUpdated": "2025-12-18",
+    "lastUpdated": "2025-12-19",
     "project": "HR Command Center",
     "totalFeatures": 32,
-    "passing": 18,
+    "passing": 19,
     "failing": 0,
     "inProgress": 0
   },
@@ -81,8 +81,8 @@
       "notes": "3.4.1-3.4.4 complete: audit.rs (11 tests), 5 Tauri commands, TS wrappers, frontend integration. Logs redacted requests, responses, employee IDs. CSV export support."
     },
     "error-handling": {
-      "status": "not-started",
-      "notes": "Graceful errors, offline mode"
+      "status": "pass",
+      "notes": "3.5.1-3.5.4 complete: ErrorMessage component, error categorization (6 types), Retry/Copy actions, offline mode in ChatInput. error-utils.ts for categorization."
     }
   },
   "phase-4": {

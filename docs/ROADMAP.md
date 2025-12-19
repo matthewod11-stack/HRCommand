@@ -243,11 +243,11 @@ This is a **long-running, multi-session implementation**. Follow these rules:
 - [x] 3.4.3 Store context employee IDs used
 - [x] 3.4.4 Add audit log export capability
 
-### 3.5 Error Handling
-- [ ] 3.5.1 Create ErrorState component
-- [ ] 3.5.2 Handle API errors gracefully
-- [ ] 3.5.3 Show "Retry" and "Copy Message" actions
-- [ ] 3.5.4 Implement read-only offline mode
+### 3.5 Error Handling ✓ COMPLETE
+- [x] 3.5.1 Create ErrorMessage component
+- [x] 3.5.2 Handle API errors gracefully (categorization + user-friendly messages)
+- [x] 3.5.3 Show "Retry" and "Copy Message" actions
+- [x] 3.5.4 Implement read-only offline mode (ChatInput disabled when offline)
 
 ### Pause Point 3A
 **Verification Required:**

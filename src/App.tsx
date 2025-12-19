@@ -11,6 +11,7 @@ import { EmployeeDetail, EmployeeEdit } from './components/employees';
 import { ImportWizard } from './components/import';
 import { TestDataImporter } from './components/dev/TestDataImporter';
 import { useEmployees } from './contexts/EmployeeContext';
+import { useNetwork } from './hooks';
 import { Company } from './lib/types';
 import { hasApiKey, hasCompany } from './lib/tauri-commands';
 
@@ -20,6 +21,7 @@ function ChatArea() {
     messages,
     isLoading,
     sendMessage,
+    retryMessage,
     startNewConversation,
     piiNotification,
     clearPiiNotification,
@@ -27,6 +29,10 @@ function ChatArea() {
 
   // Get selected employee from context (for prioritizing in context builder)
   const { selectedEmployeeId } = useEmployees();
+
+  // Get network state for offline mode
+  const { isOnline, isApiReachable } = useNetwork();
+  const isOffline = !isOnline || !isApiReachable;
 
   // Gating state (API key and company profile checks)
   const [hasKey, setHasKey] = useState<boolean | null>(null);
@@ -83,6 +89,13 @@ function ChatArea() {
     },
     [handleSubmit]
   );
+
+  // Copy message to clipboard (for failed message recovery)
+  const handleCopyMessage = useCallback((content: string) => {
+    navigator.clipboard.writeText(content).catch((err) => {
+      console.error('[ChatArea] Failed to copy to clipboard:', err);
+    });
+  }, []);
 
   // Show nothing while checking for API key
   if (hasKey === null) {
@@ -154,8 +167,14 @@ function ChatArea() {
         messages={messages}
         isLoading={isLoading}
         onPromptClick={handlePromptClick}
+        onRetry={retryMessage}
+        onCopyMessage={handleCopyMessage}
       />
-      <ChatInput onSubmit={handleSubmit} disabled={isLoading} />
+      <ChatInput
+        onSubmit={handleSubmit}
+        disabled={isLoading}
+        isOffline={isOffline}
+      />
     </div>
   );
 }

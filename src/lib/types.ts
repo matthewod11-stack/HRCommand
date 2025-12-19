@@ -44,6 +44,27 @@ export interface Message {
   role: 'user' | 'assistant';
   content: string;
   timestamp: string;
+  error?: ChatError;
+}
+
+// =============================================================================
+// Chat Error Types (Phase 3.5)
+// =============================================================================
+
+export type ChatErrorType =
+  | 'no_api_key'
+  | 'auth_error'
+  | 'rate_limit'
+  | 'network_error'
+  | 'api_error'
+  | 'unknown';
+
+export interface ChatError {
+  type: ChatErrorType;
+  message: string;
+  details: string;
+  retryable: boolean;
+  originalContent?: string;
 }
 
 export interface Company {

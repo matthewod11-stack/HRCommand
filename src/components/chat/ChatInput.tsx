@@ -5,6 +5,8 @@ interface ChatInputProps {
   onSubmit: (message: string) => void;
   /** Disables input and submit button */
   disabled?: boolean;
+  /** Shows offline state styling and disables submit */
+  isOffline?: boolean;
   /** Placeholder text */
   placeholder?: string;
   /** Auto-focus on mount */
@@ -16,13 +18,21 @@ const MAX_HEIGHT = 200;
 export function ChatInput({
   onSubmit,
   disabled = false,
+  isOffline = false,
   placeholder = 'Ask a question...',
   autoFocus = true,
 }: ChatInputProps) {
   const [message, setMessage] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  const isSubmitDisabled = disabled || !message.trim();
+  // Combine disabled states - offline also disables submit
+  const isInputDisabled = disabled;
+  const isSubmitDisabled = disabled || isOffline || !message.trim();
+
+  // Dynamic placeholder for offline state
+  const effectivePlaceholder = isOffline
+    ? "You're offline. Chat is available when connected."
+    : placeholder;
 
   // Auto-resize textarea based on content
   const adjustHeight = useCallback(() => {
@@ -70,35 +80,52 @@ export function ChatInput({
           flex items-end gap-3
           px-4 py-3
           bg-white
-          border border-stone-200
+          border ${isOffline ? 'border-amber-300' : 'border-stone-200'}
           rounded-xl
           shadow-sm
-          focus-within:border-primary-300
-          focus-within:ring-2 focus-within:ring-primary-100
+          ${!isOffline && 'focus-within:border-primary-300 focus-within:ring-2 focus-within:ring-primary-100'}
           transition-all duration-200
-          ${disabled ? 'opacity-60' : ''}
+          ${isInputDisabled ? 'opacity-60' : ''}
         `}
       >
+        {/* Offline indicator icon */}
+        {isOffline && (
+          <div className="flex-shrink-0 text-amber-500 self-center">
+            <svg
+              className="w-5 h-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M18.364 5.636a9 9 0 010 12.728m0 0l-2.829-2.829m2.829 2.829L21 21M15.536 8.464a5 5 0 010 7.072m0 0l-2.829-2.829m-4.243 2.829a4.978 4.978 0 01-1.414-2.83m-1.414 5.658a9 9 0 01-2.167-9.238m7.824 2.167a1 1 0 111.414 1.414m-1.414-1.414L3 3m8.293 8.293l1.414 1.414"
+              />
+            </svg>
+          </div>
+        )}
         <textarea
           ref={textareaRef}
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder={placeholder}
-          disabled={disabled}
+          placeholder={effectivePlaceholder}
+          disabled={isInputDisabled}
           rows={1}
           aria-label="Message input"
           className={`
             flex-1
             bg-transparent
             text-stone-700
-            placeholder:text-stone-400
+            ${isOffline ? 'placeholder:text-amber-500' : 'placeholder:text-stone-400'}
             focus:outline-none
             resize-none
             min-h-[24px]
             max-h-[200px]
             leading-6
-            ${disabled ? 'cursor-not-allowed' : ''}
+            ${isInputDisabled ? 'cursor-not-allowed' : ''}
           `}
         />
         <button

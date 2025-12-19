@@ -12,6 +12,7 @@ import {
 } from 'react';
 import { listen, UnlistenFn } from '@tauri-apps/api/event';
 import type { Message } from '../lib/types';
+import { categorizeError } from '../lib/error-utils';
 import {
   listConversations,
   getConversation,
@@ -52,6 +53,7 @@ interface ConversationContextValue {
 
   // Actions
   sendMessage: (content: string, selectedEmployeeId?: string | null) => Promise<void>;
+  retryMessage: (messageId: string) => Promise<void>;
   loadConversation: (id: string) => Promise<void>;
   startNewConversation: () => Promise<void>;
   deleteConversation: (id: string) => Promise<void>;
@@ -367,13 +369,18 @@ export function ConversationProvider({ children }: ConversationProviderProps) {
       // Call Claude API with streaming
       await sendChatMessageStreaming(apiMessages, systemPrompt);
     } catch (error) {
-      // Update assistant message with error
+      // Categorize error for user-friendly display
+      const chatError = categorizeError(error);
+      chatError.originalContent = content;
+
+      // Update assistant message with error state
       setMessages((prev) =>
         prev.map((msg) =>
           msg.id === assistantId
             ? {
                 ...msg,
-                content: `Sorry, I encountered an error: ${error instanceof Error ? error.message : String(error)}\n\nPlease check your API key and try again.`,
+                content: '',
+                error: chatError,
               }
             : msg
         )
@@ -385,6 +392,26 @@ export function ConversationProvider({ children }: ConversationProviderProps) {
       }
     }
   }, []);
+
+  // ---------------------------------------------------------------------------
+  // Retry a failed message
+  // ---------------------------------------------------------------------------
+  const retryMessage = useCallback(async (messageId: string) => {
+    // Find the failed message
+    const failedMessage = messages.find((m) => m.id === messageId && m.error);
+    if (!failedMessage?.error?.originalContent) {
+      console.warn('[Conversation] Cannot retry: no original content found');
+      return;
+    }
+
+    const originalContent = failedMessage.error.originalContent;
+
+    // Remove the failed assistant message
+    setMessages((prev) => prev.filter((m) => m.id !== messageId));
+
+    // Resend the original content (note: selectedEmployeeId context is lost on retry)
+    await sendMessage(originalContent);
+  }, [messages, sendMessage]);
 
   // ---------------------------------------------------------------------------
   // Load a conversation from database
@@ -491,6 +518,7 @@ export function ConversationProvider({ children }: ConversationProviderProps) {
 
     // Actions
     sendMessage,
+    retryMessage,
     loadConversation,
     startNewConversation,
     deleteConversation,

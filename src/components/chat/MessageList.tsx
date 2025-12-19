@@ -9,6 +9,7 @@
 import { useRef, useEffect } from 'react';
 import { Message } from '../../lib/types';
 import { MessageBubble } from './MessageBubble';
+import { ErrorMessage } from './ErrorMessage';
 import { TypingIndicator } from './TypingIndicator';
 import { PromptSuggestions } from './PromptSuggestions';
 import { usePromptSuggestions } from '../../hooks/usePromptSuggestions';
@@ -20,6 +21,10 @@ interface MessageListProps {
   isLoading?: boolean;
   /** Callback when a prompt suggestion is clicked */
   onPromptClick?: (prompt: string) => void;
+  /** Callback to retry a failed message */
+  onRetry?: (messageId: string) => void;
+  /** Callback to copy original message content */
+  onCopyMessage?: (content: string) => void;
 }
 
 /**
@@ -128,6 +133,8 @@ export function MessageList({
   messages,
   isLoading = false,
   onPromptClick,
+  onRetry,
+  onCopyMessage,
 }: MessageListProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -155,11 +162,28 @@ export function MessageList({
             key={message.id}
             className={getMessageSpacing(message, messages[index - 1])}
           >
-            <MessageBubble
-              content={message.content}
-              role={message.role}
-              timestamp={message.timestamp}
-            />
+            {message.error ? (
+              <ErrorMessage
+                error={message.error}
+                timestamp={message.timestamp}
+                onRetry={
+                  message.error.retryable && onRetry
+                    ? () => onRetry(message.id)
+                    : undefined
+                }
+                onCopyMessage={
+                  message.error.originalContent && onCopyMessage
+                    ? () => onCopyMessage(message.error!.originalContent!)
+                    : undefined
+                }
+              />
+            ) : (
+              <MessageBubble
+                content={message.content}
+                role={message.role}
+                timestamp={message.timestamp}
+              />
+            )}
           </div>
         ))}
 
