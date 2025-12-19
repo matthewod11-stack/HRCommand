@@ -103,24 +103,23 @@ What's the "Next Session Should" note for PROGRESS.md?
 
 ## Current Phase
 
-**Phase:** 2 (Context)
-**Status:** Phase 2.5 complete, Phase 2.6 ready to implement
+**Phase:** 4.1 (Onboarding Flow)
+**Status:** Planning complete, ready for implementation
 
-**Implementation Plan:** `~/.claude/plans/silly-splashing-eagle.md`
+**Implementation Plan:** `~/.claude/plans/snazzy-bubbling-boole.md`
 
-**Completed (2.5):**
-- Backend: conversations.rs CRUD (7 commands, 7 tests)
-- Frontend: ConversationContext.tsx (auto-save, auto-title)
-- UI: Tabbed sidebar (ConversationSidebar, TabSwitcher, ConversationCard, ConversationSearch)
+**Completed Phases:**
+- Phase 1 (Foundation) ✓
+- Phase 2 (Context) ✓ — Pause Point 2A verified
+- Phase 3 (Protection) ✓ — Pause Point 3A verified
 
-**Completed (2.4):**
-- memory.rs, useConversationSummary hook, Cmd+N shortcut, memories in context
+**Phase 4.1 Tasks (Onboarding Flow):**
+1. Create OnboardingContext.tsx (state + persistence)
+2. Create OnboardingFlow.tsx + StepIndicator.tsx
+3. Steps 1-7 components (Welcome, ApiKey, Company, EmployeeImport, Disclaimer, Telemetry, FirstPrompt)
+4. App.tsx integration (replace ChatArea gating)
 
-**Next Steps (Phase 2.6):**
-1. `npm install react-markdown remark-gfm`
-2. UI Polish: markdown rendering, email overflow, manager name, expandable tiles, filters
-3. Stickiness: PromptSuggestions, contextual prompts, empty state guidance
-4. Run Pause Point 2A verification checklist
+**Estimated:** ~1,100 LOC | 11 new files | 2-3 sessions
 
 ---
 

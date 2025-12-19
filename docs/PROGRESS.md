@@ -11,6 +11,53 @@
 Most recent session should be first.
 -->
 
+## Session 2025-12-19 (Phase 4.1 Planning — Onboarding Flow)
+
+**Phase:** 4.1 — Onboarding Flow
+**Focus:** Design and plan the 7-step onboarding wizard (planning session only)
+
+### Completed
+- [x] Explored app initialization flow (App.tsx, ChatArea gating logic)
+- [x] Explored existing setup components (ApiKeyInput, CompanySetup, ImportWizard)
+- [x] Reviewed onboarding requirements from architecture docs
+- [x] Clarified user decisions (telemetry, mid-exit handling, sample data)
+- [x] Created comprehensive implementation plan
+
+### User Decisions
+| Decision | Choice |
+|----------|--------|
+| Telemetry | UI + preference only (defer Sentry to Phase 4.5) |
+| Mid-exit | Resume where left off (track completed steps) |
+| Sample data | Pre-load Acme Corp automatically on first launch |
+
+### Implementation Plan
+**Plan File:** `~/.claude/plans/snazzy-bubbling-boole.md`
+
+**Scope:** ~1,100 LOC across 11 new files
+- OnboardingContext.tsx — State management + persistence
+- OnboardingFlow.tsx — Main wizard container
+- StepIndicator.tsx — Progress dots
+- 7 step components (Welcome, ApiKey, Company, EmployeeImport, Disclaimer, Telemetry, FirstPrompt)
+
+**Integration:** Replace ChatArea gating (lines 37-157) with App-level OnboardingFlow conditional
+
+### Files Created
+```
+~/.claude/plans/snazzy-bubbling-boole.md   - Full implementation plan
+```
+
+### Verification
+- [x] TypeScript type-check passes
+- [x] Production build succeeds
+- [x] Rust tests pass (137 pass, 1 pre-existing failure)
+
+### Next Session Should
+1. Begin Task 1: Create OnboardingContext.tsx with state + persistence
+2. Continue through Tasks 2-10 per plan file
+3. Reference plan: `~/.claude/plans/snazzy-bubbling-boole.md`
+
+---
+
 ## Session 2025-12-19 (Phase 3.5 — Error Handling)
 
 **Phase:** 3.5 — Error Handling
