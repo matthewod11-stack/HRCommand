@@ -984,6 +984,29 @@ pub async fn find_newest_employees(
     Ok(employees)
 }
 
+/// Find employees hired within the last N days (for new hires digest)
+pub async fn find_recent_hires(
+    pool: &DbPool,
+    days: i64,
+    limit: usize,
+) -> Result<Vec<EmployeeContext>, ContextError> {
+    let rows: Vec<(String,)> = sqlx::query_as(
+        "SELECT id FROM employees WHERE status = 'active' AND hire_date IS NOT NULL AND hire_date >= date('now', ? || ' days') ORDER BY hire_date DESC LIMIT ?"
+    )
+    .bind(-days)  // Negative to go back in time
+    .bind(limit as i64)
+    .fetch_all(pool)
+    .await?;
+
+    let mut employees = Vec::new();
+    for (id,) in rows {
+        if let Ok(emp) = get_employee_context(pool, &id).await {
+            employees.push(emp);
+        }
+    }
+    Ok(employees)
+}
+
 /// Find underperforming employees (rating < 2.5 in recent cycles)
 pub async fn find_underperformers(
     pool: &DbPool,

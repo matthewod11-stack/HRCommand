@@ -11,6 +11,48 @@
 Most recent session should be first.
 -->
 
+## Session 2025-12-20 (Phase 4.4 — Monday Digest)
+
+**Phase:** 4.4 — Monday Digest
+**Focus:** Weekly digest showing work anniversaries and new hires
+
+### Summary
+Implemented the Monday Digest feature - a card that appears on the first app launch of each week showing work anniversaries (within 7 days) and new hires (last 90 days). Dismissable until the following week using ISO week-based tracking.
+
+### Files Created
+```
+src-tauri/src/context.rs          (+22)  - find_recent_hires() query
+src/hooks/useMondayDigest.ts      (~100) - Visibility/dismiss logic
+src/components/chat/MondayDigest.tsx (~220) - Card UI component
+```
+
+### Files Modified
+```
+src-tauri/src/lib.rs              (+105) - DigestEmployee, DigestData structs, get_digest_data command
+src/lib/tauri-commands.ts         (+35)  - TypeScript types + wrapper
+src/components/chat/MessageList.tsx (+10) - Integration in WelcomeContent
+src/components/chat/index.ts      (+1)   - Export
+src/hooks/index.ts                (+2)   - Export
+```
+
+### Implementation Details
+- **Trigger:** First app launch of week (ISO week comparison)
+- **Dismiss:** Saves `monday_digest_dismissed_week` setting
+- **Anniversary filter:** 7-day window from `find_upcoming_anniversaries`
+- **New hires:** `find_recent_hires(90 days)` query
+- **UI:** Blue/primary gradient card, inline above welcome content
+
+### Verification
+- [x] TypeScript type-check passes
+- [x] Production build succeeds (755KB)
+- [x] 143 Rust tests pass (1 pre-existing file_parser failure)
+
+### Next Session Should
+1. Test digest in running app (manual testing)
+2. Begin Phase 4.5 (Distribution) - app icon, code signing, notarization
+
+---
+
 ## Session 2025-12-19 (Phase 4.3 — Data Export/Import Implementation)
 
 **Phase:** 4.3 — Data Export/Import

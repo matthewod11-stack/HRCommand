@@ -12,7 +12,9 @@ import { MessageBubble } from './MessageBubble';
 import { ErrorMessage } from './ErrorMessage';
 import { TypingIndicator } from './TypingIndicator';
 import { PromptSuggestions } from './PromptSuggestions';
+import { MondayDigest } from './MondayDigest';
 import { usePromptSuggestions } from '../../hooks/usePromptSuggestions';
+import { useMondayDigest } from '../../hooks/useMondayDigest';
 
 interface MessageListProps {
   /** Array of messages to display */
@@ -74,6 +76,7 @@ function WelcomeContent({
 }) {
   const { suggestions, context, selectedEmployeeName } = usePromptSuggestions();
   const { heading, description } = getWelcomeText(context, selectedEmployeeName);
+  const { isVisible: showDigest, isLoading: digestLoading, anniversaries, newHires, dismiss: dismissDigest } = useMondayDigest();
 
   // Different icon based on context
   const iconPath = context === 'employee-selected'
@@ -82,6 +85,14 @@ function WelcomeContent({
 
   return (
     <div className="flex-1 flex flex-col justify-center items-center text-center py-12">
+      {/* Monday Digest - shows above welcome content */}
+      {showDigest && !digestLoading && (
+        <MondayDigest
+          anniversaries={anniversaries}
+          newHires={newHires}
+          onDismiss={dismissDigest}
+        />
+      )}
       {/* Icon */}
       <div
         className="

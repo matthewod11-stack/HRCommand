@@ -308,11 +308,13 @@ This is a **long-running, multi-session implementation**. Follow these rules:
 - [x] 4.3.2 Implement data import from backup
 - [x] 4.3.3 Add export/import to Settings panel
 
-### 4.4 Monday Digest
-- [ ] 4.4.1 Create MondayDigest component
-- [ ] 4.4.2 Query anniversaries from hire_date
-- [ ] 4.4.3 Query new hires (<90 days)
-- [ ] 4.4.4 Show on Monday mornings, dismissible
+### 4.4 Monday Digest ✓ COMPLETE
+> **Completed:** ~330 LOC | 8 files | 1 session
+
+- [x] 4.4.1 Create MondayDigest component
+- [x] 4.4.2 Query anniversaries from hire_date
+- [x] 4.4.3 Query new hires (<90 days)
+- [x] 4.4.4 Show on Monday mornings, dismissible
 
 ### 4.5 Distribution
 - [ ] 4.5.1 Create app icon

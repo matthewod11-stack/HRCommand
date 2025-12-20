@@ -743,6 +743,109 @@ async fn get_aggregate_enps(
 }
 
 // ============================================================================
+// Monday Digest Commands
+// ============================================================================
+
+/// Employee data for the Monday Digest (simplified for display)
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct DigestEmployee {
+    pub id: String,
+    pub full_name: String,
+    pub department: Option<String>,
+    pub hire_date: String,
+    /// Years of tenure (for anniversaries)
+    pub years_tenure: Option<i32>,
+    /// Days since hire (for new hires)
+    pub days_since_start: Option<i32>,
+}
+
+/// Data for the Monday Digest
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct DigestData {
+    /// Employees with work anniversaries this week (within 7 days)
+    pub anniversaries: Vec<DigestEmployee>,
+    /// New hires (hired within last 90 days)
+    pub new_hires: Vec<DigestEmployee>,
+}
+
+/// Get Monday Digest data (anniversaries and new hires)
+#[tauri::command]
+async fn get_digest_data(
+    state: tauri::State<'_, Database>,
+) -> Result<DigestData, context::ContextError> {
+    use chrono::{NaiveDate, Utc, Datelike};
+
+    let today = Utc::now().date_naive();
+
+    // Get anniversaries (within 7 days) - existing function returns 30-day window
+    let anniversary_contexts = context::find_upcoming_anniversaries(&state.pool, 50).await?;
+
+    // Filter to 7 days and convert to DigestEmployee
+    let anniversaries: Vec<DigestEmployee> = anniversary_contexts
+        .into_iter()
+        .filter_map(|emp| {
+            let hire_date = emp.hire_date.as_ref()?;
+            let hire = NaiveDate::parse_from_str(hire_date, "%Y-%m-%d").ok()?;
+
+            // Calculate this year's anniversary date
+            let this_year_anniversary = NaiveDate::from_ymd_opt(today.year(), hire.month(), hire.day())?;
+
+            // Check if anniversary is within 7 days (handles year boundary)
+            let days_until = if this_year_anniversary >= today {
+                (this_year_anniversary - today).num_days()
+            } else {
+                // Anniversary already passed this year, check next year
+                let next_year_anniversary = NaiveDate::from_ymd_opt(today.year() + 1, hire.month(), hire.day())?;
+                (next_year_anniversary - today).num_days()
+            };
+
+            if days_until > 7 {
+                return None;
+            }
+
+            // Calculate years of tenure
+            let years = today.year() - hire.year();
+            let years_tenure = if this_year_anniversary > today { years } else { years + 1 };
+
+            Some(DigestEmployee {
+                id: emp.id,
+                full_name: emp.full_name,
+                department: emp.department,
+                hire_date: hire_date.clone(),
+                years_tenure: Some(years_tenure),
+                days_since_start: None,
+            })
+        })
+        .collect();
+
+    // Get new hires (last 90 days)
+    let new_hire_contexts = context::find_recent_hires(&state.pool, 90, 20).await?;
+
+    let new_hires: Vec<DigestEmployee> = new_hire_contexts
+        .into_iter()
+        .filter_map(|emp| {
+            let hire_date = emp.hire_date.as_ref()?;
+            let hire = NaiveDate::parse_from_str(hire_date, "%Y-%m-%d").ok()?;
+            let days = (today - hire).num_days() as i32;
+
+            Some(DigestEmployee {
+                id: emp.id,
+                full_name: emp.full_name,
+                department: emp.department,
+                hire_date: hire_date.clone(),
+                years_tenure: None,
+                days_since_start: Some(days),
+            })
+        })
+        .collect();
+
+    Ok(DigestData {
+        anniversaries,
+        new_hires,
+    })
+}
+
+// ============================================================================
 // Memory Commands (Cross-Conversation Memory)
 // ============================================================================
 
@@ -1018,6 +1121,8 @@ pub fn run() {
             get_employee_context,
             get_company_context,
             get_aggregate_enps,
+            // Monday Digest
+            get_digest_data,
             // Memory (cross-conversation)
             generate_conversation_summary,
             save_conversation_summary,

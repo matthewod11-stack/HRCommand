@@ -2,10 +2,10 @@
   "$schema": "./features.schema.json",
   "_meta": {
     "description": "Feature tracking for HR Command Center. Status: not-started | in-progress | pass | fail | blocked",
-    "lastUpdated": "2025-12-19",
+    "lastUpdated": "2025-12-20",
     "project": "HR Command Center",
     "totalFeatures": 32,
-    "passing": 23,
+    "passing": 25,
     "failing": 0,
     "inProgress": 0
   },
@@ -99,8 +99,8 @@
       "notes": "AES-256-GCM encrypted backups with Argon2 key derivation. Full backup of all 9 tables. ~800 LOC Rust, ~280 LOC React. 6 unit tests."
     },
     "monday-digest": {
-      "status": "not-started",
-      "notes": "Anniversaries, new hire check-ins"
+      "status": "pass",
+      "notes": "4.4.1-4.4.4 complete: MondayDigest component, useMondayDigest hook, find_recent_hires query, get_digest_data command. Shows anniversaries (7 days) and new hires (90 days) on first launch of week. ~330 LOC across 8 files."
     },
     "distribution": {
       "status": "not-started",

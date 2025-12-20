@@ -709,6 +709,42 @@ export async function getDataPath(): Promise<string> {
 }
 
 // =============================================================================
+// Phase 4.4 - Monday Digest
+// =============================================================================
+
+/**
+ * Employee data for the Monday Digest (simplified for display)
+ */
+export interface DigestEmployee {
+  id: string;
+  full_name: string;
+  department?: string;
+  hire_date: string;
+  /** Years of tenure (for anniversaries) */
+  years_tenure?: number;
+  /** Days since hire (for new hires) */
+  days_since_start?: number;
+}
+
+/**
+ * Data for the Monday Digest
+ */
+export interface DigestData {
+  /** Employees with work anniversaries this week (within 7 days) */
+  anniversaries: DigestEmployee[];
+  /** New hires (hired within last 90 days) */
+  new_hires: DigestEmployee[];
+}
+
+/**
+ * Get Monday Digest data (anniversaries and new hires)
+ * Returns employees with anniversaries within 7 days and new hires within 90 days
+ */
+export async function getDigestData(): Promise<DigestData> {
+  return invoke('get_digest_data');
+}
+
+// =============================================================================
 // Phase 2.4 - Cross-Conversation Memory
 // =============================================================================
 
