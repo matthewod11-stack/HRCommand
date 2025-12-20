@@ -37,10 +37,11 @@ A desktop AI assistant for HR professionals that keeps your employee data local 
 | 1. Foundation | ✅ Done | App runs, Claude API streaming, network detection |
 | 2. Context | ✅ Done | AI knows your company, query-adaptive retrieval, 63 tests |
 | 3. Protection | ✅ Done | PII redaction, audit logging, error handling, offline mode |
-| 4. Polish | 🚧 In Progress | Onboarding (4.1), Settings (4.2), Backup/Restore (4.3) complete |
-| 5. Launch | ⏳ Planned | Beta users, payment |
+| 4. Polish | ✅ Done | Onboarding, Settings, Backup/Restore, Monday Digest |
+| V2 Planning | 🔍 Current | Reviewing deferred features before launch |
+| 5. Launch | ⏳ Planned | Distribution, license system, beta users |
 
-**Current:** Phase 4.4 — Monday Digest next.
+**Current:** V2 Feature Planning Pause — deciding which features to add before launch.
 
 ## Key Features (Planned)
 
@@ -57,8 +58,9 @@ A desktop AI assistant for HR professionals that keeps your employee data local 
 - [x] Audit logging for compliance
 - [x] Graceful error handling with retry
 - [x] Read-only offline mode
-- [ ] Monday digest (anniversaries, check-ins)
-- [ ] Encrypted data export/backup
+- [x] Monday digest (anniversaries, new hires)
+- [x] Encrypted data backup/restore
+- [ ] App signing and notarization
 - [ ] Auto-updates via GitHub Releases
 
 ## Development

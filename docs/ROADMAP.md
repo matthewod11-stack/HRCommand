@@ -29,14 +29,15 @@ This is a **long-running, multi-session implementation**. Follow these rules:
 
 ## Phase Overview
 
-| Phase | Focus | Duration | Pause Points |
-|-------|-------|----------|--------------|
-| 0 | Pre-flight validation | 1 day | 0A: Tooling verified |
-| 1 | Foundation | 2 weeks | 1A: App runs, API works |
-| 2 | Context | 2 weeks | 2A: Context injection works |
-| 3 | Protection | 1 week | 3A: PII redaction works |
-| 4 | Polish | 2 weeks | 4A: Onboarding complete |
-| 5 | Launch | 1 week | 5A: Beta ready |
+| Phase | Focus | Status | Pause Points |
+|-------|-------|--------|--------------|
+| 0 | Pre-flight validation | ✓ Complete | 0A: Tooling verified ✓ |
+| 1 | Foundation | ✓ Complete | 1A: App runs, API works ✓ |
+| 2 | Context | ✓ Complete | 2A: Context injection works ✓ |
+| 3 | Protection | ✓ Complete | 3A: PII redaction works ✓ |
+| 4 | Polish | ✓ Complete | 4A: Onboarding complete ✓ |
+| — | **V2 Planning** | **← Current** | Review deferred features |
+| 5 | Launch | Not started | 5A: Distribution, 5B: Beta ready |
 
 ---
 
@@ -316,51 +317,71 @@ This is a **long-running, multi-session implementation**. Follow these rules:
 - [x] 4.4.3 Query new hires (<90 days)
 - [x] 4.4.4 Show on Monday mornings, dismissible
 
-### 4.5 Distribution
-- [ ] 4.5.1 Create app icon
-- [ ] 4.5.2 Configure macOS code signing
-- [ ] 4.5.3 Configure notarization
-- [ ] 4.5.4 Set up tauri-plugin-updater
-- [ ] 4.5.5 Configure GitHub Releases for updates
+### Phase 4 Complete ✓
 
-### Pause Point 4B (Distribution)
+**Status:** All Phase 4 tasks complete. Pausing to review V2 features before launch.
+
+---
+
+## V2 Feature Planning Pause
+
+**Goal:** Review deferred features and decide what to include before launch
+
+Before proceeding to Phase 5 (Launch), review:
+- `docs/KNOWN_ISSUES.md` — Deferred Decisions section
+- Candidate V2 features for pre-launch implementation
+
+**Candidates from KNOWN_ISSUES.md:**
+- [ ] Interactive Analytics Panel (High value, High complexity)
+- [ ] Org Chart View (High value, Medium complexity)
+- [ ] Beginner-Friendly API Key Setup Guide (High value, Low complexity)
+- [ ] Persona Switcher (Medium value, Low complexity)
+- [ ] Keyboard Shortcuts (Low value, Low complexity)
+
+---
+
+## Phase 5: Launch
+
+**Goal:** Real users, real feedback
+
+### 5.1 Distribution
+- [ ] 5.1.1 Create app icon
+- [ ] 5.1.2 Configure macOS code signing
+- [ ] 5.1.3 Configure notarization
+- [ ] 5.1.4 Set up tauri-plugin-updater
+- [ ] 5.1.5 Configure GitHub Releases for updates
+
+### Pause Point 5A (Distribution)
 **Verification Required:**
 - [ ] Can export and re-import data
 - [ ] Monday digest appears with correct data
 - [ ] App is signed and notarized
 - [ ] Auto-update works
 
----
+### 5.2 License System
+- [ ] 5.2.1 Create license validation API endpoint
+- [ ] 5.2.2 Implement license check in app
+- [ ] 5.2.3 Store validation locally after success
+- [ ] 5.2.4 Add license input to onboarding
 
-We'll pause before phase 5 and contemplate V2 features to implement prior to launch. 
-## Phase 5: Launch
+### 5.3 Payment Integration
+- [ ] 5.3.1 Set up Stripe product ($99)
+- [ ] 5.3.2 Create checkout flow on website
+- [ ] 5.3.3 Implement license key generation
+- [ ] 5.3.4 Set up email delivery of keys
 
-**Goal:** Real users, real feedback
+### 5.4 Landing Page
+- [ ] 5.4.1 Update hrcommandcenter.com
+- [ ] 5.4.2 Add download links
+- [ ] 5.4.3 Add purchase button
 
-### 5.1 License System
-- [ ] 5.1.1 Create license validation API endpoint
-- [ ] 5.1.2 Implement license check in app
-- [ ] 5.1.3 Store validation locally after success
-- [ ] 5.1.4 Add license input to onboarding
+### 5.5 Beta Distribution
+- [ ] 5.5.1 Identify 5-10 beta users
+- [ ] 5.5.2 Distribute beta builds
+- [ ] 5.5.3 Set up feedback collection (in-app button)
+- [ ] 5.5.4 Triage and prioritize feedback
 
-### 5.2 Payment Integration
-- [ ] 5.2.1 Set up Stripe product ($99)
-- [ ] 5.2.2 Create checkout flow on website
-- [ ] 5.2.3 Implement license key generation
-- [ ] 5.2.4 Set up email delivery of keys
-
-### 5.3 Landing Page
-- [ ] 5.3.1 Update hrcommandcenter.com
-- [ ] 5.3.2 Add download links
-- [ ] 5.3.3 Add purchase button
-
-### 5.4 Beta Distribution
-- [ ] 5.4.1 Identify 5-10 beta users
-- [ ] 5.4.2 Distribute beta builds
-- [ ] 5.4.3 Set up feedback collection (in-app button)
-- [ ] 5.4.4 Triage and prioritize feedback
-
-### Pause Point 5A (Launch Ready)
+### Pause Point 5B (Launch Ready)
 **Verification Required:**
 - [ ] Payment flow works end-to-end
 - [ ] License validation works
@@ -407,20 +428,25 @@ PHASE 3 - PROTECTION
 [ ] 3.5.1-3.5.4 Error handling (4 tasks)
 [ ] PAUSE 3A: PII redaction works
 
-PHASE 4 - POLISH
-[ ] 4.1.1-4.1.8 Onboarding flow (8 tasks)
-[ ] 4.2.1-4.2.5 Settings panel (5 tasks)
-[ ] 4.3.1-4.3.3 Data export/import (3 tasks)
-[ ] 4.4.1-4.4.4 Monday digest (4 tasks)
-[ ] 4.5.1-4.5.5 Distribution (5 tasks)
-[ ] PAUSE 4A: Onboarding complete
+PHASE 4 - POLISH ✓ COMPLETE
+[x] 4.1.1-4.1.10 Onboarding flow (10 tasks)
+[x] 4.2.1-4.2.5 Settings panel (5 tasks)
+[x] 4.3.1-4.3.3 Data export/import (3 tasks)
+[x] 4.4.1-4.4.4 Monday digest (4 tasks)
+[x] PAUSE 4A: Onboarding complete
+
+V2 FEATURE PLANNING PAUSE
+[ ] Review deferred features in KNOWN_ISSUES.md
+[ ] Decide which V2 features to implement before launch
 
 PHASE 5 - LAUNCH
-[ ] 5.1.1-5.1.4 License system (4 tasks)
-[ ] 5.2.1-5.2.4 Payment integration (4 tasks)
-[ ] 5.3.1-5.3.3 Landing page (3 tasks)
-[ ] 5.4.1-5.4.4 Beta distribution (4 tasks)
-[ ] PAUSE 5A: Launch ready
+[ ] 5.1.1-5.1.5 Distribution (5 tasks)
+[ ] PAUSE 5A: Distribution verified
+[ ] 5.2.1-5.2.4 License system (4 tasks)
+[ ] 5.3.1-5.3.4 Payment integration (4 tasks)
+[ ] 5.4.1-5.4.3 Landing page (3 tasks)
+[ ] 5.5.1-5.5.4 Beta distribution (4 tasks)
+[ ] PAUSE 5B: Launch ready
 ```
 
 **Total: ~100 discrete tasks across 5 phases**

@@ -103,21 +103,26 @@ What's the "Next Session Should" note for PROGRESS.md?
 
 ## Current Phase
 
-**Phase:** 4.2 (Settings Panel)
-**Status:** Ready to begin
+**Phase:** V2 Feature Planning Pause
+**Status:** Reviewing deferred features before launch
 
 **Completed Phases:**
 - Phase 1 (Foundation) ✓
 - Phase 2 (Context) ✓ — Pause Point 2A verified
 - Phase 3 (Protection) ✓ — Pause Point 3A verified
-- Phase 4.1 (Onboarding Flow) ✓ — 11 files, ~1,100 LOC
+- Phase 4 (Polish) ✓ — Pause Point 4A verified
 
-**Phase 4.2 Tasks (Settings Panel):**
-1. Create SettingsPanel component
-2. API key management (change/remove)
-3. Company profile editing
-4. Data location display
-5. Telemetry toggle
+**Current Focus:**
+Review `docs/KNOWN_ISSUES.md` to decide which V2 features to implement before Phase 5 (Launch).
+
+**Candidate V2 Features:**
+| Feature | Value | Complexity |
+|---------|-------|------------|
+| Interactive Analytics Panel | High | High |
+| Org Chart View | High | Medium |
+| Beginner-Friendly API Key Guide | High | Low |
+| Persona Switcher | Medium | Low |
+| Keyboard Shortcuts | Low | Low |
 
 ---
 
@@ -250,4 +255,4 @@ Session: YYYY-MM-DD
 ---
 
 *Last updated: December 2025*
-*Status: Phase 2.3 complete (Context Builder with trimming)*
+*Status: Phase 4 complete — V2 Feature Planning Pause*
