@@ -1,17 +1,18 @@
-import { useState, useCallback, useEffect, Component, type ReactNode } from 'react';
+import { useState, useCallback, useEffect, useRef, Component, type ReactNode } from 'react';
 import { LayoutProvider } from './contexts/LayoutContext';
 import { EmployeeProvider } from './contexts/EmployeeContext';
 import { ConversationProvider, useConversations } from './contexts/ConversationContext';
 import { AppShell } from './components/layout/AppShell';
-import { ChatInput, MessageList } from './components/chat';
+import { ChatInput, MessageList, type ChatInputHandle } from './components/chat';
 import { PIINotification } from './components/shared';
 import { EmployeeDetail, EmployeeEdit } from './components/employees';
 import { ImportWizard } from './components/import';
 import { SettingsPanel } from './components/settings';
+import { CommandPalette } from './components/CommandPalette';
 import { TestDataImporter } from './components/dev/TestDataImporter';
 import { OnboardingProvider, OnboardingFlow, useOnboarding } from './components/onboarding';
 import { useEmployees } from './contexts/EmployeeContext';
-import { useNetwork } from './hooks';
+import { useNetwork, useCommandPalette } from './hooks';
 
 // Error Boundary to catch React render errors
 class ErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean; error: Error | null }> {
@@ -53,7 +54,11 @@ class ErrorBoundary extends Component<{ children: ReactNode }, { hasError: boole
   }
 }
 
-function ChatArea() {
+interface ChatAreaProps {
+  chatInputRef?: React.RefObject<ChatInputHandle>;
+}
+
+function ChatArea({ chatInputRef }: ChatAreaProps) {
   // Get conversation state from context
   const {
     messages,
@@ -122,6 +127,7 @@ function ChatArea() {
         onCopyMessage={handleCopyMessage}
       />
       <ChatInput
+        ref={chatInputRef}
         onSubmit={handleSubmit}
         disabled={isLoading}
         isOffline={isOffline}
@@ -201,17 +207,21 @@ function TestDataModal({
   );
 }
 
-// Inner component that conditionally renders onboarding or main app
-function AppContent() {
-  const { isLoading, isCompleted } = useOnboarding();
+// Main app content that lives inside all providers
+// Must be inside LayoutProvider to use useCommandPalette
+function MainAppContent() {
   const [isTestDataModalOpen, setIsTestDataModalOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const chatInputRef = useRef<ChatInputHandle>(null);
 
+  // Command palette hook (uses useLayout internally)
+  const { isOpen: isPaletteOpen, close: closePalette } = useCommandPalette({
+    onOpenSettings: () => setIsSettingsOpen(true),
+    focusChatInput: () => chatInputRef.current?.focus(),
+  });
 
-  // Keyboard shortcut: Cmd+Shift+T to open test data importer (only after onboarding)
+  // Keyboard shortcut: Cmd+Shift+T to open test data importer
   useEffect(() => {
-    if (!isCompleted) return;
-
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.metaKey && e.shiftKey && e.key === 't') {
         e.preventDefault();
@@ -221,7 +231,37 @@ function AppContent() {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isCompleted]);
+  }, []);
+
+  return (
+    <>
+      <AppShell
+        contextPanel={<EmployeeDetail />}
+        onSettingsClick={() => setIsSettingsOpen(true)}
+      >
+        <ChatArea chatInputRef={chatInputRef} />
+      </AppShell>
+      <EmployeeEditModal />
+      <ImportWizardModal />
+      <SettingsPanel
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+      />
+      <TestDataModal
+        isOpen={isTestDataModalOpen}
+        onClose={() => setIsTestDataModalOpen(false)}
+      />
+      <CommandPalette
+        isOpen={isPaletteOpen}
+        onClose={closePalette}
+      />
+    </>
+  );
+}
+
+// Inner component that conditionally renders onboarding or main app
+function AppContent() {
+  const { isLoading, isCompleted } = useOnboarding();
 
   // Show loading state while checking onboarding status
   if (isLoading) {
@@ -246,22 +286,7 @@ function AppContent() {
       <LayoutProvider>
         <ConversationProvider>
           <EmployeeProvider>
-            <AppShell
-              contextPanel={<EmployeeDetail />}
-              onSettingsClick={() => setIsSettingsOpen(true)}
-            >
-              <ChatArea />
-            </AppShell>
-            <EmployeeEditModal />
-            <ImportWizardModal />
-            <SettingsPanel
-              isOpen={isSettingsOpen}
-              onClose={() => setIsSettingsOpen(false)}
-            />
-            <TestDataModal
-              isOpen={isTestDataModalOpen}
-              onClose={() => setIsTestDataModalOpen(false)}
-            />
+            <MainAppContent />
           </EmployeeProvider>
         </ConversationProvider>
       </LayoutProvider>

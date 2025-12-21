@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback, forwardRef, useImperativeHandle } from 'react';
 
 interface ChatInputProps {
   /** Callback when user submits a message (called with trimmed text) */
@@ -13,17 +13,30 @@ interface ChatInputProps {
   autoFocus?: boolean;
 }
 
+/** Handle exposed via ref for external focus control */
+export interface ChatInputHandle {
+  focus: () => void;
+}
+
 const MAX_HEIGHT = 200;
 
-export function ChatInput({
-  onSubmit,
-  disabled = false,
-  isOffline = false,
-  placeholder = 'Ask a question...',
-  autoFocus = true,
-}: ChatInputProps) {
+export const ChatInput = forwardRef<ChatInputHandle, ChatInputProps>(function ChatInput(
+  {
+    onSubmit,
+    disabled = false,
+    isOffline = false,
+    placeholder = 'Ask a question...',
+    autoFocus = true,
+  },
+  ref
+) {
   const [message, setMessage] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Expose focus method via ref
+  useImperativeHandle(ref, () => ({
+    focus: () => textareaRef.current?.focus(),
+  }), []);
 
   // Combine disabled states - offline also disables submit
   const isInputDisabled = disabled;
@@ -163,6 +176,6 @@ export function ChatInput({
       </div>
     </div>
   );
-}
+});
 
 export default ChatInput;

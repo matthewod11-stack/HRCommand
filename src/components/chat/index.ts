@@ -1,4 +1,4 @@
-export { ChatInput } from './ChatInput';
+export { ChatInput, type ChatInputHandle } from './ChatInput';
 export { ErrorMessage } from './ErrorMessage';
 export { MessageBubble } from './MessageBubble';
 export { MessageList } from './MessageList';
