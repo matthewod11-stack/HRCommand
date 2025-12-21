@@ -11,18 +11,22 @@
 Most recent session should be first.
 -->
 
-## Session 2025-12-21 (V2 Feature Planning — Roadmap Restructure)
+## Session 2025-12-21 (V2 Planning + Bug Fix — Delete Conversation)
 
-**Phase:** V2 Feature Planning
-**Focus:** Promote high/medium impact features to ROADMAP.md, restructure KNOWN_ISSUES.md
+**Phase:** V2 Feature Planning + Bug Fix
+**Focus:** Roadmap restructure + fix delete conversation bug
 
 ### Summary
 Created comprehensive Phase V2 in ROADMAP.md with 5 sub-phases (V2.1-V2.5) containing ~65 new tasks. Incorporated user's enhancement ideas: Insight Canvas, Structured Data Extraction schema, and Org Chart Heatmap overlay. Restructured KNOWN_ISSUES.md to reference promoted features and keep parking lot items in collapsible sections.
+
+Also fixed intermittent delete conversation bug caused by missing FK cascade on audit_log table.
 
 ### Files Modified
 ```
 docs/ROADMAP.md        (+265 lines) - Added Phase V2: Intelligence & Visualization
 docs/KNOWN_ISSUES.md   (-400, +220) - Restructured V2 section, archived promoted features
+src-tauri/src/conversations.rs     - Fixed delete to cascade audit_log entries
+src/components/conversations/ConversationSidebar.tsx - Added error handling + loading state for delete
 ```
 
 ### Key Changes
@@ -45,6 +49,12 @@ docs/KNOWN_ISSUES.md   (-400, +220) - Restructured V2 section, archived promoted
 - Promoted features now reference ROADMAP.md sections
 - Parking lot features in collapsible `<details>` sections
 - Edge case references updated to V2.2.1/V2.2.2
+
+**Bug Fix — Delete Conversation:**
+- **Root cause:** `audit_log` table has FK to `conversations(id)` without `ON DELETE CASCADE`
+- **Symptom:** Delete appeared to work (loading spinner) but conversation remained
+- **Fix 1:** `conversations.rs` now deletes audit_log entries before conversation
+- **Fix 2:** `ConversationSidebar.tsx` adds try/catch, loading state, prevents double-clicks
 
 ### Verification
 - [x] TypeScript type-check passes

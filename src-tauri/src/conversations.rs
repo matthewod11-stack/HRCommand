@@ -278,10 +278,23 @@ pub async fn search_conversations(
 }
 
 /// Delete a conversation by ID
+/// Also deletes associated audit log entries (FK constraint)
 pub async fn delete_conversation(
     pool: &DbPool,
     id: &str,
 ) -> Result<(), ConversationError> {
+    // First, delete associated audit log entries (no ON DELETE CASCADE in schema)
+    sqlx::query(
+        r#"
+        DELETE FROM audit_log
+        WHERE conversation_id = ?
+        "#,
+    )
+    .bind(id)
+    .execute(pool)
+    .await?;
+
+    // Now delete the conversation
     let result = sqlx::query(
         r#"
         DELETE FROM conversations
