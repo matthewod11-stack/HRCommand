@@ -38,10 +38,10 @@ A desktop AI assistant for HR professionals that keeps your employee data local 
 | 2. Context | ✅ Done | AI knows your company, query-adaptive retrieval, 63 tests |
 | 3. Protection | ✅ Done | PII redaction, audit logging, error handling, offline mode |
 | 4. Polish | ✅ Done | Onboarding, Settings, Backup/Restore, Monday Digest |
-| V2 Planning | 🔍 Current | Reviewing deferred features before launch |
+| V2 Features | 🔨 Current | Intelligence & visualization enhancements |
 | 5. Launch | ⏳ Planned | Distribution, license system, beta users |
 
-**Current:** V2 Feature Planning Pause — deciding which features to add before launch.
+**Current:** V2.1.1 API Key Setup Guide complete. Next: Command Palette or Persona Switcher.
 
 ## Key Features (Planned)
 
