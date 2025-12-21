@@ -11,6 +11,52 @@
 Most recent session should be first.
 -->
 
+## Session 2025-12-21 (V2 Feature Planning — Roadmap Restructure)
+
+**Phase:** V2 Feature Planning
+**Focus:** Promote high/medium impact features to ROADMAP.md, restructure KNOWN_ISSUES.md
+
+### Summary
+Created comprehensive Phase V2 in ROADMAP.md with 5 sub-phases (V2.1-V2.5) containing ~65 new tasks. Incorporated user's enhancement ideas: Insight Canvas, Structured Data Extraction schema, and Org Chart Heatmap overlay. Restructured KNOWN_ISSUES.md to reference promoted features and keep parking lot items in collapsible sections.
+
+### Files Modified
+```
+docs/ROADMAP.md        (+265 lines) - Added Phase V2: Intelligence & Visualization
+docs/KNOWN_ISSUES.md   (-400, +220) - Restructured V2 section, archived promoted features
+```
+
+### Key Changes
+
+**ROADMAP.md — Phase V2 Added:**
+| Sub-Phase | Focus | Tasks |
+|-----------|-------|-------|
+| V2.1 | Quick Wins (API Key Guide, Command Palette, Personas, Verification) | 17 |
+| V2.2 | Data Intelligence Pipeline (Structured Extraction, Retrieval v2) | 10 |
+| V2.3 | Visualization (Org Chart + Heatmap, Analytics Panel + Insight Canvas) | 22 |
+| V2.4 | Intelligence (Attrition Signals, DEI Lens) | 13 |
+| V2.5 | Import/Export (Data Quality Center) | 6 |
+
+**User Enhancement Ideas Incorporated:**
+- **Insight Canvas** — Pin charts to persistent boards, annotate, export 1-page reports
+- **Structured Data Extraction** — Extract strengths/opportunities/quotes/themes from reviews
+- **Org Chart Heatmap** — Attention score overlay connected to Attrition Signals
+
+**KNOWN_ISSUES.md Restructured:**
+- Promoted features now reference ROADMAP.md sections
+- Parking lot features in collapsible `<details>` sections
+- Edge case references updated to V2.2.1/V2.2.2
+
+### Verification
+- [x] TypeScript type-check passes
+- [x] Production build succeeds (763KB)
+- [x] 143 Rust tests pass (1 pre-existing file_parser failure)
+
+### Next Session Should
+1. Begin V2.2.1 (Structured Data Extraction) — design extraction schema first
+2. Or start with V2.1.1 (API Key Guide) for a quick win
+
+---
+
 ## Session 2025-12-20 (Phase 4.4 — Monday Digest)
 
 **Phase:** 4.4 — Monday Digest

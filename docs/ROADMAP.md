@@ -36,7 +36,7 @@ This is a **long-running, multi-session implementation**. Follow these rules:
 | 2 | Context | ✓ Complete | 2A: Context injection works ✓ |
 | 3 | Protection | ✓ Complete | 3A: PII redaction works ✓ |
 | 4 | Polish | ✓ Complete | 4A: Onboarding complete ✓ |
-| — | **V2 Planning** | **← Current** | Review deferred features |
+| V2 | Intelligence & Visualization | **← Current** | V2.1-V2.5: See below |
 | 5 | Launch | Not started | 5A: Distribution, 5B: Beta ready |
 
 ---
@@ -323,20 +323,267 @@ This is a **long-running, multi-session implementation**. Follow these rules:
 
 ---
 
-## V2 Feature Planning Pause
+## Phase V2: Intelligence & Visualization
 
-**Goal:** Review deferred features and decide what to include before launch
+**Goal:** Transform the app from Q&A tool into an HR intelligence platform with visual analytics, proactive signals, and structured data extraction.
 
-Before proceeding to Phase 5 (Launch), review:
-- `docs/KNOWN_ISSUES.md` — Deferred Decisions section
-- Candidate V2 features for pre-launch implementation
+> **Philosophy:** Each feature amplifies the others. Structured data extraction powers signals; signals visualize on org charts; charts persist to insight canvases.
 
-**Candidates from KNOWN_ISSUES.md:**
-- [ ] Interactive Analytics Panel (High value, High complexity)
-- [ ] Org Chart View (High value, Medium complexity)
-- [ ] Beginner-Friendly API Key Setup Guide (High value, Low complexity)
-- [ ] Persona Switcher (Medium value, Low complexity)
-- [ ] Keyboard Shortcuts (Low value, Low complexity)
+---
+
+### V2.1 Quick Wins (Low Complexity)
+
+Quick polish features that improve UX without architectural changes.
+
+#### V2.1.1 API Key Setup Guide (Enhanced)
+> **Impact:** 🔥 High | **Est. Sessions:** 1
+
+Plain-English onboarding for non-technical HR users.
+
+- [ ] V2.1.1a Add "What is an API key?" explainer with plain language
+- [ ] V2.1.1b Add step-by-step screenshots (account → billing → key → paste)
+- [ ] V2.1.1c Add inline key validation with error-specific guidance
+- [ ] V2.1.1d Add usage cost estimator ("~$5-20/month for typical use")
+- [ ] V2.1.1e Add troubleshooting tips for common errors
+
+#### V2.1.2 Command Palette + Keyboard Shortcuts
+> **Impact:** ⚡ Medium | **Est. Sessions:** 1
+
+Power user polish with discoverability.
+
+- [ ] V2.1.2a Create CommandPalette component (`Cmd+K`)
+- [ ] V2.1.2b Add fuzzy search across actions, conversations, employees
+- [ ] V2.1.2c Implement core shortcuts: `Cmd+N` (new), `Cmd+/` (focus), `Cmd+E` (employees), `Cmd+,` (settings)
+- [ ] V2.1.2d Show keyboard hints in palette and menus
+
+#### V2.1.3 Persona Switcher
+> **Impact:** ⚡ Medium | **Est. Sessions:** 1
+
+Pre-built HR personas for different organizational styles.
+
+- [ ] V2.1.3a Create persona definitions (Alex, Jordan, Sam, Morgan, Taylor)
+- [ ] V2.1.3b Add persona selector in Settings panel
+- [ ] V2.1.3c Create persona preview cards with tone samples
+- [ ] V2.1.3d Wire selected persona to system prompt
+
+**Personas:**
+| Persona | Style | Best For |
+|---------|-------|----------|
+| Alex (default) | Warm, practical | General HR leadership |
+| Jordan | Formal, compliance-focused | Regulated industries |
+| Sam | Startup-friendly, direct | Early-stage, lean HR |
+| Morgan | Data-driven, analytical | Metrics-focused users |
+| Taylor | Employee-advocate, empathetic | People-first cultures |
+
+#### V2.1.4 Answer Verification Mode
+> **Impact:** ⚡ Medium | **Est. Sessions:** 1
+
+Trust but verify numeric answers.
+
+- [ ] V2.1.4a Detect numeric questions (headcount, averages, percentages)
+- [ ] V2.1.4b Run parallel SQL query for ground truth
+- [ ] V2.1.4c Display verification badge (✓ Verified / ⚠️ Check)
+- [ ] V2.1.4d Add "Show SQL" option for transparency
+
+### Pause Point V2.1
+**Verification Required:**
+- [ ] Non-technical user can complete API key setup with guide
+- [ ] `Cmd+K` opens palette with searchable actions
+- [ ] Can switch personas and see different response tones
+- [ ] Numeric answers show verification badges
+
+---
+
+### V2.2 Data Intelligence Pipeline
+
+Foundation layer that powers visualization and signals features.
+
+#### V2.2.1 Structured Data Extraction (Review Highlights Pipeline)
+> **Impact:** 🔥 High | **Est. Sessions:** 2-3
+
+Extract structured entities from performance reviews, turning prose into computable data.
+
+- [ ] V2.2.1a Design extraction schema (strengths, opportunities, quotes, sentiment)
+- [ ] V2.2.1b Create extraction pipeline (runs on review import)
+- [ ] V2.2.1c Store extracted data in new `review_highlights` table
+- [ ] V2.2.1d Create employee profile summaries (aggregate career narrative)
+- [ ] V2.2.1e Add cache invalidation on review add/edit
+- [ ] V2.2.1f Update context builder to use highlights instead of full reviews
+
+**Extraction Schema:**
+```json
+{
+  "strengths": ["Project leadership", "Mentoring junior devs"],
+  "opportunities": ["Meeting deadlines", "Public speaking"],
+  "quotes": [
+    { "sentiment": "positive", "text": "Sarah was instrumental in the v2 launch..." }
+  ],
+  "themes": ["leadership", "technical-growth", "communication"]
+}
+```
+
+**Why This Matters:** Enables sophisticated queries like "Show me all engineers who received feedback about 'meeting deadlines'" and powers Attrition Signals (#V2.4.1) with structured data instead of raw text sentiment.
+
+#### V2.2.2 Query-Adaptive Retrieval v2
+> **Impact:** ⚡ Medium | **Est. Sessions:** 2
+
+Enhance V1's query classification with smarter context selection.
+
+- [ ] V2.2.2a Add dynamic excerpting for long content (pull relevant sentences)
+- [ ] V2.2.2b Implement theme-based retrieval ("common concerns" → mine themes)
+- [ ] V2.2.2c Add measurable token budgets by query type
+- [ ] V2.2.2d Add retrieval metrics (track what context was used)
+
+### Pause Point V2.2
+**Verification Required:**
+- [ ] Imported reviews generate structured highlights
+- [ ] Can query by extracted themes ("who has leadership feedback?")
+- [ ] Employee profiles show aggregated career narrative
+- [ ] Long reviews don't blow token budgets
+
+---
+
+### V2.3 Visualization Layer
+
+Visual analytics that transforms answers into artifacts.
+
+#### V2.3.1 Org Chart View + Heatmap Overlay
+> **Impact:** 🔥 High | **Est. Sessions:** 3-4
+
+Interactive hierarchy visualization with signal overlays.
+
+**Core Org Chart:**
+- [ ] V2.3.1a Create OrgChart component with tree visualization
+- [ ] V2.3.1b Implement expand/collapse for direct reports
+- [ ] V2.3.1c Add click-to-select (syncs with People panel)
+- [ ] V2.3.1d Add search/filter within tree
+- [ ] V2.3.1e Add zoom/pan for large orgs
+- [ ] V2.3.1f Add department color coding
+
+**Heatmap Overlay (connects to Attrition Signals):**
+- [ ] V2.3.1g Create "attention score" composite calculation
+- [ ] V2.3.1h Implement heatmap coloring by team/department
+- [ ] V2.3.1i Add click-to-drill into anonymized themes
+- [ ] V2.3.1j Add overlay toggle (off by default)
+
+**Attention Score Factors:**
+- High turnover (YTD terminations / headcount)
+- Low eNPS (team average below org average)
+- Negative review themes (from V2.2.1 extraction)
+
+#### V2.3.2 Interactive Analytics Panel + Insight Canvas
+> **Impact:** 🔥 Very High | **Est. Sessions:** 5-6
+
+Natural language → charts with persistent insights.
+
+**Core Analytics Panel:**
+- [ ] V2.3.2a Design analytics request schema (intent + filters + grouping)
+- [ ] V2.3.2b Create whitelisted NL→SQL templates (safe, deterministic)
+- [ ] V2.3.2c Implement chart rendering (bar, pie, line)
+- [ ] V2.3.2d Add "Filters applied" caption for explainability
+- [ ] V2.3.2e Add graceful fallback to text for non-chartable queries
+- [ ] V2.3.2f Wire Claude to emit structured analytics requests
+
+**Insight Canvas (persistent workspace):**
+- [ ] V2.3.2g Create InsightCanvas component (persistent chart storage)
+- [ ] V2.3.2h Add "Pin to Canvas" action from analytics panel
+- [ ] V2.3.2i Create named boards ("Q3 Review", "Leadership Dashboard")
+- [ ] V2.3.2j Add chart annotation capability
+- [ ] V2.3.2k Add 1-page report export (combine pinned charts)
+- [ ] V2.3.2l Add drilldown from chart → employee list
+
+**Technical Contract (Keep It Deterministic):**
+- Claude emits **structured analytics request** (intent + filters + grouping)
+- Rust runs deterministic SQLite query, returns **dataset + applied filters**
+- React renders from **chart spec + dataset**
+- Never let Claude generate numbers — source all aggregates from SQL
+
+**Example Queries:**
+- "Show me employee breakdown by department" → pie chart
+- "Compare marketing vs sales headcount over time" → line chart
+- "What's the gender breakdown on engineering?" → bar chart, pinnable
+
+### Pause Point V2.3
+**Verification Required:**
+- [ ] Org chart renders full hierarchy from manager_id relationships
+- [ ] Can navigate tree, expand/collapse branches
+- [ ] Heatmap overlay shows team "attention scores"
+- [ ] Natural language query generates appropriate chart
+- [ ] Can pin chart to named board
+- [ ] Can export board as 1-page report
+
+---
+
+### V2.4 Intelligence Layer
+
+Proactive insights with appropriate guardrails.
+
+#### V2.4.1 Attrition & Sentiment Signals
+> **Impact:** 🔥 High | **Est. Sessions:** 2-3
+> **Depends on:** V2.2.1 (Structured Extraction), V2.3.1 (Org Chart Heatmap)
+
+Systemic risk identification with strong disclaimers.
+
+- [ ] V2.4.1a Define heuristic risk flags (tenure + performance + eNPS composite)
+- [ ] V2.4.1b Create theme mining from extracted review data
+- [ ] V2.4.1c Implement team-level aggregation (never individual predictions)
+- [ ] V2.4.1d Add "Attention Areas" summary in analytics panel
+- [ ] V2.4.1e Wire to Org Chart heatmap overlay
+- [ ] V2.4.1f Add opt-in toggle in Settings
+- [ ] V2.4.1g Add prominent disclaimers ("heuristic, not prediction")
+
+**Guardrails:**
+- Show patterns, not "John will leave"
+- Require opt-in to enable
+- Explain which factors contributed
+- All outputs are team-level, anonymized
+
+#### V2.4.2 DEI & Fairness Lens
+> **Impact:** ⚡ Medium | **Est. Sessions:** 3-4
+> **Depends on:** V2.2.1 (Structured Extraction)
+
+Representation analysis with appropriate guardrails.
+
+- [ ] V2.4.2a Create representation breakdown queries (gender/ethnicity by dept/level)
+- [ ] V2.4.2b Add rating distribution analysis by demographic group
+- [ ] V2.4.2c Implement promotion delta tracking
+- [ ] V2.4.2d Add small-n suppression (hide groups <5)
+- [ ] V2.4.2e Add bias disclaimers ("data may reflect historical bias")
+- [ ] V2.4.2f Add DEI query audit trail
+
+### Pause Point V2.4
+**Verification Required:**
+- [ ] Team-level attention signals appear on org chart
+- [ ] Clicking team shows anonymized theme drilldown
+- [ ] DEI breakdown queries work with small-n suppression
+- [ ] All signals show appropriate disclaimers
+
+---
+
+### V2.5 Import/Export Enhancements
+
+Better data quality and workflow.
+
+#### V2.5.1 Data Quality Center
+> **Impact:** 🔥 High | **Est. Sessions:** 2-3
+
+Pre-import validation and fix workflow.
+
+- [ ] V2.5.1a Create column mapping UI (visual drag-drop)
+- [ ] V2.5.1b Add header normalization preview
+- [ ] V2.5.1c Implement dedupe detection (email + name/DOB)
+- [ ] V2.5.1d Add validation rules (missing managers, invalid dates)
+- [ ] V2.5.1e Create "fix-and-retry" workflow (edit issues in-app)
+- [ ] V2.5.1f Add HRIS-specific header mappings (BambooHR, Gusto, etc.)
+
+**Ties to Known Issue:** Fixes `file_parser::tests::test_normalize_header` by strengthening normalization rules.
+
+### Pause Point V2.5 (Phase V2 Complete)
+**Verification Required:**
+- [ ] Can map arbitrary CSV columns to fields visually
+- [ ] Duplicates detected and highlighted before import
+- [ ] Can fix validation errors in-app before committing
+- [ ] BambooHR export imports with auto-detected columns
 
 ---
 
@@ -435,9 +682,23 @@ PHASE 4 - POLISH ✓ COMPLETE
 [x] 4.4.1-4.4.4 Monday digest (4 tasks)
 [x] PAUSE 4A: Onboarding complete
 
-V2 FEATURE PLANNING PAUSE
-[ ] Review deferred features in KNOWN_ISSUES.md
-[ ] Decide which V2 features to implement before launch
+PHASE V2 - INTELLIGENCE & VISUALIZATION
+[ ] V2.1.1a-e API Key Guide (5 tasks)
+[ ] V2.1.2a-d Command Palette (4 tasks)
+[ ] V2.1.3a-d Persona Switcher (4 tasks)
+[ ] V2.1.4a-d Answer Verification (4 tasks)
+[ ] PAUSE V2.1: Quick Wins verified
+[ ] V2.2.1a-f Structured Data Extraction (6 tasks)
+[ ] V2.2.2a-d Query-Adaptive Retrieval v2 (4 tasks)
+[ ] PAUSE V2.2: Data Intelligence Pipeline verified
+[ ] V2.3.1a-j Org Chart + Heatmap (10 tasks)
+[ ] V2.3.2a-l Analytics Panel + Insight Canvas (12 tasks)
+[ ] PAUSE V2.3: Visualization Layer verified
+[ ] V2.4.1a-g Attrition & Sentiment Signals (7 tasks)
+[ ] V2.4.2a-f DEI & Fairness Lens (6 tasks)
+[ ] PAUSE V2.4: Intelligence Layer verified
+[ ] V2.5.1a-f Data Quality Center (6 tasks)
+[ ] PAUSE V2.5: Phase V2 Complete
 
 PHASE 5 - LAUNCH
 [ ] 5.1.1-5.1.5 Distribution (5 tasks)
@@ -449,7 +710,7 @@ PHASE 5 - LAUNCH
 [ ] PAUSE 5B: Launch ready
 ```
 
-**Total: ~100 discrete tasks across 5 phases**
+**Total: ~165 discrete tasks across 6 phases (0-4 + V2 + 5)**
 
 ---
 

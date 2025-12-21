@@ -80,213 +80,80 @@ These decisions were made during planning and should NOT be revisited during imp
 
 ---
 
-## V2 Feature Candidates
+## V2 Features
 
-Features deferred from V1, organized by category. Use this to prioritize pre-launch additions.
-
----
-
-### Recommended V2 Cutline
-
-**🚀 Pre-Launch Wins (Low lift, high value):**
-| Feature | Sessions | Why Now |
-|---------|----------|---------|
-| API Key Guide (enhanced) | 1 | Removes biggest onboarding friction |
-| Command Palette + Shortcuts | 1 | Power user polish, easy win |
-| Review Highlights Pipeline | 1-2 | Fixes long review context issue |
-| Explainability & Citations | 1 | Trust + transparency |
-
-**⚡ Stretch Goals (Medium lift):**
-| Feature | Sessions | Why Consider |
-|---------|----------|--------------|
-| Org Chart MVP | 2-3 | Visual hierarchy, data exists |
-| Analytics Panel MVP | 3-4 | Templated queries + drilldowns |
-| Data Quality Center | 2-3 | Mapping + validation + fix workflow |
-| Attrition Signals (basic) | 2 | Proactive value, strong disclaimers |
-
-**📅 Later (High lift, defer until demand):**
-- Document/PDF Ingestion (3-4 sessions)
-- Compensation Data with sensitive mode (3-4 sessions)
-- Multi-Company / Workspaces (3+ sessions)
-- Windows/Linux Support (5+ sessions)
-- DEI & Fairness Lens (3-4 sessions)
+> **Note:** High and medium impact V2 features have been promoted to **Phase V2** in [ROADMAP.md](./ROADMAP.md).
+> This section tracks remaining low-priority features and future ideas.
 
 ---
 
-### Summary Table — All Features
+### Promoted to Roadmap (Phase V2)
 
-#### Core Product Features
+The following features are now tracked in `docs/ROADMAP.md` under **Phase V2: Intelligence & Visualization**:
 
-| # | Feature | Impact | Complexity | Sessions | Category |
-|---|---------|--------|------------|----------|----------|
-| 1 | Interactive Analytics Panel | 🔥 Very High | High | 4-6 | Visualization |
-| 2 | API Key Guide (enhanced) | 🔥 High | Low | 1 | Onboarding |
-| 3 | Org Chart View | 🔥 High | Medium | 2-3 | Visualization |
-| 4 | Persona Switcher | ⚡ Medium | Low | 1 | UX |
-| 5 | Document/PDF Ingestion | ⚡ Medium | High | 3-4 | Data |
-| 6 | Compensation Data | ⚡ Medium | High | 3-4 | Data |
-| 7 | Command Palette + Shortcuts | ⚡ Medium | Low | 1 | UX |
-| 8 | Multi-State Locations | 💡 Low | Medium | 1-2 | Data |
-| 9 | Expanded PII Detection | 💡 Low | Medium | 1-2 | Security |
-| 10 | Multi-Company Support | 💡 Low | Medium | 3 | Data |
-| 11 | Windows/Linux Support | 💡 Low | High | 5+ | Platform |
+| Feature | Roadmap Section | Status |
+|---------|-----------------|--------|
+| Interactive Analytics Panel + Insight Canvas | V2.3.2 | Not started |
+| API Key Setup Guide (Enhanced) | V2.1.1 | Not started |
+| Org Chart View + Heatmap Overlay | V2.3.1 | Not started |
+| Persona Switcher | V2.1.3 | Not started |
+| Command Palette + Shortcuts | V2.1.2 | Not started |
+| Answer Verification Mode | V2.1.4 | Not started |
+| Structured Data Extraction (Review Highlights) | V2.2.1 | Not started |
+| Query-Adaptive Retrieval v2 | V2.2.2 | Not started |
+| Attrition & Sentiment Signals | V2.4.1 | Not started |
+| DEI & Fairness Lens | V2.4.2 | Not started |
+| Data Quality Center | V2.5.1 | Not started |
 
-#### New Feature Categories
+---
 
-| # | Feature | Impact | Complexity | Sessions | Category |
-|---|---------|--------|------------|----------|----------|
-| 12 | Attrition & Sentiment Signals | 🔥 High | Medium | 2-3 | Intelligence |
-| 13 | DEI & Fairness Lens | ⚡ Medium | High | 3-4 | Intelligence |
-| 14 | Data Quality Center | 🔥 High | Medium | 2-3 | Import/Export |
-| 15 | Review Highlights Pipeline | 🔥 High | Medium | 1-2 | Context/LLM |
-| 16 | Query-Adaptive Retrieval v2 | ⚡ Medium | Medium | 2 | Context/LLM |
-| 17 | Answer Verification Mode | ⚡ Medium | Low | 1 | Context/LLM |
-| 18 | Safe Share Packs | ⚡ Medium | Medium | 2 | Security |
-| 19 | Tamper-Evident Audit | 💡 Low | Medium | 1-2 | Security |
-| 20 | Optional Local DB Encryption | 💡 Low | Medium | 2 | Security |
-| 21 | HRIS Templates | ⚡ Medium | Medium | 2 | Import/Export |
-| 22 | Bulk Actions & Backfills | ⚡ Medium | Medium | 1-2 | Import/Export |
-| 23 | Keyboard Navigation Complete | 💡 Low | Low | 1 | Accessibility |
-| 24 | Branding & Theming | 💡 Low | Low | 1 | UX |
+### V2 Parking Lot (Lower Priority)
+
+Features deferred until demand is established. Track user requests.
+
+#### Data & Platform
+
+| Feature | Impact | Complexity | Notes |
+|---------|--------|------------|-------|
+| Document/PDF Ingestion | ⚡ Medium | High | Phase 1: FTS only, Phase 2: embeddings |
+| Compensation Data | ⚡ Medium | High | Requires sensitive mode + encryption |
+| Multi-State Locations | 💡 Low | Medium | Location history with effective dates |
+| Multi-Company/Workspaces | 💡 Low | Medium | Separate SQLite DBs per company |
+| Windows/Linux Support | 💡 Low | High | Keyring abstraction, packaging matrix |
+
+#### Security Enhancements
+
+| Feature | Impact | Complexity | Notes |
+|---------|--------|------------|-------|
+| Expanded PII Detection | 💡 Low | Medium | Medical, immigration, DL numbers |
+| Safe Share Packs | ⚡ Medium | Medium | Redacted exports with watermarking |
+| Tamper-Evident Audit | 💡 Low | Medium | Hash-chained audit log entries |
+| Optional Local DB Encryption | 💡 Low | Medium | SQLCipher for comp-enabled installs |
+
+#### Import/Export Enhancements
+
+| Feature | Impact | Complexity | Notes |
+|---------|--------|------------|-------|
+| HRIS Templates | ⚡ Medium | Medium | BambooHR, Gusto, Rippling mappings |
+| Bulk Actions & Backfills | ⚡ Medium | Medium | Post-import fix workflows |
+
+#### UX & Accessibility
+
+| Feature | Impact | Complexity | Notes |
+|---------|--------|------------|-------|
+| Keyboard Navigation Complete | 💡 Low | Low | WCAG AA, screen reader support |
+| Branding & Theming | 💡 Low | Low | Company logo, accent colors |
 
 **Legend:** 🔥 High impact | ⚡ Medium | 💡 Low priority
 
 ---
 
-### 1. Interactive Analytics Panel (Natural Language → Charts)
-**Impact:** 🔥 Very High | **Complexity:** High | **Est. Sessions:** 4-6
-**Category:** Visualization
+### Parking Lot Feature Details
 
-A collapsible analytics panel that renders beautiful, interactive charts/graphs in response to natural language queries in the chat.
+<details>
+<summary><strong>Document/PDF Ingestion</strong> (⚡ Medium impact, High complexity)</summary>
 
-**Examples:**
-- "Show me employee breakdown by department" → pie/bar chart appears
-- "What's the gender breakdown on the engineering team?" → chart updates
-- "Now show me by tenure" → drills deeper, chart animates to new view
-- "Compare marketing vs sales headcount over time" → line chart
-
-**Why This Is Compelling (Product):**
-- Turns "answers" into **artifacts** (charts you can reference, export, and share)
-- Reduces back-and-forth: users can **iterate visually** ("filter to active", "only CA")
-- Makes the app feel like an **HR cockpit**, not just a chat box (flagship differentiator)
-
-**V2 Enhancements (beyond MVP):**
-- Whitelisted NL→SQL templates (safe, deterministic queries)
-- Live breakdowns by dept/level/location
-- Drilldowns from chart → employee list
-- Saved charts / pinned insights
-- Export to CSV/PDF
-- "Insert chart into chat" for sharing context
-
-**Technical Contract (Keep It Deterministic):**
-- Claude emits **structured analytics request** (intent + filters + grouping)
-- Rust runs deterministic SQLite query, returns **dataset + applied filters**
-- React renders from **chart spec + dataset**
-- Never let Claude generate numbers — source all aggregates from SQL
-
-**UX Principles:**
-- Chat remains control surface; panel is result view
-- One chart at a time (no dashboards)
-- Graceful fallback to text if query can't be charted
-- Show "Filters applied" caption for explainability
-
-**Why Flagship V2:** Transforms the app from Q&A tool to visual analytics assistant.
-
----
-
-### 2. Beginner-Friendly API Key Setup Guide (Enhanced)
-**Impact:** 🔥 High | **Complexity:** Low | **Est. Sessions:** 1
-**Category:** Onboarding | **Pre-Launch:** ✅ Recommended
-
-The current API key setup just links to console.anthropic.com with minimal guidance — intimidating for HR professionals who've never used an API.
-
-**The Problem:**
-- Target users are HR leaders, not developers
-- "Get your key from console.anthropic.com" is jargon
-- No explanation of what an API key is or why it costs money
-
-**Proposed Solution — In-App Guided Walkthrough:**
-1. **What is this?** — Plain-English: "An API key lets this app talk to Claude. Think of it like a password that connects you to the brain behind the app."
-2. **Why does it cost money?** — "Claude is powered by Anthropic. You pay them directly — typically $5-20/month for normal HR use."
-3. **Step-by-step screenshots:** Account creation → billing → key generation → paste here
-4. **Troubleshooting tips:** Common errors (invalid key, billing not set up)
-
-**V2 Enhancements:**
-- **Inline test call** — Verify key works before proceeding
-- **Usage cost estimator** — "Based on typical usage, expect ~$X/month"
-- **Masked copy** — Show key as `sk-ant-...xxxx` with copy button
-- **Error-specific fixes** — Detect billing/permissions issues, show targeted guidance
-- **Sample mode** — "Try before you buy" with limited free queries to demonstrate value
-
----
-
-### 3. Org Chart View (Interactive Hierarchy Visualization)
-**Impact:** 🔥 High | **Complexity:** Medium | **Est. Sessions:** 2-3
-**Category:** Visualization
-
-Visual organizational hierarchy — data already exists via `employees.manager_id`.
-
-**Why This Is Compelling:**
-- **Visual understanding** of reporting relationships at a glance
-- **Navigate by clicking** — expand direct reports, see chain of command
-- **Natural complement** to chat — "Who reports to Sarah?" becomes visual
-- **Onboarding tool** — new HR users quickly understand org structure
-
-**MVP Features:**
-- Tree/hierarchy view with manager → direct reports
-- Click to expand/collapse branches
-- Click employee to select (syncs with People panel)
-- Search/filter to find people in tree
-- Zoom/pan for large orgs
-- Department color coding
-
-**V2 Enhancements:**
-- **Metric overlays** — Span of control, tenure, latest rating on hover
-- **Search + mini-map** — Quick navigation in large orgs
-- **Export to PNG/PDF** — For presentations and reports
-- **"What-if" sandbox** — Drag to simulate reorg (not persisted), see impact on span of control
-
-**Technical Approach:**
-- Tree visualization library (react-org-chart, D3 hierarchy, or GoJS)
-- New Rust query: `get_org_tree()` returns nested structure
-- Separate route/page or People panel view toggle
-
----
-
-### 4. Persona Switcher (Pre-Built HR Personas)
-**Impact:** ⚡ Medium | **Complexity:** Low | **Est. Sessions:** 1
-**Category:** UX
-
-V1 ships with "Alex" (warm, practical VP of People Ops). V2 offers multiple curated personas.
-
-**Candidate Personas:**
-
-| Persona | Style | Best For |
-|---------|-------|----------|
-| **Alex** (default) | Warm, practical, conversational | General HR leadership |
-| **Jordan** | Formal, compliance-focused | Regulated industries |
-| **Sam** | Startup-friendly, direct | Early-stage, lean HR |
-| **Morgan** | Data-driven, analytical | Metrics-focused users |
-| **Taylor** | Employee-advocate, empathetic | People-first cultures |
-
-**Implementation:**
-- Pre-written system prompts (not user-editable)
-- Selection in Settings panel (dropdown)
-- Persona cards with tone preview before selecting
-- All maintain same legal disclaimers and boundaries
-
-**V2 Enhancements:**
-- **Per-conversation persona** — Switch persona mid-session for different contexts
-- **Compliance persona** — Tighter phrasing, stronger disclaimers for regulated industries
-- **Tone preview** — Sample response showing persona style before committing
-
----
-
-### 5. Document/PDF Ingestion
-**Impact:** ⚡ Medium | **Complexity:** High | **Est. Sessions:** 3-4
-**Category:** Data
-
-V1 supports CSV, Excel, TSV. V2 adds PDF/DOCX for policy documents and handbooks.
+V1 supports CSV, Excel, TSV. This adds PDF/DOCX for policy documents.
 
 **Use Cases:**
 - Ask questions about company policies/handbooks
@@ -294,337 +161,142 @@ V1 supports CSV, Excel, TSV. V2 adds PDF/DOCX for policy documents and handbooks
 - Search across policy documents
 
 **Phased Approach:**
-1. **Phase 1 (simpler):** Text-only DOCX/PDF → FTS indexing (no vectors initially)
-2. **Phase 2:** Section-aware chunking, embeddings for semantic search
+1. Phase 1: Text-only DOCX/PDF → FTS indexing
+2. Phase 2: Section-aware chunking, embeddings for semantic search
 
-**V2 Enhancements:**
-- **Section-aware chunking** — Respect document structure (headings, paragraphs)
-- **Citations to page/section** — "See Employee Handbook, Section 4.2"
-- **Policy-tag filters** — Tag documents (handbook, benefits, compliance) for targeted context
-- **No vectors initially** — Start with FTS, add embeddings later if needed
+**Enhancements:**
+- Section-aware chunking respecting document structure
+- Citations to page/section ("See Employee Handbook, Section 4.2")
+- Policy-tag filters for targeted context
 
----
+</details>
 
-### 6. Compensation Data (Salary, Bonus, Equity)
-**Impact:** ⚡ Medium | **Complexity:** High | **Est. Sessions:** 3-4
-**Category:** Data
+<details>
+<summary><strong>Compensation Data</strong> (⚡ Medium impact, High complexity)</summary>
 
-V1 has performance/eNPS/demographics. Compensation adds significant security complexity.
+Add salary, bonus, and equity data with enhanced security.
 
-**V2 Would Add:**
+**Would Add:**
 - Salary history and current compensation
 - Bonus targets and payouts
 - Equity grants and vesting schedules
 - Pay equity analysis capabilities
 
-**V2 Enhancements (Security-First):**
-- **"Sensitive mode"** — Requires explicit unlock to view/query comp data
-- **Guardrailed pay equity templates** — Pre-built queries prevent misuse
-- **Banding/bucketing** — Show ranges, not exact salaries ("$120-140K band")
-- **AES-at-rest for comp tables** — Encrypt compensation-specific tables only
-- **Audit trail** — Log all comp data access for compliance
+**Security Requirements:**
+- "Sensitive mode" requiring explicit unlock
+- Guardrailed pay equity templates
+- Banding/bucketing (ranges, not exact figures)
+- AES-at-rest for comp tables only
+- Audit trail for all comp data access
 
----
+</details>
 
-### 7. Command Palette + Keyboard Shortcuts
-**Impact:** ⚡ Medium | **Complexity:** Low | **Est. Sessions:** 1
-**Category:** UX | **Pre-Launch:** ✅ Recommended
+<details>
+<summary><strong>Multi-State Locations</strong> (💡 Low impact, Medium complexity)</summary>
 
-Wrap shortcuts into a command palette (Cmd+K) for discoverability.
+Remote workers may work from multiple states.
 
-**Command Palette Features:**
-- `Cmd+K` — Open palette, fuzzy search all actions
-- List all available actions with keyboard hints
-- Search conversations, employees, settings
-- Quick employee jump ("Go to Sarah Chen")
-- Recent conversations list
+**Implementation:**
+- Location history table with effective dates
+- Compliance calendar using latest state
+- UI timeline on Employee detail
+- Import support for location history
 
-**Core Shortcuts:**
-- `Cmd+N` — New conversation
-- `Cmd+K` — Command palette
-- `Cmd+/` — Focus chat input
-- `Cmd+E` — Toggle employee panel
-- `Cmd+,` — Open settings
+</details>
 
----
+<details>
+<summary><strong>Multi-Company/Workspaces</strong> (💡 Low impact, Medium complexity)</summary>
 
-### 8. Multi-State Employee Locations
-**Impact:** 💡 Low | **Complexity:** Medium | **Est. Sessions:** 1-2
-**Category:** Data
+HR consultants with multiple clients.
 
-Remote workers may work from multiple states. V1 uses single primary location.
+**Implementation:**
+- Separate SQLite databases per company
+- Explicit workspace switcher in UI
+- Separate settings/export per workspace
+- No cross-workspace search (data isolation)
 
-**V2 Implementation:**
-- **Location history table** — Track locations with effective dates
-- **Compliance calendar** — Uses latest state for compliance context
-- **Simple UI timeline** — Show location history on Employee detail
-- **Import support** — Handle location history in CSV imports
+</details>
 
----
+<details>
+<summary><strong>Windows/Linux Support</strong> (💡 Low impact, High complexity)</summary>
 
-### 9. Expanded PII Detection (Medical/Immigration)
-**Impact:** 💡 Low | **Complexity:** Medium | **Est. Sessions:** 1-2
-**Category:** Security
+macOS only for V1. Cross-platform adds significant complexity.
 
-V1 detects financial PII only (SSN, CC, bank) to reduce false positives.
+**Challenges:**
+- Keyring abstraction (Keychain → Credential Manager → Secret Service)
+- Path differences for app data
+- Platform-specific auto-update mechanisms
+- Packaging matrix (.dmg, .msi/.exe, .deb/.AppImage)
 
-**V2 Could Add:**
+**Recommendation:** Defer until demand is real. Track requests.
+
+</details>
+
+<details>
+<summary><strong>Expanded PII Detection</strong> (💡 Low impact, Medium complexity)</summary>
+
+V1 detects financial PII only (SSN, CC, bank).
+
+**Could Add:**
 - Medical record numbers
 - Immigration document numbers (visa, I-9)
 - Driver's license numbers
 
-**V2 Enhancements:**
-- **Confidence scoring** — Show confidence level for each detection
-- **Preview mask** — Show what will be redacted before sending
-- **Domain-specific patterns** — Opt-in for medical/immigration (may have false positives)
-- **Golden tests** — Add tests with realistic false positive scenarios
+**Enhancements:**
+- Confidence scoring for each detection
+- Preview mask before sending
+- Domain-specific patterns (opt-in)
 
----
+</details>
 
-### 10. Multi-Company Support (Workspaces)
-**Impact:** 💡 Low | **Complexity:** Medium | **Est. Sessions:** 3
-**Category:** Data
-
-HR consultants with multiple clients might want company switching.
-
-**V2 Implementation ("Workspaces"):**
-- **Workspaces in data dir** — Separate SQLite databases per company
-- **Explicit switcher** — Clear workspace selector in UI
-- **Separate settings/export per workspace** — No cross-contamination
-- **No cross-workspace search** — Keep data isolated
-- **Separate API key per workspace** — Or shared, user choice
-
----
-
-### 11. Windows/Linux Support
-**Impact:** 💡 Low | **Complexity:** High | **Est. Sessions:** 5+
-**Category:** Platform
-
-macOS only for V1. Cross-platform adds significant complexity.
-
-**Implementation Challenges:**
-- **Keyring abstraction** — macOS Keychain → Windows Credential Manager → Linux Secret Service
-- **Path differences** — App data, config, temp directories
-- **Updater differences** — Platform-specific auto-update mechanisms
-- **Packaging matrix** — .dmg, .msi/.exe, .deb/.AppImage
-
-**Recommendation:** Defer until demand is real. Track requests.
-
----
-
-## New V2 Feature Categories
-
-### 12. Attrition & Sentiment Signals
-**Impact:** 🔥 High | **Complexity:** Medium | **Est. Sessions:** 2-3
-**Category:** Intelligence
-
-Proactive risk identification with strong disclaimers.
-
-**Core Features:**
-- **Heuristic risk flags** — Tenure dip + poor performance trend + negative eNPS
-- **Themed topic mining** — Extract themes from review/eNPS comments
-- **Flight risk indicators** — Combined signals, not individual predictions
-
-**Guardrails:**
-- **Strong disclaimers** — "This is a heuristic, not a prediction"
-- **Opt-in controls** — User must enable risk indicators
-- **No individual predictions** — Show patterns, not "John will leave"
-- **Explainability** — Show which factors contributed to flags
-
----
-
-### 13. DEI & Fairness Lens
-**Impact:** ⚡ Medium | **Complexity:** High | **Est. Sessions:** 3-4
-**Category:** Intelligence
-
-Representation and fairness analysis with appropriate guardrails.
-
-**Core Features:**
-- **Representation dashboards** — Gender/ethnicity breakdown by dept/level
-- **Rating distribution analysis** — Compare ratings across demographic groups
-- **Promotion delta tracking** — Who's being promoted at what rates
-
-**Guardrails:**
-- **Bias disclaimers** — "Data may reflect historical bias"
-- **Bucketed results** — Never show individual-level demographic comparisons
-- **No small-n suppression** — Hide results for groups <5 to prevent identification
-- **Audit trail** — Log all DEI queries for compliance
-
----
-
-### 14. Data Quality Center
-**Impact:** 🔥 High | **Complexity:** Medium | **Est. Sessions:** 2-3
-**Category:** Import/Export | **Pre-Launch:** ⚡ Stretch Goal
-
-Better import experience with validation and fix workflow.
-
-**Core Features:**
-- **Pre-import mapping UI** — Map CSV columns to fields visually
-- **Header normalization preview** — Show how headers will be interpreted
-- **Dedupe by email/name+DOB** — Identify potential duplicates before import
-- **Validation rules** — Flag missing managers, invalid dates, orphan records
-- **"Fix-and-retry" workflow** — Edit issues in-app before committing
-
-**Ties to Known Issue:** Fixes `file_parser::tests::test_normalize_header` by strengthening normalization rules and adding HRIS-specific header mappings.
-
----
-
-### 15. Review Highlights Pipeline
-**Impact:** 🔥 High | **Complexity:** Medium | **Est. Sessions:** 1-2
-**Category:** Context/LLM | **Pre-Launch:** ✅ Recommended
-
-Precompute summaries to handle long performance reviews.
-
-**The Problem:** Real reviews can be 500-2000+ words. Including full reviews in context blows token budgets.
-
-**Solution:**
-- **Precompute per-review "highlights"** — Key strengths, areas for improvement (run on import)
-- **Precompute per-employee "profile summaries"** — Aggregate career narrative
-- **Cache and update on data changes** — Invalidate when reviews added/edited
-- **Use highlights in context** — Full reviews available on-demand via drilldown
-
-**Ties to Known Issue:** Addresses "Long performance reviews in context" edge case.
-
----
-
-### 16. Query-Adaptive Retrieval v2
-**Impact:** ⚡ Medium | **Complexity:** Medium | **Est. Sessions:** 2
-**Category:** Context/LLM
-
-Enhance V1's query classification with smarter retrieval.
-
-**V2 Enhancements:**
-- **Dynamic excerpting for long reviews** — Pull relevant sentences, not full text
-- **Theme extraction for aggregates** — "What are common concerns?" → mine themes
-- **Token budgets by query type** — Measurable limits, not just heuristics
-- **Retrieval metrics** — Track what context was used, measure quality
-
----
-
-### 17. Answer Verification Mode
-**Impact:** ⚡ Medium | **Complexity:** Low | **Est. Sessions:** 1
-**Category:** Context/LLM | **Pre-Launch:** ⚡ Stretch Goal
-
-Trust but verify numeric answers.
-
-**Implementation:**
-- For numeric questions, compute aggregates locally (SQL)
-- Compare Claude's answer to ground truth
-- Show **verification badge** ✓ if match, **mismatch warning** ⚠️ if different
-- User can click to see SQL query and result
-
-**Examples:**
-- "How many engineers?" → SQL says 23, Claude says 23 → ✓ Verified
-- "What's average tenure?" → SQL says 2.3 years, Claude says 2.5 → ⚠️ Check
-
----
-
-### 18. Safe Share Packs
-**Impact:** ⚡ Medium | **Complexity:** Medium | **Est. Sessions:** 2
-**Category:** Security
+<details>
+<summary><strong>Safe Share Packs</strong> (⚡ Medium impact, Medium complexity)</summary>
 
 One-click redacted exports for sharing.
 
 **Use Cases:**
-- Share employee brief with manager (no PII, no comp unless unlocked)
+- Share employee brief with manager (no PII)
 - Export team report for leadership
 - Prepare materials for legal/compliance
 
 **Features:**
-- **Redacted employee briefs** — Performance summary without SSN/comp
-- **Team reports** — Aggregate data, no individual PII
-- **Watermarking** — "Generated for [User] on [Date]"
-- **Export logs** — Track what was shared and when
+- Redacted employee briefs
+- Team reports with aggregate data only
+- Watermarking with user/date
+- Export logs
 
----
+</details>
 
-### 19. Tamper-Evident Audit
-**Impact:** 💡 Low | **Complexity:** Medium | **Est. Sessions:** 1-2
-**Category:** Security
-
-Increase trust with legal/compliance reviewers.
-
-**Implementation:**
-- **Hash-chained audit log entries** — Each entry includes hash of previous
-- **"Export Audit Pack"** — One-click export for compliance review
-- **Integrity verification** — Detect if any entries were modified
-
----
-
-### 20. Optional Local DB Encryption
-**Impact:** 💡 Low | **Complexity:** Medium | **Est. Sessions:** 2
-**Category:** Security
-
-Revisit V1 decision for comp-enabled installs.
-
-**Implementation:**
-- **Opt-in for sensitive data** — Enable when compensation data imported
-- **Passphrase-on-open** — Require passphrase to unlock database
-- **macOS Keychain escrow** — Store passphrase in Keychain for convenience
-- **Transparent to app** — SQLCipher or similar, no code changes needed
-
----
-
-### 21. HRIS Templates
-**Impact:** ⚡ Medium | **Complexity:** Medium | **Est. Sessions:** 2
-**Category:** Import/Export
+<details>
+<summary><strong>HRIS Templates</strong> (⚡ Medium impact, Medium complexity)</summary>
 
 Pre-built mappings for common HRIS exports.
 
 **Supported HRIS:**
-- BambooHR
-- Gusto
-- Rippling
-- ADP (basic)
-- Workday (basic)
+- BambooHR, Gusto, Rippling
+- ADP (basic), Workday (basic)
 
 **Features:**
-- **Guided import templates** — "I'm importing from BambooHR"
-- **Header auto-detection** — Recognize known HRIS column names
-- **Validation rules per HRIS** — Know what fields to expect
-- **Export back to common formats** — Round-trip support
+- Guided import templates
+- Header auto-detection for known HRIS
+- Validation rules per HRIS
 
----
+*Note: Basic HRIS header mappings included in V2.5.1 Data Quality Center.*
 
-### 22. Bulk Actions & Backfills
-**Impact:** ⚡ Medium | **Complexity:** Medium | **Est. Sessions:** 1-2
-**Category:** Import/Export
+</details>
+
+<details>
+<summary><strong>Bulk Actions & Backfills</strong> (⚡ Medium impact, Medium complexity)</summary>
 
 "Fix common issues" quick actions post-import.
 
 **Quick Actions:**
-- **Add missing managers by inference** — "Sarah reports to Engineering Director"
-- **Standardize titles** — "Sr. Engineer" → "Senior Engineer"
-- **Normalize locations** — "CA" → "California"
-- **Fix date formats** — Detect and convert date inconsistencies
+- Add missing managers by inference
+- Standardize titles ("Sr. Engineer" → "Senior Engineer")
+- Normalize locations ("CA" → "California")
+- Fix date format inconsistencies
 
----
-
-### 23. Keyboard Navigation Complete
-**Impact:** 💡 Low | **Complexity:** Low | **Est. Sessions:** 1
-**Category:** Accessibility
-
-Full keyboard accessibility and screen reader support.
-
-**Features:**
-- **Focus styles** — Visible focus indicators throughout
-- **Skip links** — Jump to main content
-- **High-contrast theme** — WCAG AA compliant
-- **Screen-reader friendly** — Proper ARIA labels, message reading
-
----
-
-### 24. Branding & Theming
-**Impact:** 💡 Low | **Complexity:** Low | **Est. Sessions:** 1
-**Category:** UX
-
-Personalization for company identity.
-
-**Features:**
-- **Company logo in shell** — Replace default logo with uploaded image
-- **Accent color** — Company brand color for buttons/highlights
-- **Logo in exports** — Branded PDFs and reports
-- **Light/dark auto-switch** — Follow system preference
+</details>
 
 ---
 
@@ -641,17 +313,17 @@ Personalization for company identity.
 ### Performance Review Length vs Context Budget
 
 **Discovered:** 2025-12-19
-**Status:** Planned → See Feature #15
+**Status:** Planned → See ROADMAP.md V2.2.1
 
 Current test data has 1-2 sentence performance reviews. Real-world reviews could be 500-2000+ words each.
 
-**Solution:** Implement **Review Highlights Pipeline** (Feature #15)
-- Precompute per-review highlights on import
-- Cache per-employee profile summaries
+**Solution:** Implement **Structured Data Extraction** (ROADMAP.md V2.2.1)
+- Extract structured entities (strengths, opportunities, quotes, themes)
+- Precompute per-employee profile summaries
 - Use highlights in context, full reviews on-demand
 
 **Additional Mitigations:**
-- Token budgets by query type (Feature #16)
+- Token budgets by query type (V2.2.2)
 - Dynamic excerpting for relevant sentences
 
 ---
