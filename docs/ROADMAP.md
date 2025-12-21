@@ -335,16 +335,16 @@ This is a **long-running, multi-session implementation**. Follow these rules:
 
 Quick polish features that improve UX without architectural changes.
 
-#### V2.1.1 API Key Setup Guide (Enhanced)
-> **Impact:** 🔥 High | **Est. Sessions:** 1
+#### V2.1.1 API Key Setup Guide (Enhanced) ✓ COMPLETE
+> **Impact:** 🔥 High | **Completed:** 1 session
 
 Plain-English onboarding for non-technical HR users.
 
-- [ ] V2.1.1a Add "What is an API key?" explainer with plain language
-- [ ] V2.1.1b Add step-by-step screenshots (account → billing → key → paste)
-- [ ] V2.1.1c Add inline key validation with error-specific guidance
-- [ ] V2.1.1d Add usage cost estimator ("~$5-20/month for typical use")
-- [ ] V2.1.1e Add troubleshooting tips for common errors
+- [x] V2.1.1a Add "What is an API key?" explainer with plain language
+- [x] V2.1.1b Add step-by-step guide (account → billing → key → paste)
+- [x] V2.1.1c Add inline key validation with error-specific guidance
+- [x] V2.1.1d Add usage cost estimator ("~$5-15/month for typical use")
+- [x] V2.1.1e Add troubleshooting tips for common errors
 
 #### V2.1.2 Command Palette + Keyboard Shortcuts
 > **Impact:** ⚡ Medium | **Est. Sessions:** 1

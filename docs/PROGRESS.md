@@ -11,6 +11,56 @@
 Most recent session should be first.
 -->
 
+## Session 2025-12-21 (V2.1.1 — API Key Setup Guide)
+
+**Phase:** V2.1 — Quick Wins
+**Focus:** Beginner-friendly API key onboarding for non-technical HR users
+
+### Summary
+Enhanced the API key step in onboarding with plain-language explanations, step-by-step instructions, contextual error hints, cost information, and troubleshooting FAQ. All content uses collapsible sections to avoid overwhelming users.
+
+### Files Created
+```
+src/lib/api-key-errors.ts               (~50 LOC) - Error hint mapping
+```
+
+### Files Modified
+```
+src/components/settings/ApiKeyInput.tsx (+3 lines) - Import + contextual error hints
+src/components/onboarding/steps/ApiKeyStep.tsx (72 → 282 LOC) - Full guide content
+docs/ROADMAP.md                         - Marked V2.1.1a-e complete
+features.json                           - Added phase-v2 section (26 passing)
+```
+
+### Key Features Added
+
+| Feature | Implementation |
+|---------|----------------|
+| "What is an API key?" | Collapsible section with library card analogy |
+| Step-by-step guide | 4 numbered steps with external links |
+| Error detection | OpenAI vs Anthropic key detection ("This looks like an OpenAI key...") |
+| Cost info | Reassuring box: "$5-15/month, price of a coffee" |
+| Troubleshooting | 4-item FAQ accordion |
+
+### Design Decisions
+- **Content in ApiKeyStep, not ApiKeyInput:** Keeps compact mode clean for Settings panel
+- **Collapsible by default:** "What is an API key?" collapsed, "How to get your key" open for new users
+- **Smart defaults:** Step guide auto-collapses if user already has a key
+- **Amber for hints:** Changed error hint color from stone-500 to amber-600 for visibility
+
+### Verification
+- [x] TypeScript type-check passes
+- [x] Production build succeeds (770KB)
+- [x] Collapsible sections work correctly
+- [x] Compact mode in Settings unchanged
+
+### Next Session Should
+1. Continue with V2.1.2 (Command Palette + Keyboard Shortcuts)
+2. Or V2.1.3 (Persona Switcher) for another quick win
+3. Or V2.2.1 (Structured Data Extraction) for the intelligence pipeline foundation
+
+---
+
 ## Session 2025-12-21 (V2 Planning + Bug Fix — Delete Conversation)
 
 **Phase:** V2 Feature Planning + Bug Fix

@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import { storeApiKey, hasApiKey, deleteApiKey, validateApiKeyFormat } from '../../lib/tauri-commands';
+import { getApiKeyErrorHint, getStorageErrorMessage } from '../../lib/api-key-errors';
 
 type ApiKeyStatus = 'idle' | 'validating' | 'saving' | 'saved' | 'error';
 
@@ -66,7 +67,8 @@ export function ApiKeyInput({
       setTimeout(() => setStatus('idle'), 2000);
     } catch (err) {
       setStatus('error');
-      setErrorMessage(err instanceof Error ? err.message : 'Failed to save API key');
+      const errorStr = err instanceof Error ? err.message : String(err);
+      setErrorMessage(getStorageErrorMessage(errorStr));
     }
   }, [apiKey, isValid, onSave]);
 
@@ -245,10 +247,12 @@ export function ApiKeyInput({
         <p className="mt-2 text-sm text-red-600">{errorMessage}</p>
       )}
 
-      {/* Format hint */}
+      {/* Format hint with contextual guidance */}
       {apiKey && !isValid && !errorMessage && (
-        <p className="mt-2 text-xs text-stone-500">
-          API key should start with <code className="bg-stone-100 px-1 rounded">sk-ant-</code>
+        <p className="mt-2 text-xs text-amber-600">
+          {getApiKeyErrorHint(apiKey) || (
+            <>API key should start with <code className="bg-stone-100 px-1 rounded">sk-ant-</code></>
+          )}
         </p>
       )}
     </div>

@@ -2,10 +2,10 @@
   "$schema": "./features.schema.json",
   "_meta": {
     "description": "Feature tracking for HR Command Center. Status: not-started | in-progress | pass | fail | blocked",
-    "lastUpdated": "2025-12-20",
+    "lastUpdated": "2025-12-21",
     "project": "HR Command Center",
-    "totalFeatures": 32,
-    "passing": 25,
+    "totalFeatures": 33,
+    "passing": 26,
     "failing": 0,
     "inProgress": 0
   },
@@ -105,6 +105,12 @@
     "distribution": {
       "status": "not-started",
       "notes": "Code signing, notarization, auto-update"
+    }
+  },
+  "phase-v2": {
+    "api-key-setup-guide": {
+      "status": "pass",
+      "notes": "V2.1.1a-e complete: Plain-language explainer, step-by-step guide, contextual error hints (OpenAI vs Anthropic detection), cost estimator, troubleshooting FAQ. 3 files, ~280 new LOC."
     }
   },
   "phase-5": {
