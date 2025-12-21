@@ -992,6 +992,16 @@ async fn has_setting(
 }
 
 // ============================================================================
+// Persona Commands (V2.1.3)
+// ============================================================================
+
+/// Get all available HR personas for the persona switcher
+#[tauri::command]
+fn get_personas() -> Vec<context::Persona> {
+    context::PERSONAS.to_vec()
+}
+
+// ============================================================================
 // Data Path Commands
 // ============================================================================
 
@@ -1140,6 +1150,8 @@ pub fn run() {
             set_setting,
             delete_setting,
             has_setting,
+            // Personas (V2.1.3)
+            get_personas,
             // PII scanning
             scan_pii,
             // Audit logging

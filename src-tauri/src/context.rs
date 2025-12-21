@@ -46,6 +46,80 @@ const MAX_EMPLOYEE_CONTEXT_CHARS: usize = MAX_EMPLOYEE_CONTEXT_TOKENS * CHARS_PE
 const MAX_EMPLOYEES_IN_CONTEXT: usize = 10;
 
 // ============================================================================
+// HR Personas (V2.1.3)
+// ============================================================================
+
+/// HR persona for customizing Claude's communication style
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Persona {
+    pub id: &'static str,
+    pub name: &'static str,
+    pub style: &'static str,
+    pub best_for: &'static str,
+    pub preamble: &'static str,
+    pub communication_style: &'static str,
+    pub sample_response: &'static str,
+}
+
+/// Available HR personas - each offers a different communication style
+pub const PERSONAS: [Persona; 5] = [
+    Persona {
+        id: "alex",
+        name: "Alex",
+        style: "Warm, practical",
+        best_for: "General HR leadership",
+        preamble: "You are Alex, an experienced VP of People Operations helping {user_display} at {company_name}, a company based in {company_state}.\n\nYour role is to be a trusted HR thought partner—someone who's seen these situations before and can offer practical, actionable guidance.",
+        communication_style: "- Be warm but professional, like a trusted colleague\n- Lead with practical answers, then explain the reasoning\n- Acknowledge when situations are genuinely difficult\n- Offer specific language or scripts when helpful\n- Flag when legal review is needed, but don't over-hedge on routine matters",
+        sample_response: "I've seen this situation many times. Let's start with a clear, honest conversation about expectations and give them a path forward.",
+    },
+    Persona {
+        id: "jordan",
+        name: "Jordan",
+        style: "Formal, compliance-focused",
+        best_for: "Regulated industries",
+        preamble: "You are Jordan, a meticulous HR Director with deep expertise in employment law and compliance, advising {user_display} at {company_name}, based in {company_state}.\n\nYour role is to ensure every HR action is legally defensible, well-documented, and follows best practices for risk management.",
+        communication_style: "- Prioritize compliance and documentation requirements\n- Reference specific policies, laws, or regulations when applicable\n- Recommend clear audit trails for all decisions\n- Use formal, precise language\n- When in doubt, recommend consulting legal counsel",
+        sample_response: "Before proceeding, let's ensure we have documentation. Per your company's PIP policy, here are the required steps to maintain compliance...",
+    },
+    Persona {
+        id: "sam",
+        name: "Sam",
+        style: "Startup-friendly, direct",
+        best_for: "Early-stage, lean HR",
+        preamble: "You are Sam, a pragmatic People Ops leader who's built HR from scratch at multiple startups, now advising {user_display} at {company_name}, based in {company_state}.\n\nYour role is to help move fast without breaking things—practical solutions that work for lean teams.",
+        communication_style: "- Be direct and concise—no corporate fluff\n- Prioritize speed and pragmatism over perfection\n- Suggest scrappy, MVP approaches when appropriate\n- Acknowledge that perfect documentation isn't always possible\n- Focus on what matters most right now",
+        sample_response: "Here's the 80/20: Have a direct conversation this week. Set clear expectations. Give them 30 days. If no improvement, move on.",
+    },
+    Persona {
+        id: "morgan",
+        name: "Morgan",
+        style: "Data-driven, analytical",
+        best_for: "Metrics-focused users",
+        preamble: "You are Morgan, a People Analytics leader who brings data rigor to HR decisions, advising {user_display} at {company_name}, based in {company_state}.\n\nYour role is to ensure decisions are evidence-based, measurable, and tied to business outcomes.",
+        communication_style: "- Lead with data and metrics when available\n- Suggest ways to measure outcomes and impact\n- Reference benchmarks and industry standards\n- Ask clarifying questions to understand the full picture\n- Recommend tracking mechanisms for future decisions",
+        sample_response: "Let's look at the data: What's their performance trajectory? How does their output compare to peers? What does their 360 feedback show?",
+    },
+    Persona {
+        id: "taylor",
+        name: "Taylor",
+        style: "Employee-advocate, empathetic",
+        best_for: "People-first cultures",
+        preamble: "You are Taylor, a compassionate HR leader who puts employee wellbeing at the center of every decision, advising {user_display} at {company_name}, based in {company_state}.\n\nYour role is to find solutions that honor both business needs and human dignity.",
+        communication_style: "- Lead with empathy and understanding\n- Consider the employee's perspective and circumstances\n- Suggest supportive approaches before punitive ones\n- Acknowledge the emotional weight of difficult decisions\n- Look for win-win solutions when possible",
+        sample_response: "This is a difficult situation for everyone involved. Before we discuss performance, let's understand: what support does this person need? What might be contributing to their struggles?",
+    },
+];
+
+/// Get persona by ID, defaulting to Alex if not found
+pub fn get_persona(id: Option<&str>) -> &'static Persona {
+    let id = id.unwrap_or("alex");
+    PERSONAS
+        .iter()
+        .find(|p| p.id == id)
+        .unwrap_or(&PERSONAS[0]) // Default to Alex
+}
+
+// ============================================================================
 // Query Classification Types (Phase 2.7)
 // ============================================================================
 
@@ -1815,16 +1889,26 @@ pub fn get_max_system_prompt_tokens() -> usize {
 // ============================================================================
 
 /// Build the complete system prompt for Claude (Phase 2.7 - includes org aggregates)
+/// V2.1.3: Added persona_id parameter to support persona switching
 pub fn build_system_prompt(
     company: Option<&CompanyContext>,
     aggregates: Option<&OrgAggregates>,
     employee_context: &str,
     memory_summaries: &[String],
     user_name: Option<&str>,
+    persona_id: Option<&str>,
 ) -> String {
+    let persona = get_persona(persona_id);
     let company_name = company.map(|c| c.name.as_str()).unwrap_or("your company");
     let company_state = company.map(|c| c.state.as_str()).unwrap_or("your state");
     let user_display = user_name.unwrap_or("the HR team");
+
+    // Build persona preamble with variable substitution
+    let preamble = persona
+        .preamble
+        .replace("{user_display}", user_display)
+        .replace("{company_name}", company_name)
+        .replace("{company_state}", company_state);
 
     let company_info = if let Some(c) = company {
         format!(
@@ -1856,16 +1940,10 @@ pub fn build_system_prompt(
     };
 
     format!(
-r#"You are Alex, an experienced VP of People Operations helping {user_display} at {company_name}, a company based in {company_state}.
-
-Your role is to be a trusted HR thought partner—someone who's seen these situations before and can offer practical, actionable guidance.
+r#"{preamble}
 
 COMMUNICATION STYLE:
-- Be warm but professional, like a trusted colleague
-- Lead with practical answers, then explain the reasoning
-- Acknowledge when situations are genuinely difficult
-- Offer specific language or scripts when helpful
-- Flag when legal review is needed, but don't over-hedge on routine matters
+{communication_style}
 
 COMPANY CONTEXT:
 {company_info}
@@ -1889,14 +1967,17 @@ BOUNDARIES:
 RELEVANT PAST CONVERSATIONS:
 {memories}
 
-Answer questions as Alex would—practical, human, and grounded in real HR experience."#,
-        user_display = user_display,
+Answer questions as {persona_name} would—{persona_style}."#,
+        preamble = preamble,
+        communication_style = persona.communication_style,
         company_name = company_name,
         company_state = company_state,
         company_info = company_info,
         org_data = org_data,
         employee_section = employee_section,
         memories = memories,
+        persona_name = persona.name,
+        persona_style = persona.style.to_lowercase(),
     )
 }
 
@@ -2044,6 +2125,12 @@ pub async fn get_system_prompt_for_message(
         .ok()
         .flatten();
 
+    // Fetch persona preference from settings (V2.1.3)
+    let persona_id = crate::settings::get_setting(pool, "persona")
+        .await
+        .ok()
+        .flatten();
+
     // Build employee context: full profiles or summaries depending on query type
     let employee_context = if !context.employees.is_empty() {
         format_employee_context(&context.employees)
@@ -2061,6 +2148,7 @@ pub async fn get_system_prompt_for_message(
         &employee_context,
         &context.memory_summaries,
         user_name.as_deref(),
+        persona_id.as_deref(),
     );
 
     Ok((system_prompt, context.employee_ids_used))
@@ -2934,5 +3022,65 @@ mod tests {
             "Summary list too large: {} chars",
             result.len()
         );
+    }
+
+    // =========================================================================
+    // Persona Tests (V2.1.3)
+    // =========================================================================
+
+    #[test]
+    fn test_get_persona_default() {
+        let persona = get_persona(None);
+        assert_eq!(persona.id, "alex");
+        assert_eq!(persona.name, "Alex");
+    }
+
+    #[test]
+    fn test_get_persona_by_id() {
+        let jordan = get_persona(Some("jordan"));
+        assert_eq!(jordan.id, "jordan");
+        assert_eq!(jordan.name, "Jordan");
+        assert!(jordan.style.contains("compliance"));
+
+        let sam = get_persona(Some("sam"));
+        assert_eq!(sam.id, "sam");
+        assert!(sam.style.contains("direct"));
+
+        let morgan = get_persona(Some("morgan"));
+        assert_eq!(morgan.id, "morgan");
+        assert!(morgan.style.contains("analytical"));
+
+        let taylor = get_persona(Some("taylor"));
+        assert_eq!(taylor.id, "taylor");
+        assert!(taylor.style.contains("empathetic"));
+    }
+
+    #[test]
+    fn test_get_persona_invalid_fallback() {
+        // Invalid ID should fall back to Alex
+        let persona = get_persona(Some("invalid_persona"));
+        assert_eq!(persona.id, "alex");
+    }
+
+    #[test]
+    fn test_persona_preamble_has_placeholders() {
+        // All personas should have the required placeholders for variable substitution
+        for persona in PERSONAS.iter() {
+            assert!(
+                persona.preamble.contains("{user_display}"),
+                "{} preamble missing {{user_display}}",
+                persona.name
+            );
+            assert!(
+                persona.preamble.contains("{company_name}"),
+                "{} preamble missing {{company_name}}",
+                persona.name
+            );
+            assert!(
+                persona.preamble.contains("{company_state}"),
+                "{} preamble missing {{company_state}}",
+                persona.name
+            );
+        }
     }
 }

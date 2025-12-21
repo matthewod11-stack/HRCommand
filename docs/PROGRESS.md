@@ -13,6 +13,60 @@
 Most recent session should be first.
 -->
 
+## Session 2025-12-21 (V2.1.3 — Persona Switcher)
+
+**Phase:** V2.1 — Quick Wins
+**Focus:** Add selectable HR personas with different communication styles
+
+### Summary
+Implemented persona switching feature allowing users to choose from 5 HR personas (Alex, Jordan, Sam, Morgan, Taylor) with distinct communication styles. Selection persists to settings and takes effect immediately on next message.
+
+### Files Created
+```
+src/components/settings/PersonaSelector.tsx   (~120 LOC) - Card-based persona selector with previews
+```
+
+### Files Modified
+```
+src-tauri/src/context.rs          (+110 lines) - Persona struct, PERSONAS const, get_persona(), build_system_prompt() persona param
+src-tauri/src/lib.rs              (+12 lines)  - get_personas Tauri command
+src/lib/tauri-commands.ts         (+20 lines)  - Persona interface, getPersonas() wrapper
+src/components/settings/SettingsPanel.tsx (+10 lines) - AI Assistant Style section
+src/components/settings/index.ts  (+1 line)   - Export PersonaSelector
+```
+
+### Key Features Added
+
+| Feature | Implementation |
+|---------|----------------|
+| 5 HR Personas | Alex (warm), Jordan (compliance), Sam (direct), Morgan (data-driven), Taylor (empathetic) |
+| Persona Selector | Card list with selection highlight, expandable sample previews |
+| Settings Integration | New "AI Assistant Style" section in Settings panel |
+| Immediate Effect | Persona read per-message from settings, no restart needed |
+
+### Personas
+
+| Persona | Style | Best For |
+|---------|-------|----------|
+| Alex (default) | Warm, practical | General HR leadership |
+| Jordan | Formal, compliance-focused | Regulated industries |
+| Sam | Startup-friendly, direct | Early-stage, lean HR |
+| Morgan | Data-driven, analytical | Metrics-focused users |
+| Taylor | Employee-advocate, empathetic | People-first cultures |
+
+### Verification
+- [x] TypeScript type-check passes
+- [x] Production build succeeds (802KB, up from 799KB)
+- [x] 147 Rust tests pass (1 pre-existing file_parser failure)
+- [x] 4 new persona tests pass
+
+### Next Session Should
+1. Continue with V2.1.4 (Answer Verification Mode)
+2. Or V2.2.1 (Structured Data Extraction) for the intelligence pipeline foundation
+3. Or Phase 5.1 (Distribution) if ready for launch prep
+
+---
+
 ## Session 2025-12-21 (V2.1.2 — Command Palette + Keyboard Shortcuts)
 
 **Phase:** V2.1 — Quick Wins

@@ -356,15 +356,15 @@ Power user polish with discoverability.
 - [x] V2.1.2c Implement core shortcuts: `Cmd+N` (new), `Cmd+/` (focus), `Cmd+E` (employees), `Cmd+,` (settings)
 - [x] V2.1.2d Show keyboard hints in palette and menus
 
-#### V2.1.3 Persona Switcher
-> **Impact:** ⚡ Medium | **Est. Sessions:** 1
+#### V2.1.3 Persona Switcher ✓ COMPLETE
+> **Impact:** ⚡ Medium | **Completed:** 1 session
 
 Pre-built HR personas for different organizational styles.
 
-- [ ] V2.1.3a Create persona definitions (Alex, Jordan, Sam, Morgan, Taylor)
-- [ ] V2.1.3b Add persona selector in Settings panel
-- [ ] V2.1.3c Create persona preview cards with tone samples
-- [ ] V2.1.3d Wire selected persona to system prompt
+- [x] V2.1.3a Create persona definitions (Alex, Jordan, Sam, Morgan, Taylor)
+- [x] V2.1.3b Add persona selector in Settings panel
+- [x] V2.1.3c Create persona preview cards with tone samples
+- [x] V2.1.3d Wire selected persona to system prompt
 
 **Personas:**
 | Persona | Style | Best For |

@@ -10,6 +10,7 @@ import { Modal } from '../shared/Modal';
 import { ApiKeyInput } from './ApiKeyInput';
 import { CompanySetup } from '../company/CompanySetup';
 import { BackupRestore } from './BackupRestore';
+import { PersonaSelector } from './PersonaSelector';
 import { getDataPath, getSetting, setSetting } from '../../lib/tauri-commands';
 
 interface SettingsPanelProps {
@@ -79,6 +80,14 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
             Company Profile
           </h3>
           <CompanySetup compact />
+        </section>
+
+        {/* AI Assistant Style Section (V2.1.3) */}
+        <section>
+          <h3 className="text-sm font-medium text-stone-500 uppercase tracking-wider mb-3">
+            AI Assistant Style
+          </h3>
+          <PersonaSelector compact />
         </section>
 
         {/* Data Storage Section */}

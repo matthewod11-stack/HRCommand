@@ -4,8 +4,8 @@
     "description": "Feature tracking for HR Command Center. Status: not-started | in-progress | pass | fail | blocked",
     "lastUpdated": "2025-12-21",
     "project": "HR Command Center",
-    "totalFeatures": 34,
-    "passing": 27,
+    "totalFeatures": 35,
+    "passing": 28,
     "failing": 0,
     "inProgress": 0
   },
@@ -115,6 +115,10 @@
     "command-palette": {
       "status": "pass",
       "notes": "V2.1.2a-d complete: CommandPalette with Fuse.js fuzzy search, useCommandPalette hook, shortcuts (⌘K, ⌘/, ⌘E, ⌘,), keyboard hints in header. 2 new files, ~405 LOC."
+    },
+    "persona-switcher": {
+      "status": "pass",
+      "notes": "V2.1.3a-d complete: 5 personas (Alex, Jordan, Sam, Morgan, Taylor), PersonaSelector component, Settings integration, immediate effect. ~270 LOC across 6 files, 4 new tests."
     }
   },
   "phase-5": {

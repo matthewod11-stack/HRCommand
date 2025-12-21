@@ -700,6 +700,30 @@ export async function hasSetting(key: string): Promise<boolean> {
   return invoke('has_setting', { key });
 }
 
+// =============================================================================
+// V2.1.3 - Personas
+// =============================================================================
+
+/**
+ * HR persona for customizing Claude's communication style
+ */
+export interface Persona {
+  id: string;
+  name: string;
+  style: string;
+  best_for: string;
+  preamble: string;
+  communication_style: string;
+  sample_response: string;
+}
+
+/**
+ * Get all available HR personas for the persona switcher
+ */
+export async function getPersonas(): Promise<Persona[]> {
+  return invoke('get_personas');
+}
+
 /**
  * Get the app data directory path (where SQLite database is stored)
  * Returns path like ~/Library/Application Support/com.hrcommand.app/
