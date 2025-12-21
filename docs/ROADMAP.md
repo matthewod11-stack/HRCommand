@@ -346,15 +346,15 @@ Plain-English onboarding for non-technical HR users.
 - [x] V2.1.1d Add usage cost estimator ("~$5-15/month for typical use")
 - [x] V2.1.1e Add troubleshooting tips for common errors
 
-#### V2.1.2 Command Palette + Keyboard Shortcuts
-> **Impact:** ⚡ Medium | **Est. Sessions:** 1
+#### V2.1.2 Command Palette + Keyboard Shortcuts ✓ COMPLETE
+> **Impact:** ⚡ Medium | **Completed:** 1 session
 
 Power user polish with discoverability.
 
-- [ ] V2.1.2a Create CommandPalette component (`Cmd+K`)
-- [ ] V2.1.2b Add fuzzy search across actions, conversations, employees
-- [ ] V2.1.2c Implement core shortcuts: `Cmd+N` (new), `Cmd+/` (focus), `Cmd+E` (employees), `Cmd+,` (settings)
-- [ ] V2.1.2d Show keyboard hints in palette and menus
+- [x] V2.1.2a Create CommandPalette component (`Cmd+K`)
+- [x] V2.1.2b Add fuzzy search across actions, conversations, employees
+- [x] V2.1.2c Implement core shortcuts: `Cmd+N` (new), `Cmd+/` (focus), `Cmd+E` (employees), `Cmd+,` (settings)
+- [x] V2.1.2d Show keyboard hints in palette and menus
 
 #### V2.1.3 Persona Switcher
 > **Impact:** ⚡ Medium | **Est. Sessions:** 1

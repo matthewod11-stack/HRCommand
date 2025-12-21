@@ -13,6 +13,57 @@
 Most recent session should be first.
 -->
 
+## Session 2025-12-21 (V2.1.2 — Command Palette + Keyboard Shortcuts)
+
+**Phase:** V2.1 — Quick Wins
+**Focus:** Add Command Palette (⌘K) with fuzzy search and keyboard shortcuts
+
+### Summary
+Implemented a VS Code/Slack-style command palette with Fuse.js fuzzy search. Users can press ⌘K to search across actions, conversations, and employees. Added additional keyboard shortcuts for power users: ⌘/ (focus chat), ⌘E (show employees), ⌘, (settings).
+
+### Files Created
+```
+src/components/CommandPalette.tsx   (~320 LOC) - Fuzzy search modal
+src/hooks/useCommandPalette.ts      (~85 LOC)  - Global keyboard shortcuts
+```
+
+### Files Modified
+```
+src/App.tsx                         (+40 lines) - MainAppContent wrapper, palette integration
+src/components/chat/ChatInput.tsx   (+15 lines) - forwardRef for focus control
+src/components/chat/index.ts        (+1 line)   - Export ChatInputHandle
+src/components/layout/AppShell.tsx  (+25 lines) - ⌘K button, shortcut hints
+src/hooks/index.ts                  (+1 line)   - Export useCommandPalette
+package.json                        (+1 line)   - fuse.js dependency
+```
+
+### Key Features Added
+
+| Feature | Implementation |
+|---------|----------------|
+| Command Palette | Portal-based modal with search input and grouped results |
+| Fuzzy Search | Fuse.js with weighted keys (title: 0.7, subtitle: 0.3) |
+| Keyboard Navigation | Arrow keys, Enter to select, Escape to close |
+| Global Shortcuts | ⌘K (palette), ⌘/ (focus), ⌘E (employees), ⌘, (settings) |
+| Header Hints | ⌘K button visible in header, tooltips on icon buttons |
+
+### Design Decisions
+- **MainAppContent wrapper:** useCommandPalette needs useLayout(), so created inner component inside LayoutProvider
+- **forwardRef on ChatInput:** Exposes focus() method via useImperativeHandle for ⌘/ shortcut
+- **Synthetic events for actions:** "Open Settings" dispatches keyboard event to reuse existing handler
+
+### Verification
+- [x] TypeScript type-check passes
+- [x] Production build succeeds (799KB, up from 770KB due to Fuse.js)
+- [x] 143 Rust tests pass (1 pre-existing file_parser failure)
+
+### Next Session Should
+1. Continue with V2.1.3 (Persona Switcher) for another quick win
+2. Or V2.1.4 (Answer Verification Mode)
+3. Or V2.2.1 (Structured Data Extraction) for the intelligence pipeline foundation
+
+---
+
 ## Session 2025-12-21 (V2.1.1 — API Key Setup Guide)
 
 **Phase:** V2.1 — Quick Wins

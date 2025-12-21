@@ -4,8 +4,8 @@
     "description": "Feature tracking for HR Command Center. Status: not-started | in-progress | pass | fail | blocked",
     "lastUpdated": "2025-12-21",
     "project": "HR Command Center",
-    "totalFeatures": 33,
-    "passing": 26,
+    "totalFeatures": 34,
+    "passing": 27,
     "failing": 0,
     "inProgress": 0
   },
@@ -111,6 +111,10 @@
     "api-key-setup-guide": {
       "status": "pass",
       "notes": "V2.1.1a-e complete: Plain-language explainer, step-by-step guide, contextual error hints (OpenAI vs Anthropic detection), cost estimator, troubleshooting FAQ. 3 files, ~280 new LOC."
+    },
+    "command-palette": {
+      "status": "pass",
+      "notes": "V2.1.2a-d complete: CommandPalette with Fuse.js fuzzy search, useCommandPalette hook, shortcuts (⌘K, ⌘/, ⌘E, ⌘,), keyboard hints in header. 2 new files, ~405 LOC."
     }
   },
   "phase-5": {
