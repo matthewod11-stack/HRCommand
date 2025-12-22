@@ -18,6 +18,8 @@ Most recent session should be first.
 **Phase:** V2.1 — Quick Wins
 **Focus:** Trust-but-verify numeric answers with verification badges
 
+> **Post-session fix:** New Conversation now clears employee selection so users see general prompts instead of employee-specific ones. (3 files, +10/-4 lines)
+
 ### Summary
 Implemented answer verification for aggregate queries. When Claude responds to numeric questions (headcount, averages, eNPS, turnover), the system extracts numbers from the response and compares them against SQL ground truth. A verification badge shows whether claims match actual data.
 
