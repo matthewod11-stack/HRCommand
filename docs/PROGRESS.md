@@ -13,6 +13,53 @@
 Most recent session should be first.
 -->
 
+## Session 2025-12-22 (V2.2.1 Planning — Structured Data Extraction)
+
+**Phase:** V2.2 — Data Intelligence Pipeline
+**Focus:** Design comprehensive implementation plan for Review Highlights Pipeline
+
+### Summary
+Created detailed implementation plan for V2.2.1 Structured Data Extraction. This feature will extract structured entities (strengths, opportunities, themes, quotes, sentiment) from performance review prose using Claude API, and generate per-employee career summaries.
+
+### User Decisions
+| Decision | Choice |
+|----------|--------|
+| Extraction method | Claude API (accurate, handles nuance) |
+| Timing | Post-import batch (non-blocking, better UX) |
+| Summaries | Include employee career summaries |
+
+### Plan Created
+**Plan File:** `~/.claude/plans/atomic-bouncing-wind.md`
+
+| Aspect | Details |
+|--------|---------|
+| Est. LOC | ~1,250 across 10 files |
+| Sessions | 3 recommended |
+| API cost | ~$0.70 for test data (300 reviews) |
+
+**Session Breakdown:**
+1. **Session 1**: Schema + Core Module — Migration, `highlights.rs` with types/CRUD
+2. **Session 2**: Extraction Pipeline — Claude API calls, Tauri commands, context updates
+3. **Session 3**: Frontend Integration — Post-import hook, progress UI, cache invalidation
+
+### Key Design Decisions
+- New tables: `review_highlights` (per-review) + `employee_summaries` (per-employee)
+- JSON arrays for flexible structured data (strengths, opportunities, themes, quotes)
+- Graceful degradation if extraction fails
+- Max 10 concurrent extractions with retry logic
+
+### Verification
+- [x] TypeScript type-check passes
+- [x] Production build succeeds (805KB)
+- [x] 158 Rust tests pass (1 pre-existing file_parser failure)
+
+### Next Session Should
+1. Start implementation from plan: `~/.claude/plans/atomic-bouncing-wind.md`
+2. Begin with Session 1: Migration + `highlights.rs` types/CRUD
+3. Run `cargo test highlights` after adding module
+
+---
+
 ## Session 2025-12-22 (V2.1.4 — Answer Verification Mode)
 
 **Phase:** V2.1 — Quick Wins

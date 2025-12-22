@@ -399,7 +399,8 @@ Trust but verify numeric answers.
 Foundation layer that powers visualization and signals features.
 
 #### V2.2.1 Structured Data Extraction (Review Highlights Pipeline)
-> **Impact:** 🔥 High | **Est. Sessions:** 2-3
+> **Impact:** 🔥 High | **Est. Sessions:** 3
+> **Implementation Plan:** `~/.claude/plans/atomic-bouncing-wind.md`
 
 Extract structured entities from performance reviews, turning prose into computable data.
 
