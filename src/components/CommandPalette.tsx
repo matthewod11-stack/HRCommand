@@ -229,6 +229,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
   const actionHandlers = useMemo(
     () => ({
       'new-conversation': () => {
+        selectEmployee(null); // Clear employee selection for fresh start
         startNewConversation();
         onClose();
       },
@@ -265,7 +266,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
         onClose();
       },
     }),
-    [startNewConversation, setSidebarTab, setSidebarOpen, openImportWizard, toggleSidebar, toggleContextPanel, onClose]
+    [selectEmployee, startNewConversation, setSidebarTab, setSidebarOpen, openImportWizard, toggleSidebar, toggleContextPanel, onClose]
   );
 
   // Build all searchable items

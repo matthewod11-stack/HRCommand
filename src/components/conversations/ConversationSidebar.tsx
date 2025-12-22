@@ -3,6 +3,7 @@
 
 import { useState, useCallback } from 'react';
 import { useConversations } from '../../contexts/ConversationContext';
+import { useEmployees } from '../../contexts/EmployeeContext';
 import { ConversationCard } from './ConversationCard';
 import { ConversationSearch } from './ConversationSearch';
 
@@ -20,13 +21,16 @@ export function ConversationSidebar() {
     deleteConversation,
   } = useConversations();
 
+  const { selectEmployee } = useEmployees();
+
   // Confirmation modal state
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
   const handleNewConversation = useCallback(() => {
+    selectEmployee(null); // Clear employee selection for fresh start
     startNewConversation();
-  }, [startNewConversation]);
+  }, [selectEmployee, startNewConversation]);
 
   const handleSelectConversation = useCallback((id: string) => {
     loadConversation(id);

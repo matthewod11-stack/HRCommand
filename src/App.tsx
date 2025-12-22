@@ -71,7 +71,7 @@ function ChatArea({ chatInputRef }: ChatAreaProps) {
   } = useConversations();
 
   // Get selected employee from context (for prioritizing in context builder)
-  const { selectedEmployeeId } = useEmployees();
+  const { selectedEmployeeId, selectEmployee } = useEmployees();
 
   // Get network state for offline mode
   const { isOnline, isApiReachable } = useNetwork();
@@ -82,13 +82,14 @@ function ChatArea({ chatInputRef }: ChatAreaProps) {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.metaKey && e.key === 'n' && !e.shiftKey) {
         e.preventDefault();
+        selectEmployee(null); // Clear employee selection for fresh start
         startNewConversation();
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [startNewConversation]);
+  }, [selectEmployee, startNewConversation]);
 
   const handleSubmit = useCallback(
     async (content: string) => {
