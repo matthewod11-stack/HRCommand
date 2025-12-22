@@ -13,6 +13,64 @@
 Most recent session should be first.
 -->
 
+## Session 2025-12-22 (V2.1.4 — Answer Verification Mode)
+
+**Phase:** V2.1 — Quick Wins
+**Focus:** Trust-but-verify numeric answers with verification badges
+
+### Summary
+Implemented answer verification for aggregate queries. When Claude responds to numeric questions (headcount, averages, eNPS, turnover), the system extracts numbers from the response and compares them against SQL ground truth. A verification badge shows whether claims match actual data.
+
+### Files Created
+```
+src/components/chat/VerificationBadge.tsx   (~150 LOC) - Expandable badge with claim details + "Show SQL"
+```
+
+### Files Modified
+```
+src-tauri/src/context.rs          (+200 lines) - VerificationResult, NumericClaim types, verify_response(), extract_numeric_claims(), 11 unit tests
+src-tauri/src/chat.rs             (+15 lines)  - StreamChunk.verification field, pass aggregates/query_type to streaming
+src-tauri/src/lib.rs              (+10 lines)  - Updated command signatures for aggregates + query_type
+src/lib/types.ts                  (+60 lines)  - All verification types (VerificationResult, NumericClaim, ClaimType, etc.)
+src/lib/tauri-commands.ts         (+20 lines)  - Updated function signatures, SystemPromptResult type
+src/contexts/ConversationContext.tsx (+15 lines) - Handle verification in stream handler
+src/components/chat/MessageBubble.tsx (+10 lines) - Render VerificationBadge for assistant messages
+src/components/chat/MessageList.tsx (+1 line)   - Pass verification prop
+src/components/chat/index.ts      (+1 line)    - Export VerificationBadge
+```
+
+### Key Features Added
+
+| Feature | Implementation |
+|---------|----------------|
+| Numeric Extraction | Regex patterns for headcount, active count, ratings, eNPS, turnover rates |
+| Tolerance Matching | Counts: exact, Ratings: ±0.1, Percentages: ±1.0% |
+| Verification Badge | Clickable badge: ✓ Verified / ⚠ Check Manually |
+| Details Panel | Expandable list showing each claim vs. ground truth |
+| SQL Transparency | "Show SQL" toggle reveals ground truth queries |
+
+### Verification Status Types
+
+| Status | Condition |
+|--------|-----------|
+| Verified | All extracted claims match ground truth |
+| PartialMatch | Some claims match, some don't (or mismatch detected) |
+| Unverified | Aggregate query but no numbers extracted |
+| NotApplicable | Non-aggregate query (Individual, List, etc.) |
+
+### Verification
+- [x] TypeScript type-check passes
+- [x] Production build succeeds (805KB)
+- [x] 158 Rust tests pass (1 pre-existing file_parser failure)
+- [x] 11 new verification tests pass
+
+### Next Session Should
+1. Continue with V2.2.1 (Structured Data Extraction) for intelligence pipeline
+2. Or V2.3.1 (Org Chart) for visualization
+3. Or Phase 5.1 (Distribution) if ready for launch prep
+
+---
+
 ## Session 2025-12-21 (V2.1.3 — Persona Switcher)
 
 **Phase:** V2.1 — Quick Wins

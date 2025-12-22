@@ -306,11 +306,22 @@ export function ConversationProvider({ children }: ConversationProviderProps) {
 
     try {
       unlisten = await listen<StreamChunk>('chat-stream', (event) => {
-        const { chunk, done } = event.payload;
+        const { chunk, done, verification } = event.payload;
 
         if (done) {
           // Get the full accumulated response before resetting
           const fullResponse = accumulatedResponseRef.current;
+
+          // V2.1.4: Update message with verification result if present
+          if (verification) {
+            setMessages((prev) =>
+              prev.map((msg) =>
+                msg.id === assistantId
+                  ? { ...msg, verification }
+                  : msg
+              )
+            );
+          }
 
           // Create audit entry (fire-and-forget, don't block on errors)
           createAuditEntry({
@@ -360,14 +371,21 @@ export function ConversationProvider({ children }: ConversationProviderProps) {
         }));
 
       // Build system prompt with context (prioritize selected employee if any)
-      const [systemPrompt, employeeIds] = await getSystemPrompt(content, selectedEmployeeId);
-      employeeIdsRef.current = employeeIds;
+      // V2.1.4: Now returns SystemPromptResult with aggregates for verification
+      const promptResult = await getSystemPrompt(content, selectedEmployeeId);
+      employeeIdsRef.current = promptResult.employee_ids_used;
 
       // Reset accumulated response for this message
       accumulatedResponseRef.current = '';
 
       // Call Claude API with streaming
-      await sendChatMessageStreaming(apiMessages, systemPrompt);
+      // V2.1.4: Pass aggregates and query_type for answer verification
+      await sendChatMessageStreaming(
+        apiMessages,
+        promptResult.system_prompt,
+        promptResult.aggregates,
+        promptResult.query_type
+      );
     } catch (error) {
       // Categorize error for user-friendly display
       const chatError = categorizeError(error);

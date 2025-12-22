@@ -82,13 +82,17 @@ async fn send_chat_message(
 
 /// Send a message to Claude with streaming response
 /// Emits "chat-stream" events as response chunks arrive
+///
+/// V2.1.4: Now accepts aggregates and query_type for answer verification
 #[tauri::command]
 async fn send_chat_message_streaming(
     app: tauri::AppHandle,
     messages: Vec<chat::ChatMessage>,
     system_prompt: Option<String>,
+    aggregates: Option<context::OrgAggregates>,
+    query_type: Option<context::QueryType>,
 ) -> Result<(), chat::ChatError> {
-    chat::send_message_streaming(app, messages, system_prompt).await
+    chat::send_message_streaming(app, messages, system_prompt, aggregates, query_type).await
 }
 
 // ============================================================================
@@ -708,12 +712,14 @@ async fn build_chat_context(
 
 /// Get the system prompt for a chat message
 /// If selected_employee_id is provided, that employee is always included first
+///
+/// V2.1.4: Now returns SystemPromptResult with aggregates and query_type for verification
 #[tauri::command]
 async fn get_system_prompt(
     state: tauri::State<'_, Database>,
     user_message: String,
     selected_employee_id: Option<String>,
-) -> Result<(String, Vec<String>), context::ContextError> {
+) -> Result<context::SystemPromptResult, context::ContextError> {
     context::get_system_prompt_for_message(&state.pool, &user_message, selected_employee_id.as_deref()).await
 }
 

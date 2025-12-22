@@ -6,10 +6,14 @@
  *
  * Assistant messages are rendered as Markdown (supporting bold, lists, code, etc.)
  * User messages are rendered as plain text to preserve what they typed.
+ *
+ * V2.1.4: Now supports verification badges for aggregate query responses.
  */
 
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { VerificationBadge } from './VerificationBadge';
+import type { VerificationResult } from '../../lib/types';
 
 /**
  * Formats an ISO timestamp string to a user-friendly time display
@@ -38,6 +42,8 @@ interface MessageBubbleProps {
   timestamp?: string;
   /** Whether to show the timestamp (defaults to true) */
   showTimestamp?: boolean;
+  /** V2.1.4: Verification result for aggregate queries */
+  verification?: VerificationResult;
 }
 
 export function MessageBubble({
@@ -45,6 +51,7 @@ export function MessageBubble({
   role,
   timestamp,
   showTimestamp = true,
+  verification,
 }: MessageBubbleProps) {
   const isUser = role === 'user';
   const formattedTime = timestamp ? formatTime(timestamp) : null;
@@ -91,6 +98,11 @@ export function MessageBubble({
               {content || '\u00A0'}
             </ReactMarkdown>
           </div>
+        )}
+
+        {/* V2.1.4: Verification badge for aggregate queries */}
+        {!isUser && verification && (
+          <VerificationBadge verification={verification} />
         )}
 
         {showTimestamp && formattedTime && (

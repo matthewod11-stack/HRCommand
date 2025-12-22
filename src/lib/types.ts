@@ -45,6 +45,8 @@ export interface Message {
   content: string;
   timestamp: string;
   error?: ChatError;
+  /** V2.1.4: Answer verification result for aggregate queries */
+  verification?: VerificationResult;
 }
 
 // =============================================================================
@@ -65,6 +67,99 @@ export interface ChatError {
   details: string;
   retryable: boolean;
   originalContent?: string;
+}
+
+// =============================================================================
+// Answer Verification Types (V2.1.4)
+// =============================================================================
+
+export type VerificationStatus =
+  | 'Verified'
+  | 'PartialMatch'
+  | 'Unverified'
+  | 'NotApplicable';
+
+export type ClaimType =
+  | 'TotalHeadcount'
+  | 'ActiveCount'
+  | 'DepartmentCount'
+  | 'AvgRating'
+  | 'EnpsScore'
+  | 'TurnoverRate'
+  | 'Percentage';
+
+export interface NumericClaim {
+  claim_type: ClaimType;
+  value_found: number;
+  ground_truth: number | null;
+  is_match: boolean;
+}
+
+export interface VerificationResult {
+  is_aggregate_query: boolean;
+  claims: NumericClaim[];
+  overall_status: VerificationStatus;
+  sql_query: string | null;
+}
+
+/** Query classification for context-adaptive retrieval */
+export type QueryType =
+  | 'Aggregate'
+  | 'List'
+  | 'Individual'
+  | 'Comparison'
+  | 'Attrition'
+  | 'General';
+
+/** Organization aggregates for verification ground truth */
+export interface OrgAggregates {
+  total_employees: number;
+  active_count: number;
+  terminated_count: number;
+  on_leave_count: number;
+  by_department: DepartmentCount[];
+  avg_rating: number | null;
+  rating_distribution: RatingDistribution;
+  employees_with_no_rating: number;
+  enps: EnpsAggregate;
+  attrition: AttritionStats;
+}
+
+export interface DepartmentCount {
+  name: string;
+  count: number;
+  percentage: number;
+}
+
+export interface RatingDistribution {
+  exceptional: number;
+  exceeds: number;
+  meets: number;
+  needs_improvement: number;
+}
+
+export interface EnpsAggregate {
+  score: number;
+  promoters: number;
+  passives: number;
+  detractors: number;
+  total_responses: number;
+}
+
+export interface AttritionStats {
+  terminations_ytd: number;
+  voluntary: number;
+  involuntary: number;
+  avg_tenure_months: number | null;
+  turnover_rate_annualized: number | null;
+}
+
+/** Result from get_system_prompt command (V2.1.4) */
+export interface SystemPromptResult {
+  system_prompt: string;
+  employee_ids_used: string[];
+  aggregates: OrgAggregates | null;
+  query_type: QueryType;
 }
 
 export interface Company {

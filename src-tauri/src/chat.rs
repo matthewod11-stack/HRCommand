@@ -182,6 +182,9 @@ pub struct ChatResponse {
 pub struct StreamChunk {
     pub chunk: String,
     pub done: bool,
+    /// Verification result - only included when done=true
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub verification: Option<crate::context::VerificationResult>,
 }
 
 // ============================================================================
@@ -330,10 +333,15 @@ pub async fn send_message(
 
 /// Send a message to Claude with streaming response
 /// Emits "chat-stream" events to the frontend as chunks arrive
+///
+/// V2.1.4: Now accepts optional aggregates and query_type for answer verification.
+/// When provided, verifies numeric claims in the response against ground truth.
 pub async fn send_message_streaming(
     app: AppHandle,
     messages: Vec<ChatMessage>,
     system_prompt: Option<String>,
+    aggregates: Option<crate::context::OrgAggregates>,
+    query_type: Option<crate::context::QueryType>,
 ) -> Result<(), ChatError> {
     // Get API key
     let api_key = keyring::get_api_key()?;
@@ -383,6 +391,7 @@ pub async fn send_message_streaming(
     // Process SSE stream
     let mut stream = response.bytes_stream();
     let mut buffer = String::new();
+    let mut full_response = String::new(); // V2.1.4: Accumulate for verification
 
     while let Some(chunk_result) = stream.next().await {
         let chunk = chunk_result.map_err(|e| ChatError::RequestError(e.to_string()))?;
@@ -400,17 +409,31 @@ pub async fn send_message_streaming(
                     if let Ok(event) = serde_json::from_str::<StreamEvent>(data) {
                         match event {
                             StreamEvent::ContentBlockDelta { delta, .. } => {
+                                // V2.1.4: Accumulate for verification
+                                full_response.push_str(&delta.text);
+
                                 // Emit text chunk to frontend
                                 let _ = app.emit("chat-stream", StreamChunk {
                                     chunk: delta.text,
                                     done: false,
+                                    verification: None,
                                 });
                             }
                             StreamEvent::MessageStop => {
-                                // Signal completion
+                                // V2.1.4: Verify response if we have aggregates
+                                let verification = query_type.map(|qt| {
+                                    crate::context::verify_response(
+                                        &full_response,
+                                        aggregates.as_ref(),
+                                        qt,
+                                    )
+                                });
+
+                                // Signal completion with verification result
                                 let _ = app.emit("chat-stream", StreamChunk {
                                     chunk: String::new(),
                                     done: true,
+                                    verification,
                                 });
                             }
                             StreamEvent::Error { error } => {

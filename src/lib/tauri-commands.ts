@@ -2,7 +2,23 @@
 // All Tauri invoke calls go through here for type safety
 
 import { invoke } from '@tauri-apps/api/core';
-import type { Employee, ReviewCycle, PerformanceRating, PerformanceReview, EnpsResponse, ParseResult, ParsePreview, ColumnMapping, Company, UpsertCompany, EmployeeStatesSummary } from './types';
+import type {
+  Employee,
+  ReviewCycle,
+  PerformanceRating,
+  PerformanceReview,
+  EnpsResponse,
+  ParseResult,
+  ParsePreview,
+  ColumnMapping,
+  Company,
+  UpsertCompany,
+  EmployeeStatesSummary,
+  VerificationResult,
+  OrgAggregates,
+  QueryType,
+  SystemPromptResult,
+} from './types';
 
 /**
  * Test command - will be replaced with actual commands in Phase 1.4
@@ -80,14 +96,20 @@ export async function sendChatMessage(
  * Listen for "chat-stream" events for response chunks
  * @param messages Array of conversation messages
  * @param systemPrompt Optional system prompt for context
+ * @param aggregates V2.1.4: Optional org aggregates for answer verification
+ * @param queryType V2.1.4: Optional query type for answer verification
  */
 export async function sendChatMessageStreaming(
   messages: ChatMessage[],
-  systemPrompt?: string
+  systemPrompt?: string,
+  aggregates?: OrgAggregates | null,
+  queryType?: QueryType | null
 ): Promise<void> {
   return invoke('send_chat_message_streaming', {
     messages,
-    systemPrompt: systemPrompt ?? null
+    systemPrompt: systemPrompt ?? null,
+    aggregates: aggregates ?? null,
+    queryType: queryType ?? null,
   });
 }
 
@@ -95,6 +117,8 @@ export async function sendChatMessageStreaming(
 export interface StreamChunk {
   chunk: string;
   done: boolean;
+  /** V2.1.4: Verification result - only present when done=true */
+  verification?: VerificationResult;
 }
 
 // =============================================================================
@@ -624,15 +648,15 @@ export async function buildChatContext(
 
 /**
  * Get the system prompt for a chat message
- * Returns the full system prompt and list of employee IDs used
+ * V2.1.4: Now returns SystemPromptResult with aggregates and query_type for verification
  * @param userMessage - The user's message to analyze
  * @param selectedEmployeeId - Optional employee ID to prioritize (always included first)
- * @returns Tuple of [system_prompt, employee_ids_used]
+ * @returns SystemPromptResult containing prompt, employee IDs, aggregates, and query type
  */
 export async function getSystemPrompt(
   userMessage: string,
   selectedEmployeeId?: string | null
-): Promise<[string, string[]]> {
+): Promise<SystemPromptResult> {
   return invoke('get_system_prompt', {
     userMessage,
     selectedEmployeeId: selectedEmployeeId ?? null

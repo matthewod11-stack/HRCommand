@@ -2,10 +2,10 @@
   "$schema": "./features.schema.json",
   "_meta": {
     "description": "Feature tracking for HR Command Center. Status: not-started | in-progress | pass | fail | blocked",
-    "lastUpdated": "2025-12-21",
+    "lastUpdated": "2025-12-22",
     "project": "HR Command Center",
-    "totalFeatures": 35,
-    "passing": 28,
+    "totalFeatures": 36,
+    "passing": 29,
     "failing": 0,
     "inProgress": 0
   },
@@ -119,6 +119,10 @@
     "persona-switcher": {
       "status": "pass",
       "notes": "V2.1.3a-d complete: 5 personas (Alex, Jordan, Sam, Morgan, Taylor), PersonaSelector component, Settings integration, immediate effect. ~270 LOC across 6 files, 4 new tests."
+    },
+    "answer-verification": {
+      "status": "pass",
+      "notes": "V2.1.4a-d complete: Verify numeric claims against SQL ground truth, VerificationBadge component with expandable details + Show SQL, tolerance matching (counts exact, ratings ±0.1, percentages ±1%). ~500 LOC across 10 files, 11 new tests."
     }
   },
   "phase-5": {

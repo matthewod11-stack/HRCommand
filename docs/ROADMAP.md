@@ -375,22 +375,22 @@ Pre-built HR personas for different organizational styles.
 | Morgan | Data-driven, analytical | Metrics-focused users |
 | Taylor | Employee-advocate, empathetic | People-first cultures |
 
-#### V2.1.4 Answer Verification Mode
-> **Impact:** ⚡ Medium | **Est. Sessions:** 1
+#### V2.1.4 Answer Verification Mode ✓ COMPLETE
+> **Impact:** ⚡ Medium | **Completed:** 1 session
 
 Trust but verify numeric answers.
 
-- [ ] V2.1.4a Detect numeric questions (headcount, averages, percentages)
-- [ ] V2.1.4b Run parallel SQL query for ground truth
-- [ ] V2.1.4c Display verification badge (✓ Verified / ⚠️ Check)
-- [ ] V2.1.4d Add "Show SQL" option for transparency
+- [x] V2.1.4a Detect numeric questions (headcount, averages, percentages)
+- [x] V2.1.4b Run parallel SQL query for ground truth
+- [x] V2.1.4c Display verification badge (✓ Verified / ⚠️ Check)
+- [x] V2.1.4d Add "Show SQL" option for transparency
 
 ### Pause Point V2.1
 **Verification Required:**
-- [ ] Non-technical user can complete API key setup with guide
-- [ ] `Cmd+K` opens palette with searchable actions
-- [ ] Can switch personas and see different response tones
-- [ ] Numeric answers show verification badges
+- [x] Non-technical user can complete API key setup with guide
+- [x] `Cmd+K` opens palette with searchable actions
+- [x] Can switch personas and see different response tones
+- [x] Numeric answers show verification badges
 
 ---
 
