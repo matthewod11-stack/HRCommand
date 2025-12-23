@@ -409,7 +409,7 @@ Extract structured entities from performance reviews, turning prose into computa
 - [x] V2.2.1c Store extracted data in new `review_highlights` table
 - [x] V2.2.1d Create employee profile summaries (aggregate career narrative)
 - [x] V2.2.1e Add cache invalidation on review add/edit
-- [ ] V2.2.1f Update context builder to use highlights instead of full reviews
+- [x] V2.2.1f Update context builder to use highlights instead of full reviews
 
 **Extraction Schema:**
 ```json

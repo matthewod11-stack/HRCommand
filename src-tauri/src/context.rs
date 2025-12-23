@@ -12,6 +12,7 @@ use sqlx::{FromRow, Row};
 use thiserror::Error;
 
 use crate::db::DbPool;
+use crate::highlights;
 use crate::memory;
 
 // ============================================================================
@@ -322,6 +323,22 @@ pub struct EmployeeContext {
     pub latest_enps_date: Option<String>,
     pub enps_trend: Option<String>,
     pub all_enps: Vec<EnpsInfo>,
+
+    // V2.2.1: Extracted highlights from performance reviews
+    pub career_summary: Option<String>,
+    pub key_strengths: Vec<String>,
+    pub development_areas: Vec<String>,
+    pub recent_highlights: Vec<CycleHighlight>,
+}
+
+/// Extracted highlight data for a single review cycle (V2.2.1)
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CycleHighlight {
+    pub cycle_name: String,
+    pub strengths: Vec<String>,
+    pub opportunities: Vec<String>,
+    pub themes: Vec<String>,
+    pub sentiment: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -996,6 +1013,53 @@ pub async fn get_employee_context(
         })
         .collect();
 
+    // V2.2.1: Get extracted highlights and summary (graceful degradation)
+    let raw_highlights = highlights::get_highlights_or_empty(pool, employee_id).await;
+    let summary = highlights::get_summary_or_none(pool, employee_id).await;
+
+    // Build cycle name lookup from review_cycles
+    let cycle_names: std::collections::HashMap<String, String> = if !raw_highlights.is_empty() {
+        let cycle_ids: Vec<String> = raw_highlights.iter().map(|h| h.review_cycle_id.clone()).collect();
+        let placeholders = cycle_ids.iter().map(|_| "?").collect::<Vec<_>>().join(",");
+        let query = format!("SELECT id, name FROM review_cycles WHERE id IN ({})", placeholders);
+
+        let mut query_builder = sqlx::query(&query);
+        for id in &cycle_ids {
+            query_builder = query_builder.bind(id);
+        }
+
+        query_builder
+            .fetch_all(pool)
+            .await
+            .unwrap_or_default()
+            .into_iter()
+            .map(|row| (row.get::<String, _>("id"), row.get::<String, _>("name")))
+            .collect()
+    } else {
+        std::collections::HashMap::new()
+    };
+
+    // Build CycleHighlight list from raw highlights
+    let recent_highlights: Vec<CycleHighlight> = raw_highlights
+        .into_iter()
+        .take(3) // Limit to 3 most recent cycles for context
+        .map(|h| CycleHighlight {
+            cycle_name: cycle_names
+                .get(&h.review_cycle_id)
+                .cloned()
+                .unwrap_or_else(|| "Review".to_string()),
+            strengths: h.strengths,
+            opportunities: h.opportunities,
+            themes: h.themes,
+            sentiment: h.overall_sentiment,
+        })
+        .collect();
+
+    // Extract summary data
+    let career_summary = summary.as_ref().and_then(|s| s.career_narrative.clone());
+    let key_strengths = summary.as_ref().map(|s| s.key_strengths.clone()).unwrap_or_default();
+    let development_areas = summary.as_ref().map(|s| s.development_areas.clone()).unwrap_or_default();
+
     Ok(EmployeeContext {
         id: emp.id,
         full_name: emp.full_name,
@@ -1014,6 +1078,11 @@ pub async fn get_employee_context(
         latest_enps_date: enps_responses.first().map(|e| e.survey_date.clone()),
         enps_trend,
         all_enps,
+        // V2.2.1: Highlights data
+        career_summary,
+        key_strengths,
+        development_areas,
+        recent_highlights,
     })
 }
 
@@ -1900,6 +1969,44 @@ fn format_single_employee(emp: &EmployeeContext) -> String {
         }
         if let Some(ref trend) = emp.enps_trend {
             lines.push(format!("    Trend: {}", trend));
+        }
+    }
+
+    // V2.2.1: Career summary and highlights (extracted from reviews)
+    if let Some(ref narrative) = emp.career_summary {
+        lines.push("  Career Summary:".to_string());
+        lines.push(format!("    {}", narrative));
+    }
+
+    if !emp.key_strengths.is_empty() || !emp.development_areas.is_empty() {
+        if !emp.key_strengths.is_empty() {
+            lines.push(format!("  Key Strengths: {}", emp.key_strengths.join(", ")));
+        }
+        if !emp.development_areas.is_empty() {
+            lines.push(format!("  Development Areas: {}", emp.development_areas.join(", ")));
+        }
+    }
+
+    // Recent review highlights (themes, strengths per cycle)
+    if !emp.recent_highlights.is_empty() {
+        lines.push("  Recent Review Highlights:".to_string());
+        for h in &emp.recent_highlights {
+            let sentiment_emoji = match h.sentiment.as_str() {
+                "positive" => "↑",
+                "negative" => "↓",
+                "mixed" => "↔",
+                _ => "•",
+            };
+            lines.push(format!("    {} {} ({})", sentiment_emoji, h.cycle_name, h.sentiment));
+            if !h.strengths.is_empty() {
+                lines.push(format!("      Strengths: {}", h.strengths.join(", ")));
+            }
+            if !h.opportunities.is_empty() {
+                lines.push(format!("      Growth areas: {}", h.opportunities.join(", ")));
+            }
+            if !h.themes.is_empty() {
+                lines.push(format!("      Themes: {}", h.themes.join(", ")));
+            }
         }
     }
 
@@ -3564,5 +3671,146 @@ mod tests {
 
         assert!(result.claims.len() >= 2);
         assert_eq!(result.overall_status, VerificationStatus::Verified);
+    }
+
+    // ================================================================================
+    // V2.2.1 Highlight Formatting Tests
+    // ================================================================================
+
+    fn make_test_employee_with_highlights() -> EmployeeContext {
+        EmployeeContext {
+            id: "emp-1".to_string(),
+            full_name: "Sarah Chen".to_string(),
+            email: "sarah@company.com".to_string(),
+            department: Some("Engineering".to_string()),
+            job_title: Some("Senior Engineer".to_string()),
+            hire_date: Some("2020-01-15".to_string()),
+            work_state: Some("California".to_string()),
+            status: "Active".to_string(),
+            manager_name: Some("John Doe".to_string()),
+            latest_rating: Some(4.2),
+            latest_rating_cycle: Some("2024 H2".to_string()),
+            rating_trend: Some("improving".to_string()),
+            all_ratings: vec![
+                RatingInfo {
+                    cycle_name: "2024 H2".to_string(),
+                    overall_rating: 4.2,
+                    rating_date: Some("2024-12-01".to_string()),
+                },
+            ],
+            latest_enps: Some(9),
+            latest_enps_date: Some("2024-11-01".to_string()),
+            enps_trend: Some("stable".to_string()),
+            all_enps: vec![],
+            // V2.2.1 highlights
+            career_summary: Some("Sarah is a high-performing engineer with strong technical leadership skills.".to_string()),
+            key_strengths: vec!["Technical leadership".to_string(), "Problem solving".to_string(), "Mentoring".to_string()],
+            development_areas: vec!["Public speaking".to_string(), "Documentation".to_string()],
+            recent_highlights: vec![
+                CycleHighlight {
+                    cycle_name: "2024 H2".to_string(),
+                    strengths: vec!["Led v2 migration".to_string(), "Improved test coverage".to_string()],
+                    opportunities: vec!["Cross-team communication".to_string()],
+                    themes: vec!["leadership".to_string(), "technical-growth".to_string()],
+                    sentiment: "positive".to_string(),
+                },
+                CycleHighlight {
+                    cycle_name: "2024 H1".to_string(),
+                    strengths: vec!["Delivered key feature".to_string()],
+                    opportunities: vec!["Meeting deadlines".to_string()],
+                    themes: vec!["execution".to_string()],
+                    sentiment: "mixed".to_string(),
+                },
+            ],
+        }
+    }
+
+    #[test]
+    fn test_format_employee_includes_career_summary() {
+        let emp = make_test_employee_with_highlights();
+        let formatted = format_single_employee(&emp);
+
+        assert!(formatted.contains("Career Summary:"));
+        assert!(formatted.contains("high-performing engineer"));
+    }
+
+    #[test]
+    fn test_format_employee_includes_key_strengths() {
+        let emp = make_test_employee_with_highlights();
+        let formatted = format_single_employee(&emp);
+
+        assert!(formatted.contains("Key Strengths:"));
+        assert!(formatted.contains("Technical leadership"));
+        assert!(formatted.contains("Problem solving"));
+    }
+
+    #[test]
+    fn test_format_employee_includes_development_areas() {
+        let emp = make_test_employee_with_highlights();
+        let formatted = format_single_employee(&emp);
+
+        assert!(formatted.contains("Development Areas:"));
+        assert!(formatted.contains("Public speaking"));
+    }
+
+    #[test]
+    fn test_format_employee_includes_recent_highlights() {
+        let emp = make_test_employee_with_highlights();
+        let formatted = format_single_employee(&emp);
+
+        assert!(formatted.contains("Recent Review Highlights:"));
+        assert!(formatted.contains("2024 H2"));
+        assert!(formatted.contains("2024 H1"));
+        assert!(formatted.contains("Led v2 migration"));
+        assert!(formatted.contains("leadership"));
+    }
+
+    #[test]
+    fn test_format_employee_sentiment_indicators() {
+        let emp = make_test_employee_with_highlights();
+        let formatted = format_single_employee(&emp);
+
+        // Positive sentiment should show ↑
+        assert!(formatted.contains("↑ 2024 H2 (positive)"));
+        // Mixed sentiment should show ↔
+        assert!(formatted.contains("↔ 2024 H1 (mixed)"));
+    }
+
+    #[test]
+    fn test_format_employee_without_highlights_still_works() {
+        let emp = EmployeeContext {
+            id: "emp-2".to_string(),
+            full_name: "New Employee".to_string(),
+            email: "new@company.com".to_string(),
+            department: Some("Sales".to_string()),
+            job_title: Some("Sales Rep".to_string()),
+            hire_date: None,
+            work_state: None,
+            status: "Active".to_string(),
+            manager_name: None,
+            latest_rating: None,
+            latest_rating_cycle: None,
+            rating_trend: None,
+            all_ratings: vec![],
+            latest_enps: None,
+            latest_enps_date: None,
+            enps_trend: None,
+            all_enps: vec![],
+            // No highlights data
+            career_summary: None,
+            key_strengths: vec![],
+            development_areas: vec![],
+            recent_highlights: vec![],
+        };
+
+        let formatted = format_single_employee(&emp);
+
+        // Should still format basic info
+        assert!(formatted.contains("New Employee"));
+        assert!(formatted.contains("Active"));
+        // Should NOT have highlight sections
+        assert!(!formatted.contains("Career Summary:"));
+        assert!(!formatted.contains("Key Strengths:"));
+        assert!(!formatted.contains("Recent Review Highlights:"));
     }
 }

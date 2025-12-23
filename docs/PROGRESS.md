@@ -14,6 +14,62 @@
 Most recent session should be first.
 -->
 
+## Session 2025-12-23 (V2.2.1 Session 3 — Context Builder Integration)
+
+**Phase:** V2.2 — Data Intelligence Pipeline
+**Focus:** Integrate extracted highlights into context builder (V2.2.1f)
+
+### Summary
+Completed V2.2.1 by updating the context builder to use extracted highlights instead of raw review text. The `EmployeeContext` struct now includes career summaries and per-cycle highlights, which are formatted into Claude's system prompt for more token-efficient, structured context.
+
+### Files Modified
+```
+src-tauri/src/context.rs    (+150 LOC) - EmployeeContext + CycleHighlight types,
+                                         get_employee_context() highlights fetching,
+                                         format_single_employee() highlights formatting,
+                                         6 new unit tests
+```
+
+### Key Implementation Details
+
+| Component | Implementation |
+|-----------|----------------|
+| `CycleHighlight` struct | New type: cycle_name, strengths, opportunities, themes, sentiment |
+| `EmployeeContext` | Extended with career_summary, key_strengths, development_areas, recent_highlights |
+| `get_employee_context()` | Fetches highlights + summary using graceful degradation helpers |
+| `format_single_employee()` | Formats career summary, key strengths, recent highlights with sentiment indicators |
+| Cycle name lookup | Dynamic query to map review_cycle_id → name |
+
+### Formatted Output Example
+```
+  Career Summary:
+    Sarah is a high-performing engineer with strong technical leadership skills.
+  Key Strengths: Technical leadership, Problem solving, Mentoring
+  Development Areas: Public speaking, Documentation
+  Recent Review Highlights:
+    ↑ 2024 H2 (positive)
+      Strengths: Led v2 migration, Improved test coverage
+      Growth areas: Cross-team communication
+      Themes: leadership, technical-growth
+```
+
+### Tests Added
+- 6 new tests: career_summary, key_strengths, development_areas, recent_highlights, sentiment_indicators, graceful_degradation
+- Total: 187 pass, 1 pre-existing file_parser failure
+
+### Verification
+- [x] TypeScript type-check passes
+- [x] Production build succeeds (805KB)
+- [x] 187 Rust tests pass (85 context tests)
+- [x] V2.2.1 feature complete (all 6 subtasks done)
+
+### Next Session Should
+1. Continue with V2.2.2 (Query-Adaptive Retrieval v2) or start Session 3 (Frontend Integration)
+2. Or move to V2.3 (Visualization Layer) - Org Chart or Analytics Panel
+3. Or Phase 5.1 (Distribution) if ready for launch prep
+
+---
+
 ## Session 2025-12-23 (V2.2.1 Sessions 1+2 — Schema, Core, Extraction)
 
 **Phase:** V2.2 — Data Intelligence Pipeline

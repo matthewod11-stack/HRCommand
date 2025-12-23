@@ -125,8 +125,8 @@
       "notes": "V2.1.4a-d complete: Verify numeric claims against SQL ground truth, VerificationBadge component with expandable details + Show SQL, tolerance matching (counts exact, ratings ±0.1, percentages ±1%). ~500 LOC across 10 files, 11 new tests."
     },
     "structured-data-extraction": {
-      "status": "in-progress",
-      "notes": "V2.2.1 Sessions 1-2/3 complete: Schema + highlights.rs + extraction pipeline + Tauri commands + TypeScript types. 23 unit tests. Next: Session 3 (frontend integration, progress UI)."
+      "status": "pass",
+      "notes": "V2.2.1 complete (all 6 subtasks): Schema + highlights.rs + extraction pipeline + context builder integration. EmployeeContext now includes career summaries and cycle highlights. 29 unit tests across highlights.rs and context.rs."
     }
   },
   "phase-5": {
