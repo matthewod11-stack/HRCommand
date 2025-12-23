@@ -3,6 +3,8 @@
 
 use tauri::Manager;
 
+mod audit;
+mod backup;
 mod bulk_import;
 mod chat;
 mod company;
@@ -12,13 +14,12 @@ mod db;
 mod employees;
 mod enps;
 mod file_parser;
+mod highlights;
 mod keyring;
 mod memory;
 mod network;
 mod performance_ratings;
 mod performance_reviews;
-mod audit;
-mod backup;
 mod pii;
 mod review_cycles;
 mod settings;
@@ -509,6 +510,85 @@ async fn search_performance_reviews(
     query: String,
 ) -> Result<Vec<performance_reviews::PerformanceReview>, performance_reviews::ReviewError> {
     performance_reviews::search_reviews(&state.pool, &query).await
+}
+
+// ============================================================================
+// Review Highlights Commands (V2.2.1)
+// ============================================================================
+
+/// Get highlight for a specific review
+#[tauri::command]
+async fn get_review_highlight(
+    state: tauri::State<'_, Database>,
+    review_id: String,
+) -> Result<Option<highlights::ReviewHighlight>, highlights::HighlightsError> {
+    highlights::get_highlight_for_review(&state.pool, &review_id).await
+}
+
+/// Get all highlights for an employee
+#[tauri::command]
+async fn get_highlights_for_employee(
+    state: tauri::State<'_, Database>,
+    employee_id: String,
+) -> Result<Vec<highlights::ReviewHighlight>, highlights::HighlightsError> {
+    highlights::get_highlights_for_employee(&state.pool, &employee_id).await
+}
+
+/// Extract highlights from a single review using Claude API
+#[tauri::command]
+async fn extract_review_highlight(
+    state: tauri::State<'_, Database>,
+    review_id: String,
+) -> Result<highlights::ReviewHighlight, highlights::HighlightsError> {
+    let review = performance_reviews::get_review(&state.pool, &review_id)
+        .await
+        .map_err(|e| highlights::HighlightsError::Database(e.to_string()))?;
+    highlights::extract_highlights_for_review(&state.pool, &review).await
+}
+
+/// Extract highlights for multiple reviews in batch
+#[tauri::command]
+async fn extract_highlights_batch(
+    state: tauri::State<'_, Database>,
+    review_ids: Vec<String>,
+) -> Result<highlights::BatchExtractionResult, highlights::HighlightsError> {
+    highlights::extract_highlights_batch(&state.pool, review_ids).await
+}
+
+/// Find reviews that need highlights extracted
+#[tauri::command]
+async fn find_reviews_pending_extraction(
+    state: tauri::State<'_, Database>,
+) -> Result<Vec<String>, highlights::HighlightsError> {
+    highlights::find_reviews_pending_extraction(&state.pool).await
+}
+
+/// Get employee summary
+#[tauri::command]
+async fn get_employee_summary(
+    state: tauri::State<'_, Database>,
+    employee_id: String,
+) -> Result<Option<highlights::EmployeeSummary>, highlights::HighlightsError> {
+    highlights::get_summary_for_employee(&state.pool, &employee_id).await
+}
+
+/// Generate employee career summary from highlights
+#[tauri::command]
+async fn generate_employee_summary(
+    state: tauri::State<'_, Database>,
+    employee_id: String,
+) -> Result<highlights::EmployeeSummary, highlights::HighlightsError> {
+    highlights::generate_employee_summary(&state.pool, &employee_id).await
+}
+
+/// Invalidate highlight and summary when a review is updated
+#[tauri::command]
+async fn invalidate_review_highlight(
+    state: tauri::State<'_, Database>,
+    review_id: String,
+    employee_id: String,
+) -> Result<(), highlights::HighlightsError> {
+    highlights::invalidate_for_review(&state.pool, &review_id, &employee_id).await
 }
 
 // ============================================================================
@@ -1107,6 +1187,15 @@ pub fn run() {
             update_performance_review,
             delete_performance_review,
             search_performance_reviews,
+            // Review highlights (V2.2.1)
+            get_review_highlight,
+            get_highlights_for_employee,
+            extract_review_highlight,
+            extract_highlights_batch,
+            find_reviews_pending_extraction,
+            get_employee_summary,
+            generate_employee_summary,
+            invalidate_review_highlight,
             // eNPS
             create_enps_response,
             get_enps_response,

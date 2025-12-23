@@ -55,6 +55,7 @@ async fn run_migrations(pool: &DbPool) -> DbResult<()> {
     let migrations = [
         include_str!("../migrations/001_initial.sql"),
         include_str!("../migrations/002_performance_enps.sql"),
+        include_str!("../migrations/003_review_highlights.sql"),
     ];
 
     for migration_sql in migrations {

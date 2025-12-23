@@ -13,6 +13,91 @@
 Most recent session should be first.
 -->
 
+## Session 2025-12-23 (V2.2.1 Sessions 1+2 — Schema, Core, Extraction)
+
+**Phase:** V2.2 — Data Intelligence Pipeline
+**Focus:** Complete backend implementation for review highlights extraction
+
+### Session 2 Summary
+Continued from Session 1. Implemented the extraction pipeline using Claude API, added Tauri commands, and TypeScript integration.
+
+### Files Modified (Session 2)
+```
+src-tauri/src/highlights.rs    (+280 LOC) - Extraction pipeline + 6 tests
+src-tauri/src/lib.rs           (+80 LOC)  - 8 Tauri commands
+src/lib/types.ts               (+75 LOC)  - TypeScript types
+src/lib/tauri-commands.ts      (+85 LOC)  - TypeScript wrappers
+```
+
+### Key Implementation Details (Session 2)
+
+| Component | Implementation |
+|-----------|----------------|
+| `extract_highlights_for_review()` | Claude API call with JSON schema prompt |
+| `extract_highlights_batch()` | Sequential with 100ms delay, skip existing |
+| `generate_employee_summary()` | Aggregates highlights into career narrative |
+| System prompts | Extraction + Summary with strict JSON output |
+| Error handling | Graceful degradation, markdown fence stripping |
+
+### Tests Added (Session 2)
+- 6 new tests: parse_extraction_response, parse_summary_response, format functions
+- Total: 181 pass, 1 pre-existing file_parser failure
+
+### Verification
+- [x] TypeScript type-check passes
+- [x] Production build succeeds (805KB)
+- [x] 181 Rust tests pass
+
+---
+
+## Session 2025-12-23 (V2.2.1 Session 1 — Schema + Core Module)
+
+**Phase:** V2.2 — Data Intelligence Pipeline
+**Focus:** Implement database schema and Rust module for review highlights extraction
+
+### Summary
+Completed Session 1 of V2.2.1 Structured Data Extraction. Created the database schema for `review_highlights` and `employee_summaries` tables, plus the full `highlights.rs` Rust module with types, CRUD operations, validation, and 17 unit tests.
+
+### Files Created
+```
+src-tauri/migrations/003_review_highlights.sql   (~55 LOC) - Tables for highlights + summaries
+src-tauri/src/highlights.rs                      (~600 LOC) - Types, CRUD, validation, tests
+```
+
+### Files Modified
+```
+src-tauri/src/lib.rs    (+1 line) - Added highlights module
+src-tauri/src/db.rs     (+1 line) - Added migration 003
+```
+
+### Key Implementation Details
+
+| Component | Implementation |
+|-----------|----------------|
+| Tables | `review_highlights` (per-review), `employee_summaries` (per-employee) |
+| JSON Fields | strengths, opportunities, themes, quotes stored as JSON TEXT |
+| Row Pattern | Private `*Row` structs with `TryFrom` for JSON parsing |
+| Themes | Whitelist validation (10 valid themes) |
+| Sentiment | Enum validation (positive/neutral/mixed/negative) |
+| Graceful Degradation | `get_highlights_or_empty()`, `get_summary_or_none()` helpers |
+
+### Tests Added
+- 17 new tests for JSON parsing, sentiment validation, theme filtering, row conversion
+- All tests pass; no regressions
+
+### Verification
+- [x] TypeScript type-check passes
+- [x] Production build succeeds (805KB)
+- [x] 175 Rust tests pass (+17 new), 1 pre-existing file_parser failure
+
+### Next Session Should
+1. Continue with Session 2: Extraction Pipeline
+2. Implement `extract_highlights_for_review()` with Claude API
+3. Add Tauri commands for frontend integration
+4. Add TypeScript types to `types.ts` and `tauri-commands.ts`
+
+---
+
 ## Session 2025-12-22 (V2.2.1 Planning — Structured Data Extraction)
 
 **Phase:** V2.2 — Data Intelligence Pipeline

@@ -18,6 +18,10 @@ import type {
   OrgAggregates,
   QueryType,
   SystemPromptResult,
+  // V2.2.1 - Review Highlights
+  ReviewHighlight,
+  EmployeeSummary,
+  BatchExtractionResult,
 } from './types';
 
 /**
@@ -1450,4 +1454,80 @@ export function downloadBackupFile(data: number[], filename: string): void {
   a.click();
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
+}
+
+// =============================================================================
+// V2.2.1 - Review Highlights
+// =============================================================================
+
+/**
+ * Get highlight for a specific review
+ * Returns null if no highlight has been extracted yet
+ * @param reviewId - The performance review ID
+ */
+export async function getReviewHighlight(reviewId: string): Promise<ReviewHighlight | null> {
+  return invoke('get_review_highlight', { reviewId });
+}
+
+/**
+ * Get all highlights for an employee
+ * @param employeeId - The employee ID
+ */
+export async function getHighlightsForEmployee(employeeId: string): Promise<ReviewHighlight[]> {
+  return invoke('get_highlights_for_employee', { employeeId });
+}
+
+/**
+ * Extract highlights from a single review using Claude API
+ * @param reviewId - The performance review ID to extract from
+ */
+export async function extractReviewHighlight(reviewId: string): Promise<ReviewHighlight> {
+  return invoke('extract_review_highlight', { reviewId });
+}
+
+/**
+ * Extract highlights for multiple reviews in batch
+ * @param reviewIds - Array of review IDs to process
+ */
+export async function extractHighlightsBatch(reviewIds: string[]): Promise<BatchExtractionResult> {
+  return invoke('extract_highlights_batch', { reviewIds });
+}
+
+/**
+ * Find reviews that need highlights extracted
+ * Returns IDs of reviews without existing highlights
+ */
+export async function findReviewsPendingExtraction(): Promise<string[]> {
+  return invoke('find_reviews_pending_extraction');
+}
+
+/**
+ * Get employee career summary
+ * Returns null if no summary has been generated yet
+ * @param employeeId - The employee ID
+ */
+export async function getEmployeeSummary(employeeId: string): Promise<EmployeeSummary | null> {
+  return invoke('get_employee_summary', { employeeId });
+}
+
+/**
+ * Generate employee career summary from their review highlights
+ * Requires highlights to be extracted first
+ * @param employeeId - The employee ID
+ */
+export async function generateEmployeeSummary(employeeId: string): Promise<EmployeeSummary> {
+  return invoke('generate_employee_summary', { employeeId });
+}
+
+/**
+ * Invalidate highlight and summary when a review is updated
+ * Call this after updating a performance review to trigger re-extraction
+ * @param reviewId - The updated review ID
+ * @param employeeId - The employee ID (for summary invalidation)
+ */
+export async function invalidateReviewHighlight(
+  reviewId: string,
+  employeeId: string
+): Promise<void> {
+  return invoke('invalidate_review_highlight', { reviewId, employeeId });
 }

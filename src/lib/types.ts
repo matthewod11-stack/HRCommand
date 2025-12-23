@@ -368,3 +368,79 @@ export type ColumnMapping = Record<string, string>;
 /** Supported file extensions for import */
 export const SUPPORTED_EXTENSIONS = ['csv', 'tsv', 'xlsx', 'xls'] as const;
 export type SupportedExtension = (typeof SUPPORTED_EXTENSIONS)[number];
+
+// =============================================================================
+// Review Highlights (V2.2.1)
+// =============================================================================
+
+/**
+ * A quote extracted from a performance review
+ */
+export interface ReviewQuote {
+  sentiment: 'positive' | 'negative' | 'neutral';
+  text: string;
+}
+
+/**
+ * Extracted highlights from a single performance review
+ */
+export interface ReviewHighlight {
+  id: string;
+  review_id: string;
+  employee_id: string;
+  review_cycle_id: string;
+  strengths: string[];
+  opportunities: string[];
+  themes: string[];
+  quotes: ReviewQuote[];
+  overall_sentiment: 'positive' | 'neutral' | 'mixed' | 'negative';
+  extraction_model?: string;
+  extraction_version: number;
+  token_count?: number;
+  created_at: string;
+  updated_at: string;
+}
+
+/**
+ * Aggregated career summary for an employee
+ */
+export interface EmployeeSummary {
+  id: string;
+  employee_id: string;
+  career_narrative?: string;
+  key_strengths: string[];
+  development_areas: string[];
+  notable_accomplishments: string[];
+  reviews_analyzed: number;
+  last_review_date?: string;
+  generation_model?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+/**
+ * Result of batch extraction operation
+ */
+export interface BatchExtractionResult {
+  total: number;
+  succeeded: number;
+  failed: number;
+  errors: string[];
+}
+
+/**
+ * Valid theme values for review highlights
+ */
+export const VALID_THEMES = [
+  'leadership',
+  'technical-growth',
+  'communication',
+  'collaboration',
+  'execution',
+  'learning',
+  'innovation',
+  'mentoring',
+  'problem-solving',
+  'customer-focus',
+] as const;
+export type ReviewTheme = (typeof VALID_THEMES)[number];
