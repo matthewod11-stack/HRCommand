@@ -404,11 +404,11 @@ Foundation layer that powers visualization and signals features.
 
 Extract structured entities from performance reviews, turning prose into computable data.
 
-- [ ] V2.2.1a Design extraction schema (strengths, opportunities, quotes, sentiment)
-- [ ] V2.2.1b Create extraction pipeline (runs on review import)
-- [ ] V2.2.1c Store extracted data in new `review_highlights` table
-- [ ] V2.2.1d Create employee profile summaries (aggregate career narrative)
-- [ ] V2.2.1e Add cache invalidation on review add/edit
+- [x] V2.2.1a Design extraction schema (strengths, opportunities, quotes, sentiment)
+- [x] V2.2.1b Create extraction pipeline (runs on review import)
+- [x] V2.2.1c Store extracted data in new `review_highlights` table
+- [x] V2.2.1d Create employee profile summaries (aggregate career narrative)
+- [x] V2.2.1e Add cache invalidation on review add/edit
 - [ ] V2.2.1f Update context builder to use highlights instead of full reviews
 
 **Extraction Schema:**
