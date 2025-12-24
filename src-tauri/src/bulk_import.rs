@@ -1,6 +1,8 @@
 // HR Command Center - Bulk Import Module
 // Direct database inserts for test data with predefined IDs
 
+use std::collections::HashSet;
+
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
@@ -233,6 +235,10 @@ pub async fn import_reviews_bulk(
     let mut inserted = 0;
     let mut errors = Vec::new();
 
+    // Track inserted reviews and affected employees for auto-extraction
+    let mut inserted_review_ids: Vec<String> = Vec::new();
+    let mut affected_employee_ids: HashSet<String> = HashSet::new();
+
     for review in reviews {
         let result = sqlx::query(
             r#"
@@ -255,9 +261,32 @@ pub async fn import_reviews_bulk(
         .await;
 
         match result {
-            Ok(_) => inserted += 1,
+            Ok(_) => {
+                inserted += 1;
+                inserted_review_ids.push(review.id.clone());
+                affected_employee_ids.insert(review.employee_id.clone());
+            }
             Err(e) => errors.push(format!("{}: {}", review.id, e)),
         }
+    }
+
+    // Auto-trigger: Extract highlights and regenerate summaries in background
+    // Fire-and-forget pattern - don't block the import response
+    if !inserted_review_ids.is_empty() {
+        let pool_clone = pool.clone();
+        let employee_ids: Vec<String> = affected_employee_ids.into_iter().collect();
+        tokio::spawn(async move {
+            // Batch extract with rate limiting (100ms between API calls)
+            if let Err(e) = crate::highlights::extract_highlights_batch(&pool_clone, inserted_review_ids).await {
+                eprintln!("[Auto-extract batch] Failed: {}", e);
+            }
+            // Regenerate summaries for all affected employees
+            for emp_id in employee_ids {
+                if let Err(e) = crate::highlights::generate_employee_summary(&pool_clone, &emp_id).await {
+                    eprintln!("[Auto-summary] Failed for employee {}: {}", emp_id, e);
+                }
+            }
+        });
     }
 
     Ok(BulkImportResult { inserted, errors })

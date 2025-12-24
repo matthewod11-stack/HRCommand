@@ -410,6 +410,7 @@ Extract structured entities from performance reviews, turning prose into computa
 - [x] V2.2.1d Create employee profile summaries (aggregate career narrative)
 - [x] V2.2.1e Add cache invalidation on review add/edit
 - [x] V2.2.1f Update context builder to use highlights instead of full reviews
+- [x] V2.2.1g Auto-trigger extraction on new review import (queue pending → extract → regenerate summary)
 
 **Extraction Schema:**
 ```json

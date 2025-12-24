@@ -107,7 +107,24 @@ pub async fn create_review(pool: &DbPool, input: CreateReview) -> Result<Perform
     .execute(pool)
     .await?;
 
-    get_review(pool, &id).await
+    let review = get_review(pool, &id).await?;
+
+    // Auto-trigger: Extract highlights and regenerate summary in background
+    // Fire-and-forget pattern - don't block the create response
+    let pool_clone = pool.clone();
+    let review_clone = review.clone();
+    tokio::spawn(async move {
+        // Extract highlights from review text
+        if let Err(e) = crate::highlights::extract_highlights_for_review(&pool_clone, &review_clone).await {
+            eprintln!("[Auto-extract] Failed for review {}: {}", review_clone.id, e);
+        }
+        // Regenerate employee summary with new highlight
+        if let Err(e) = crate::highlights::generate_employee_summary(&pool_clone, &review_clone.employee_id).await {
+            eprintln!("[Auto-summary] Failed for employee {}: {}", review_clone.employee_id, e);
+        }
+    });
+
+    Ok(review)
 }
 
 pub async fn get_review(pool: &DbPool, id: &str) -> Result<PerformanceReview, ReviewError> {
