@@ -126,7 +126,7 @@
     },
     "structured-data-extraction": {
       "status": "pass",
-      "notes": "V2.2.1 complete (all 6 subtasks): Schema + highlights.rs + extraction pipeline + context builder integration. EmployeeContext now includes career summaries and cycle highlights. 29 unit tests across highlights.rs and context.rs."
+      "notes": "V2.2.1 complete (all 7 subtasks): Schema + highlights.rs + extraction pipeline + context builder integration + auto-trigger on import. Fire-and-forget async extraction on review create/import."
     }
   },
   "phase-5": {

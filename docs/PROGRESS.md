@@ -14,6 +14,42 @@
 Most recent session should be first.
 -->
 
+## Session 2025-12-23 (V2.2.1g — Auto-Trigger Extraction)
+
+**Phase:** V2.2 — Data Intelligence Pipeline
+**Focus:** Auto-trigger highlights extraction when new reviews are imported
+
+### Summary
+Added fire-and-forget async hooks to automatically extract highlights and regenerate employee summaries when performance reviews are created or bulk imported. Context is now automatically fresh on next chat query.
+
+### Files Modified
+```
+src-tauri/src/performance_reviews.rs  (+17 LOC) - Async spawn after create_review()
+src-tauri/src/bulk_import.rs          (+22 LOC) - Track IDs, batch extraction after import
+docs/ROADMAP.md                       (+1 line) - Added V2.2.1g task, marked complete
+```
+
+### Key Implementation Details
+
+| Component | Implementation |
+|-----------|----------------|
+| Single review hook | `tokio::spawn` in `create_review()` → extract + regenerate summary |
+| Bulk import hook | Collect review IDs + employee IDs → spawn batch extraction |
+| Error handling | Fire-and-forget with `eprintln!` logging, doesn't block response |
+| Rate limiting | Batch extraction uses existing 100ms delay between API calls |
+
+### Verification
+- [x] TypeScript type-check passes
+- [x] Production build succeeds (798KB)
+- [x] 187 Rust tests pass (1 pre-existing file_parser failure)
+
+### Next Session Should
+1. Continue with V2.2.2 (Query-Adaptive Retrieval v2)
+2. Or V2.3.1 (Org Chart) for visualization
+3. Or Phase 5.1 (Distribution) for launch prep
+
+---
+
 ## Session 2025-12-23 (V2.2.1 Session 3 — Context Builder Integration)
 
 **Phase:** V2.2 — Data Intelligence Pipeline
