@@ -41,6 +41,9 @@ calamine = "0.26"
 # PII detection
 regex = "1"
 
+# Text processing for excerpting
+unicode-segmentation = "1.10"
+
 # Encryption & compression for backup
 aes-gcm = "0.10"
 argon2 = "0.5"

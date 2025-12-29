@@ -10,6 +10,7 @@
 use serde::{Deserialize, Serialize};
 use sqlx::{FromRow, Row};
 use thiserror::Error;
+use unicode_segmentation::UnicodeSegmentation;
 
 use crate::db::DbPool;
 use crate::highlights;
@@ -522,6 +523,19 @@ pub enum TenureDirection {
     Anniversary,
 }
 
+/// Target for theme-based queries (V2.2.2b)
+/// Determines which field to search in review highlights
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize)]
+pub enum ThemeTarget {
+    /// Search all theme-related fields (themes, strengths, opportunities)
+    #[default]
+    Any,
+    /// "excels at", "strong in", "praised for" → search strengths
+    Strengths,
+    /// "needs help", "struggles with", "concerns" → search opportunities
+    Opportunities,
+}
+
 /// Extracted mentions from a user query
 #[derive(Debug, Clone, Default)]
 pub struct QueryMentions {
@@ -545,6 +559,12 @@ pub struct QueryMentions {
     pub tenure_direction: Option<TenureDirection>,
     /// Whether query wants aggregate stats rather than individual employees
     pub wants_aggregate: bool,
+    /// V2.2.2b: Keywords suggesting theme-based queries
+    pub is_theme_query: bool,
+    /// V2.2.2b: Specific themes requested (e.g., "leadership", "communication")
+    pub requested_themes: Vec<String>,
+    /// V2.2.2b: Target field for theme search (strengths vs opportunities vs any)
+    pub theme_target: ThemeTarget,
 }
 
 /// Extract potential employee names and departments from a query
@@ -731,6 +751,86 @@ pub fn extract_mentions(query: &str) -> QueryMentions {
         }
     }
 
+    // V2.2.2b: Theme-based query detection
+    let lower = query.to_lowercase();
+
+    // Map of query terms to canonical theme names
+    let theme_map: &[(&str, &str)] = &[
+        // Direct theme matches
+        ("leadership", "leadership"),
+        ("technical growth", "technical-growth"),
+        ("technical-growth", "technical-growth"),
+        ("communication", "communication"),
+        ("collaboration", "collaboration"),
+        ("execution", "execution"),
+        ("learning", "learning"),
+        ("innovation", "innovation"),
+        ("mentoring", "mentoring"),
+        ("problem solving", "problem-solving"),
+        ("problem-solving", "problem-solving"),
+        ("customer focus", "customer-focus"),
+        ("customer-focus", "customer-focus"),
+        // Semantic variants
+        ("people skills", "communication"),
+        ("interpersonal", "communication"),
+        ("soft skills", "communication"),
+        ("teamwork", "collaboration"),
+        ("team player", "collaboration"),
+        ("technical skills", "technical-growth"),
+        ("coding", "technical-growth"),
+        ("engineering skills", "technical-growth"),
+        ("creative", "innovation"),
+        ("creativity", "innovation"),
+        ("coaching", "mentoring"),
+        ("teaching", "mentoring"),
+        ("analytical", "problem-solving"),
+        ("client focus", "customer-focus"),
+        ("customer service", "customer-focus"),
+        ("delivery", "execution"),
+        ("results", "execution"),
+        ("growth mindset", "learning"),
+        ("self-improvement", "learning"),
+    ];
+
+    // Detect themes in query
+    for (term, theme) in theme_map {
+        if lower.contains(term) {
+            if !mentions.requested_themes.contains(&theme.to_string()) {
+                mentions.requested_themes.push(theme.to_string());
+            }
+        }
+    }
+
+    // If themes found, mark as theme query
+    if !mentions.requested_themes.is_empty() {
+        mentions.is_theme_query = true;
+    }
+
+    // Detect theme target (strengths vs opportunities)
+    let opportunity_phrases = [
+        "needs help", "struggles with", "concerns about", "concerns with",
+        "needs improvement", "development area", "working on", "improve",
+        "weak in", "challenge with", "difficulty with", "issue with",
+    ];
+    let strength_phrases = [
+        "excels at", "strong in", "praised for", "recognized for",
+        "good at", "great at", "excellent", "skilled in", "talented",
+    ];
+
+    for phrase in opportunity_phrases {
+        if lower.contains(phrase) {
+            mentions.theme_target = ThemeTarget::Opportunities;
+            break;
+        }
+    }
+    // Strength phrases override if both match (explicit positive intent)
+    for phrase in strength_phrases {
+        if lower.contains(phrase) {
+            mentions.theme_target = ThemeTarget::Strengths;
+            break;
+        }
+    }
+
     mentions
 }
 
@@ -764,6 +864,12 @@ pub fn classify_query(message: &str, mentions: &QueryMentions) -> QueryType {
     // Priority 3: Attrition (turnover-specific)
     if is_attrition_query(&lower) {
         return QueryType::Attrition;
+    }
+
+    // Priority 3.5: Theme-based queries (V2.2.2b)
+    // "who has leadership feedback?", "communication issues in Engineering"
+    if mentions.is_theme_query {
+        return QueryType::Comparison; // Reuse Comparison for employee filtering by theme
     }
 
     // Priority 4: List (roster requests)
@@ -1403,6 +1509,91 @@ pub async fn find_top_performers(
     Ok(employees)
 }
 
+/// V2.2.2b: Find employees by theme from extracted review highlights
+/// Searches themes, strengths, or opportunities based on ThemeTarget
+pub async fn find_employees_by_theme(
+    pool: &DbPool,
+    themes: &[String],
+    department: Option<&str>,
+    target: ThemeTarget,
+    limit: usize,
+) -> Result<Vec<EmployeeContext>, ContextError> {
+    if themes.is_empty() {
+        return Ok(vec![]);
+    }
+
+    // Build dynamic WHERE clause for theme matching
+    // SQLite JSON functions: themes are stored as JSON arrays like '["leadership", "mentoring"]'
+    let mut theme_conditions = Vec::new();
+    for theme in themes {
+        // Match theme in the appropriate field(s) based on target
+        let pattern = format!("%\"{}%", theme); // Matches "theme" in JSON array
+        match target {
+            ThemeTarget::Any => {
+                theme_conditions.push(format!(
+                    "(rh.themes LIKE '{}' OR rh.strengths LIKE '{}' OR rh.opportunities LIKE '{}')",
+                    pattern, pattern, pattern
+                ));
+            }
+            ThemeTarget::Strengths => {
+                theme_conditions.push(format!("rh.strengths LIKE '{}'", pattern));
+            }
+            ThemeTarget::Opportunities => {
+                theme_conditions.push(format!("rh.opportunities LIKE '{}'", pattern));
+            }
+        }
+    }
+
+    // Combine theme conditions with OR (match any requested theme)
+    let theme_where = theme_conditions.join(" OR ");
+
+    // Build department filter
+    let dept_filter = if department.is_some() {
+        "AND e.department = ?"
+    } else {
+        ""
+    };
+
+    let query = format!(
+        r#"
+        SELECT e.id, COUNT(*) as match_count
+        FROM employees e
+        JOIN review_highlights rh ON e.id = rh.employee_id
+        WHERE e.status = 'active'
+          AND ({})
+          {}
+        GROUP BY e.id
+        ORDER BY match_count DESC
+        LIMIT ?
+        "#,
+        theme_where, dept_filter
+    );
+
+    // Execute query with appropriate bindings
+    let rows: Vec<(String, i64)> = if let Some(dept) = department {
+        sqlx::query_as(&query)
+            .bind(dept)
+            .bind(limit as i64)
+            .fetch_all(pool)
+            .await?
+    } else {
+        sqlx::query_as(&query)
+            .bind(limit as i64)
+            .fetch_all(pool)
+            .await?
+    };
+
+    // Fetch full employee context for each match
+    let mut employees = Vec::new();
+    for (id, _match_count) in rows {
+        if let Ok(emp) = get_employee_context(pool, &id).await {
+            employees.push(emp);
+        }
+    }
+
+    Ok(employees)
+}
+
 /// Find employees with upcoming work anniversaries (within next 30 days)
 pub async fn find_upcoming_anniversaries(
     pool: &DbPool,
@@ -1947,23 +2138,119 @@ pub fn format_org_aggregates(agg: &OrgAggregates, company_name: Option<&str>) ->
 }
 
 // ============================================================================
+// Excerpting Helpers (V2.2.2a)
+// ============================================================================
+
+/// Default maximum sentences to include in excerpts
+const DEFAULT_MAX_SENTENCES: usize = 3;
+
+/// Minimum sentences to preserve (even under tight budgets)
+const MIN_SENTENCES: usize = 1;
+
+/// Maximum sentences for career summaries at full budget
+const FULL_BUDGET_SUMMARY_SENTENCES: usize = 5;
+
+/// Maximum sentences for career summaries at reduced budget
+const REDUCED_BUDGET_SUMMARY_SENTENCES: usize = 2;
+
+/// Token threshold below which we consider budget "reduced"
+const REDUCED_BUDGET_THRESHOLD: usize = 800;
+
+/// Extract the first N sentences from text using Unicode sentence boundaries.
+/// Returns the original text if it contains fewer than max_sentences.
+pub fn excerpt_to_sentences(text: &str, max_sentences: usize) -> String {
+    if max_sentences == 0 {
+        return String::new();
+    }
+
+    let trimmed = text.trim();
+    if trimmed.is_empty() {
+        return String::new();
+    }
+
+    // Use Unicode sentence boundaries for accurate splitting
+    let sentences: Vec<&str> = trimmed.unicode_sentences().collect();
+
+    if sentences.len() <= max_sentences {
+        // Return original text if already within limit
+        return trimmed.to_string();
+    }
+
+    // Join the first N sentences
+    let excerpt: String = sentences[..max_sentences].concat();
+    let mut result = excerpt.trim_end().to_string();
+
+    // Add ellipsis to indicate truncation
+    if !result.ends_with('.') && !result.ends_with('!') && !result.ends_with('?') {
+        result.push_str("...");
+    } else {
+        result.push_str("..");
+    }
+
+    result
+}
+
+/// Calculate the number of sentences to include based on available token budget.
+/// Returns (summary_sentences, highlight_cycles) tuple.
+pub fn calculate_excerpt_limits(token_budget: usize) -> (usize, usize) {
+    if token_budget >= REDUCED_BUDGET_THRESHOLD {
+        // Full budget: 5 summary sentences, 3 highlight cycles
+        (FULL_BUDGET_SUMMARY_SENTENCES, 3)
+    } else if token_budget >= REDUCED_BUDGET_THRESHOLD / 2 {
+        // Reduced budget: 2 summary sentences, 2 highlight cycles
+        (REDUCED_BUDGET_SUMMARY_SENTENCES, 2)
+    } else {
+        // Tight budget: 1 summary sentence, 1 highlight cycle
+        (MIN_SENTENCES, 1)
+    }
+}
+
+/// Calculate per-employee token budget based on total budget and employee count.
+/// Distributes budget evenly with a minimum floor per employee.
+pub fn calculate_per_employee_budget(total_budget: usize, employee_count: usize) -> usize {
+    if employee_count == 0 {
+        return total_budget;
+    }
+
+    // Minimum budget per employee (enough for basic info + 1-2 sentences)
+    const MIN_PER_EMPLOYEE: usize = 200;
+
+    let calculated = total_budget / employee_count;
+    calculated.max(MIN_PER_EMPLOYEE)
+}
+
+// ============================================================================
 // Context Formatting
 // ============================================================================
 
-/// Format employee context for inclusion in system prompt
+/// Format employee context for inclusion in system prompt.
+/// Uses token budget to control excerpting of long content.
 pub fn format_employee_context(employees: &[EmployeeContext]) -> String {
+    format_employee_context_with_budget(employees, None)
+}
+
+/// Format employee context with explicit token budget for dynamic excerpting.
+pub fn format_employee_context_with_budget(
+    employees: &[EmployeeContext],
+    total_token_budget: Option<usize>,
+) -> String {
     if employees.is_empty() {
         return String::new();
     }
 
+    // Calculate per-employee budget based on total and count
+    let budget = total_token_budget.unwrap_or(MAX_EMPLOYEE_CONTEXT_TOKENS);
+    let per_employee_budget = calculate_per_employee_budget(budget, employees.len());
+
     let mut output = String::new();
     let mut total_chars = 0;
+    let max_chars = budget * CHARS_PER_TOKEN;
 
     for emp in employees {
-        let emp_text = format_single_employee(emp);
+        let emp_text = format_single_employee_with_budget(emp, Some(per_employee_budget));
 
         // Check if adding this employee would exceed the limit
-        if total_chars + emp_text.len() > MAX_EMPLOYEE_CONTEXT_CHARS {
+        if total_chars + emp_text.len() > max_chars {
             output.push_str("\n[Additional employees omitted due to context limit]");
             break;
         }
@@ -2018,11 +2305,23 @@ pub fn format_employee_summaries(summaries: &[EmployeeSummary], total_count: Opt
     lines.join("\n")
 }
 
-/// Format a single employee's context
+/// Format a single employee's context (backward-compatible wrapper)
 fn format_single_employee(emp: &EmployeeContext) -> String {
+    format_single_employee_with_budget(emp, None)
+}
+
+/// Format a single employee's context with optional token budget for excerpting.
+/// When a budget is provided, long content like career summaries and highlights
+/// will be truncated to fit within the budget.
+fn format_single_employee_with_budget(emp: &EmployeeContext, token_budget: Option<usize>) -> String {
     let mut lines = Vec::new();
 
-    // Basic info
+    // Calculate excerpt limits based on budget
+    let (summary_sentences, highlight_cycles) = token_budget
+        .map(calculate_excerpt_limits)
+        .unwrap_or((FULL_BUDGET_SUMMARY_SENTENCES, 3));
+
+    // Basic info (always included in full)
     lines.push(format!("**{}** ({})", emp.full_name, emp.status));
 
     if let Some(ref title) = emp.job_title {
@@ -2090,9 +2389,11 @@ fn format_single_employee(emp: &EmployeeContext) -> String {
     }
 
     // V2.2.1: Career summary and highlights (extracted from reviews)
+    // V2.2.2a: Apply dynamic excerpting based on token budget
     if let Some(ref narrative) = emp.career_summary {
         lines.push("  Career Summary:".to_string());
-        lines.push(format!("    {}", narrative));
+        let excerpted = excerpt_to_sentences(narrative, summary_sentences);
+        lines.push(format!("    {}", excerpted));
     }
 
     if !emp.key_strengths.is_empty() || !emp.development_areas.is_empty() {
@@ -2105,9 +2406,10 @@ fn format_single_employee(emp: &EmployeeContext) -> String {
     }
 
     // Recent review highlights (themes, strengths per cycle)
+    // V2.2.2a: Limit cycles based on token budget
     if !emp.recent_highlights.is_empty() {
         lines.push("  Recent Review Highlights:".to_string());
-        for h in &emp.recent_highlights {
+        for h in emp.recent_highlights.iter().take(highlight_cycles) {
             let sentiment_emoji = match h.sentiment.as_str() {
                 "positive" => "↑",
                 "negative" => "↓",
@@ -2359,15 +2661,29 @@ pub async fn build_chat_context(
             (employees, vec![])
         }
         QueryType::Comparison => {
-            // Comparison queries get full profiles for top/bottom performers
-            let employees = find_relevant_employees(
-                pool,
-                &mentions,
-                MAX_COMPARISON_EMPLOYEES,
-                selected_employee_id,
-            )
-            .await?;
-            (employees, vec![])
+            // V2.2.2b: Theme-based queries use specialized retrieval
+            if mentions.is_theme_query && !mentions.requested_themes.is_empty() {
+                let dept = mentions.departments.first().map(|s| s.as_str());
+                let employees = find_employees_by_theme(
+                    pool,
+                    &mentions.requested_themes,
+                    dept,
+                    mentions.theme_target,
+                    MAX_COMPARISON_EMPLOYEES,
+                )
+                .await?;
+                (employees, vec![])
+            } else {
+                // Standard comparison: top/bottom performers
+                let employees = find_relevant_employees(
+                    pool,
+                    &mentions,
+                    MAX_COMPARISON_EMPLOYEES,
+                    selected_employee_id,
+                )
+                .await?;
+                (employees, vec![])
+            }
         }
         QueryType::Attrition => {
             // Attrition queries get recent terminations with full context
@@ -4052,5 +4368,181 @@ mod tests {
         assert_eq!(metrics.memories_included, 0);
         assert!(!metrics.aggregates_included);
         assert_eq!(metrics.retrieval_time_ms, 0);
+    }
+
+    // =========================================================================
+    // V2.2.2a: Dynamic Excerpting Tests
+    // =========================================================================
+
+    #[test]
+    fn test_excerpt_to_sentences_empty() {
+        assert_eq!(excerpt_to_sentences("", 3), "");
+        assert_eq!(excerpt_to_sentences("  ", 3), "");
+    }
+
+    #[test]
+    fn test_excerpt_to_sentences_zero_max() {
+        assert_eq!(excerpt_to_sentences("Hello world. This is a test.", 0), "");
+    }
+
+    #[test]
+    fn test_excerpt_to_sentences_single_sentence() {
+        let text = "This is a single sentence.";
+        assert_eq!(excerpt_to_sentences(text, 3), "This is a single sentence.");
+    }
+
+    #[test]
+    fn test_excerpt_to_sentences_exact_match() {
+        let text = "First sentence. Second sentence. Third sentence.";
+        // When text has exactly max_sentences, return it unchanged
+        assert_eq!(excerpt_to_sentences(text, 3), text);
+    }
+
+    #[test]
+    fn test_excerpt_to_sentences_truncation() {
+        let text = "First sentence. Second sentence. Third sentence. Fourth sentence. Fifth sentence.";
+        let result = excerpt_to_sentences(text, 2);
+        // Should have first 2 sentences plus ellipsis
+        assert!(result.starts_with("First sentence. Second sentence."));
+        assert!(result.ends_with(".."));
+    }
+
+    #[test]
+    fn test_excerpt_to_sentences_unicode() {
+        // Test with various punctuation types
+        let text = "Hello! How are you? I'm fine. Thanks for asking!";
+        let result = excerpt_to_sentences(text, 2);
+        assert!(result.starts_with("Hello! How are you?"));
+        assert!(result.ends_with(".."));
+    }
+
+    #[test]
+    fn test_excerpt_to_sentences_preserves_whitespace() {
+        let text = "  First sentence.   Second sentence.  ";
+        // Should trim input and preserve internal structure
+        let result = excerpt_to_sentences(text, 1);
+        assert!(result.starts_with("First sentence."));
+    }
+
+    #[test]
+    fn test_calculate_excerpt_limits_full_budget() {
+        // Full budget (>= 800 tokens)
+        let (summary, cycles) = calculate_excerpt_limits(1000);
+        assert_eq!(summary, 5); // FULL_BUDGET_SUMMARY_SENTENCES
+        assert_eq!(cycles, 3);
+    }
+
+    #[test]
+    fn test_calculate_excerpt_limits_reduced_budget() {
+        // Reduced budget (400-799 tokens)
+        let (summary, cycles) = calculate_excerpt_limits(500);
+        assert_eq!(summary, 2); // REDUCED_BUDGET_SUMMARY_SENTENCES
+        assert_eq!(cycles, 2);
+    }
+
+    #[test]
+    fn test_calculate_excerpt_limits_tight_budget() {
+        // Tight budget (< 400 tokens)
+        let (summary, cycles) = calculate_excerpt_limits(200);
+        assert_eq!(summary, 1); // MIN_SENTENCES
+        assert_eq!(cycles, 1);
+    }
+
+    #[test]
+    fn test_calculate_per_employee_budget_single() {
+        // Single employee gets full budget
+        assert_eq!(calculate_per_employee_budget(4000, 1), 4000);
+    }
+
+    #[test]
+    fn test_calculate_per_employee_budget_multiple() {
+        // Multiple employees split evenly
+        assert_eq!(calculate_per_employee_budget(4000, 4), 1000);
+    }
+
+    #[test]
+    fn test_calculate_per_employee_budget_minimum_floor() {
+        // Should not go below minimum (200)
+        assert_eq!(calculate_per_employee_budget(1000, 10), 200);
+        // 100 would be below floor, so should be 200
+        assert_eq!(calculate_per_employee_budget(500, 10), 200);
+    }
+
+    #[test]
+    fn test_calculate_per_employee_budget_zero_employees() {
+        // Edge case: zero employees returns full budget
+        assert_eq!(calculate_per_employee_budget(4000, 0), 4000);
+    }
+
+    // =========================================================================
+    // V2.2.2b: Theme-Based Retrieval Tests
+    // =========================================================================
+
+    #[test]
+    fn test_extract_mentions_theme_direct() {
+        let query = "Who has leadership feedback?";
+        let mentions = extract_mentions(query);
+        assert!(mentions.is_theme_query);
+        assert!(mentions.requested_themes.contains(&"leadership".to_string()));
+        assert_eq!(mentions.theme_target, ThemeTarget::Any);
+    }
+
+    #[test]
+    fn test_extract_mentions_theme_opportunity() {
+        let query = "Who needs help with communication?";
+        let mentions = extract_mentions(query);
+        assert!(mentions.is_theme_query);
+        assert!(mentions.requested_themes.contains(&"communication".to_string()));
+        assert_eq!(mentions.theme_target, ThemeTarget::Opportunities);
+    }
+
+    #[test]
+    fn test_extract_mentions_theme_strengths() {
+        let query = "Employees who are strong in mentoring";
+        let mentions = extract_mentions(query);
+        assert!(mentions.is_theme_query);
+        assert!(mentions.requested_themes.contains(&"mentoring".to_string()));
+        assert_eq!(mentions.theme_target, ThemeTarget::Strengths);
+    }
+
+    #[test]
+    fn test_extract_mentions_theme_with_department() {
+        let query = "Leadership issues in Engineering";
+        let mentions = extract_mentions(query);
+        assert!(mentions.is_theme_query);
+        assert!(mentions.requested_themes.contains(&"leadership".to_string()));
+        assert!(mentions.departments.contains(&"Engineering".to_string()));
+    }
+
+    #[test]
+    fn test_extract_mentions_theme_semantic() {
+        // "people skills" should map to "communication"
+        let query = "Who has issues with people skills?";
+        let mentions = extract_mentions(query);
+        assert!(mentions.is_theme_query);
+        assert!(mentions.requested_themes.contains(&"communication".to_string()));
+    }
+
+    #[test]
+    fn test_extract_mentions_multiple_themes() {
+        let query = "Leadership and communication concerns";
+        let mentions = extract_mentions(query);
+        assert!(mentions.is_theme_query);
+        assert!(mentions.requested_themes.contains(&"leadership".to_string()));
+        assert!(mentions.requested_themes.contains(&"communication".to_string()));
+    }
+
+    #[test]
+    fn test_classify_theme_query() {
+        let query = "Who has leadership feedback?";
+        let mentions = extract_mentions(query);
+        let query_type = classify_query(query, &mentions);
+        // Theme queries are classified as Comparison
+        assert_eq!(query_type, QueryType::Comparison);
+    }
+
+    #[test]
+    fn test_theme_target_default() {
+        assert_eq!(ThemeTarget::default(), ThemeTarget::Any);
     }
 }

@@ -6,6 +6,7 @@
 > - [archive/PROGRESS_PHASES_0-2.md](./archive/PROGRESS_PHASES_0-2.md) (Phases 0-2)
 > - [archive/PROGRESS_PHASES_3-4.1.md](./archive/PROGRESS_PHASES_3-4.1.md) (Phases 3-4.1)
 > - [archive/PROGRESS_PHASES_4.2-V2.0.md](./archive/PROGRESS_PHASES_4.2-V2.0.md) (Phases 4.2-V2.0)
+> - [archive/PROGRESS_V2.1.1-V2.2.1.md](./archive/PROGRESS_V2.1.1-V2.2.1.md) (V2.1.1 - V2.2.1 Early)
 
 ---
 
@@ -13,6 +14,100 @@
 === ADD NEW SESSIONS AT THE TOP ===
 Most recent session should be first.
 -->
+
+## Session 2025-12-28 (V2.2.2b — Theme-Based Retrieval)
+
+**Phase:** V2.2 — Data Intelligence Pipeline
+**Focus:** Implement theme-based employee retrieval with department filtering and strength/opportunity targeting
+
+### Summary
+Implemented V2.2.2b theme-based retrieval. Queries like "who has leadership feedback?" or "communication issues in Engineering" now retrieve employees by mining extracted themes from performance reviews, with optional department filtering and smart inference of whether to search strengths vs. opportunities.
+
+### Files Modified
+```
+src-tauri/src/context.rs    (+210 LOC) - ThemeTarget enum, QueryMentions extensions,
+                                         theme detection in extract_mentions(),
+                                         find_employees_by_theme() function,
+                                         classify_query() update,
+                                         build_chat_context() integration,
+                                         8 new unit tests
+```
+
+### Key Implementation Details
+
+| Component | Implementation |
+|-----------|----------------|
+| ThemeTarget enum | `Any`, `Strengths`, `Opportunities` - determines which JSON field to search |
+| Theme map | 10 themes + 22 semantic variants (e.g., "people skills" → communication) |
+| Department filter | Optional - "leadership in Engineering" filters by theme AND department |
+| Context inference | "needs help with X" → Opportunities, "strong in X" → Strengths |
+| SQL query | Dynamic LIKE patterns on JSON arrays, grouped by employee, ordered by match count |
+
+### Example Queries That Now Work
+
+| Query | Themes | Target | Dept |
+|-------|--------|--------|------|
+| "Who has leadership feedback?" | leadership | Any | — |
+| "Communication issues in Engineering" | communication | Any | Engineering |
+| "Who needs help with mentoring?" | mentoring | Opportunities | — |
+| "Employees strong in collaboration" | collaboration | Strengths | — |
+
+### Tests Added
+- 8 new tests: direct theme, opportunity target, strengths target, dept filter, semantic variant, multiple themes, classify, default
+
+### Verification
+- [x] TypeScript type-check passes
+- [x] Production build succeeds (805KB)
+- [x] 217 Rust tests pass (8 new, 1 pre-existing file_parser failure)
+- [x] V2.2.2 complete (all 4 subtasks)
+
+### Next Session Should
+1. V2.2.5a (Critical Accessibility Fixes) for UI polish
+2. Or V2.3.1 (Org Chart) for visualization
+3. Or Phase 5.1 (Distribution) for launch prep
+
+---
+
+## Session 2025-12-28 (V2.2.2a — Dynamic Excerpting Implementation)
+
+**Phase:** V2.2 — Data Intelligence Pipeline
+**Focus:** Implement dynamic excerpting to respect token budgets
+
+### Summary
+Implemented V2.2.2a dynamic excerpting for career summaries and review highlights. The system now uses Unicode sentence boundaries to intelligently truncate long content based on available token budget per employee.
+
+### Files Modified
+```
+src-tauri/Cargo.toml              (+3 lines) - Added unicode-segmentation = "1.10"
+src-tauri/src/context.rs         (+120 LOC) - Excerpting helpers + format function updates
+                                              - excerpt_to_sentences() using Unicode segmentation
+                                              - calculate_excerpt_limits() for budget → limits
+                                              - calculate_per_employee_budget() for distribution
+                                              - format_employee_context_with_budget() wrapper
+                                              - format_single_employee_with_budget() with excerpting
+                                              - 14 new unit tests
+```
+
+### Key Implementation Details
+
+| Component | Implementation |
+|-----------|----------------|
+| Sentence splitting | `unicode_segmentation::UnicodeSegmentation::unicode_sentences()` |
+| Budget thresholds | Full (≥800 tokens): 5 sentences, 3 cycles; Reduced (≥400): 2 sentences, 2 cycles; Tight (<400): 1 sentence, 1 cycle |
+| Per-employee budget | `total_budget / employee_count` with 200 token floor |
+| Ellipsis handling | Adds ".." after period-ending sentences, "..." otherwise |
+
+### Tests Added
+- 7 tests for `excerpt_to_sentences()`: empty, zero max, single, exact match, truncation, unicode, whitespace
+- 3 tests for `calculate_excerpt_limits()`: full, reduced, tight budgets
+- 4 tests for `calculate_per_employee_budget()`: single, multiple, minimum floor, zero employees
+
+### Verification
+- [x] TypeScript type-check passes
+- [x] Production build succeeds (805KB)
+- [x] 209 Rust tests pass (14 new, 1 pre-existing file_parser failure)
+
+---
 
 ## Session 2025-12-28 (V2.2.2a Planning — Dynamic Excerpting)
 
@@ -31,29 +126,10 @@ Explored codebase to understand context builder integration points for dynamic e
 | Sentence splitting | `unicode-segmentation` crate for accuracy |
 | Budget integration | Calculate excerpt limits upfront based on employee count |
 
-### Key Integration Points Identified
-1. `format_single_employee()` (lines 2022-2131) — Add `token_budget` parameter
-2. `format_employee_context()` (lines 1954-1977) — Pass per-employee budget
-3. New helper: `excerpt_to_sentences(text, max_sentences)`
-4. Dynamic `recent_highlights` limit: 3 cycles at full budget, 1-2 at reduced
-
-### Files to Modify (Next Session)
-```
-src-tauri/Cargo.toml      — Add unicode-segmentation = "1.10"
-src-tauri/src/context.rs  — Add excerpt helpers, update format functions
-```
-
 ### Verification
 - [x] Exploration complete
 - [x] Clarifying questions answered
 - [x] Plan saved to ROADMAP.md
-
-### Next Session Should
-1. Add `unicode-segmentation` crate to Cargo.toml
-2. Implement `excerpt_to_sentences()` helper
-3. Add `token_budget` parameter to `format_single_employee()`
-4. Update `format_employee_context()` to calculate per-employee budgets
-5. Add 6-8 unit tests for excerpting logic
 
 ---
 
@@ -74,15 +150,6 @@ src-tauri/src/context.rs  (+180 LOC) - TokenBudget, TokenUsage, RetrievalMetrics
 src/lib/types.ts          (+55 LOC)  - TypeScript interfaces for all new types
 ```
 
-### Key Implementation Details
-
-| Component | Implementation |
-|-----------|----------------|
-| TokenBudget | Static per-QueryType allocations (employee, theme, memory context) |
-| TokenUsage | Runtime tracking of actual tokens per section |
-| RetrievalMetrics | Counts, timing, budget vs usage comparison |
-| Timing | `std::time::Instant` for retrieval_time_ms |
-
 ### Token Budgets by QueryType
 
 | QueryType | Employee | Theme | Memory | Total |
@@ -98,11 +165,6 @@ src/lib/types.ts          (+55 LOC)  - TypeScript interfaces for all new types
 - [x] 195 Rust tests pass (1 pre-existing file_parser failure)
 - [x] 8 new token/metrics tests pass
 
-### Next Session Should
-1. Continue with V2.2.2a (Dynamic Excerpting) — `excerpting.rs` module
-2. Or V2.2.2b (Theme-Based Retrieval) — Theme QueryType
-3. Or V2.2.5a (Critical Accessibility Fixes) if prioritizing polish
-
 ---
 
 ## Session 2025-12-28 (Docs — UI/UX Refinements Roadmap)
@@ -115,47 +177,18 @@ Incorporated comprehensive UI/UX design review feedback into the roadmap as a ne
 
 ### Files Created
 ```
-docs/UI-UX-FEEDBACK.md     (399 lines) - Comprehensive design review with:
-                                         - Color system analysis (8.5/10)
-                                         - Typography review (7.8/10)
-                                         - Accessibility audit (7.0/10) with critical fixes
-                                         - Component consistency gaps
-                                         - Specific code recommendations by file
+docs/UI-UX-FEEDBACK.md     (399 lines) - Comprehensive design review
 ```
 
 ### Files Modified
 ```
-docs/ROADMAP.md            (+48 lines) - New V2.2.5 section with 14 tasks:
-                                         - V2.2.5a Critical Accessibility (3 tasks)
-                                         - V2.2.5b Design Token Completion (4 tasks)
-                                         - V2.2.5c Component Consistency (4 tasks)
-                                         - V2.2.5d Motion & Reduced Motion (3 tasks)
-                                         - Linear checklist updated (165 → 179 tasks)
+docs/ROADMAP.md            (+48 lines) - New V2.2.5 section with 14 tasks
 ```
-
-### Key Findings from Design Review
-
-| Category | Score | Critical Issues |
-|----------|-------|-----------------|
-| Color System | 8.5/10 | Missing primary shades, potential contrast failures |
-| Typography | 7.8/10 | Missing type scale sizes (2xl-4xl) |
-| Accessibility | 7.0/10 | Icon buttons 24x24 (need 40px), stone-400 contrast |
-| Components | 7.6/10 | No shared UI primitives, inconsistent hover states |
-
-### Why V2.2.5 Before V2.3
-1. Design tokens needed for Org Chart/Analytics components
-2. Shared UI primitives prevent pattern duplication
-3. Accessibility easier to fix globally before adding complex UI
 
 ### Verification
 - [x] Roadmap structure maintained
 - [x] Linear checklist updated
 - [x] Commit successful
-
-### Next Session Should
-1. Continue with V2.2.2 (Query-Adaptive Retrieval v2)
-2. Or start V2.2.5a (Critical Accessibility Fixes)
-3. Or V2.3.1 (Org Chart) if skipping UI polish
 
 ---
 
@@ -174,24 +207,10 @@ src-tauri/src/bulk_import.rs          (+22 LOC) - Track IDs, batch extraction af
 docs/ROADMAP.md                       (+1 line) - Added V2.2.1g task, marked complete
 ```
 
-### Key Implementation Details
-
-| Component | Implementation |
-|-----------|----------------|
-| Single review hook | `tokio::spawn` in `create_review()` → extract + regenerate summary |
-| Bulk import hook | Collect review IDs + employee IDs → spawn batch extraction |
-| Error handling | Fire-and-forget with `eprintln!` logging, doesn't block response |
-| Rate limiting | Batch extraction uses existing 100ms delay between API calls |
-
 ### Verification
 - [x] TypeScript type-check passes
 - [x] Production build succeeds (798KB)
 - [x] 187 Rust tests pass (1 pre-existing file_parser failure)
-
-### Next Session Should
-1. Continue with V2.2.2 (Query-Adaptive Retrieval v2)
-2. Or V2.3.1 (Org Chart) for visualization
-3. Or Phase 5.1 (Distribution) for launch prep
 
 ---
 
@@ -211,389 +230,11 @@ src-tauri/src/context.rs    (+150 LOC) - EmployeeContext + CycleHighlight types,
                                          6 new unit tests
 ```
 
-### Key Implementation Details
-
-| Component | Implementation |
-|-----------|----------------|
-| `CycleHighlight` struct | New type: cycle_name, strengths, opportunities, themes, sentiment |
-| `EmployeeContext` | Extended with career_summary, key_strengths, development_areas, recent_highlights |
-| `get_employee_context()` | Fetches highlights + summary using graceful degradation helpers |
-| `format_single_employee()` | Formats career summary, key strengths, recent highlights with sentiment indicators |
-| Cycle name lookup | Dynamic query to map review_cycle_id → name |
-
-### Formatted Output Example
-```
-  Career Summary:
-    Sarah is a high-performing engineer with strong technical leadership skills.
-  Key Strengths: Technical leadership, Problem solving, Mentoring
-  Development Areas: Public speaking, Documentation
-  Recent Review Highlights:
-    ↑ 2024 H2 (positive)
-      Strengths: Led v2 migration, Improved test coverage
-      Growth areas: Cross-team communication
-      Themes: leadership, technical-growth
-```
-
-### Tests Added
-- 6 new tests: career_summary, key_strengths, development_areas, recent_highlights, sentiment_indicators, graceful_degradation
-- Total: 187 pass, 1 pre-existing file_parser failure
-
 ### Verification
 - [x] TypeScript type-check passes
 - [x] Production build succeeds (805KB)
 - [x] 187 Rust tests pass (85 context tests)
 - [x] V2.2.1 feature complete (all 6 subtasks done)
-
-### Next Session Should
-1. Continue with V2.2.2 (Query-Adaptive Retrieval v2) or start Session 3 (Frontend Integration)
-2. Or move to V2.3 (Visualization Layer) - Org Chart or Analytics Panel
-3. Or Phase 5.1 (Distribution) if ready for launch prep
-
----
-
-## Session 2025-12-23 (V2.2.1 Sessions 1+2 — Schema, Core, Extraction)
-
-**Phase:** V2.2 — Data Intelligence Pipeline
-**Focus:** Complete backend implementation for review highlights extraction
-
-### Session 2 Summary
-Continued from Session 1. Implemented the extraction pipeline using Claude API, added Tauri commands, and TypeScript integration.
-
-### Files Modified (Session 2)
-```
-src-tauri/src/highlights.rs    (+280 LOC) - Extraction pipeline + 6 tests
-src-tauri/src/lib.rs           (+80 LOC)  - 8 Tauri commands
-src/lib/types.ts               (+75 LOC)  - TypeScript types
-src/lib/tauri-commands.ts      (+85 LOC)  - TypeScript wrappers
-```
-
-### Key Implementation Details (Session 2)
-
-| Component | Implementation |
-|-----------|----------------|
-| `extract_highlights_for_review()` | Claude API call with JSON schema prompt |
-| `extract_highlights_batch()` | Sequential with 100ms delay, skip existing |
-| `generate_employee_summary()` | Aggregates highlights into career narrative |
-| System prompts | Extraction + Summary with strict JSON output |
-| Error handling | Graceful degradation, markdown fence stripping |
-
-### Tests Added (Session 2)
-- 6 new tests: parse_extraction_response, parse_summary_response, format functions
-- Total: 181 pass, 1 pre-existing file_parser failure
-
-### Verification
-- [x] TypeScript type-check passes
-- [x] Production build succeeds (805KB)
-- [x] 181 Rust tests pass
-
----
-
-## Session 2025-12-23 (V2.2.1 Session 1 — Schema + Core Module)
-
-**Phase:** V2.2 — Data Intelligence Pipeline
-**Focus:** Implement database schema and Rust module for review highlights extraction
-
-### Summary
-Completed Session 1 of V2.2.1 Structured Data Extraction. Created the database schema for `review_highlights` and `employee_summaries` tables, plus the full `highlights.rs` Rust module with types, CRUD operations, validation, and 17 unit tests.
-
-### Files Created
-```
-src-tauri/migrations/003_review_highlights.sql   (~55 LOC) - Tables for highlights + summaries
-src-tauri/src/highlights.rs                      (~600 LOC) - Types, CRUD, validation, tests
-```
-
-### Files Modified
-```
-src-tauri/src/lib.rs    (+1 line) - Added highlights module
-src-tauri/src/db.rs     (+1 line) - Added migration 003
-```
-
-### Key Implementation Details
-
-| Component | Implementation |
-|-----------|----------------|
-| Tables | `review_highlights` (per-review), `employee_summaries` (per-employee) |
-| JSON Fields | strengths, opportunities, themes, quotes stored as JSON TEXT |
-| Row Pattern | Private `*Row` structs with `TryFrom` for JSON parsing |
-| Themes | Whitelist validation (10 valid themes) |
-| Sentiment | Enum validation (positive/neutral/mixed/negative) |
-| Graceful Degradation | `get_highlights_or_empty()`, `get_summary_or_none()` helpers |
-
-### Tests Added
-- 17 new tests for JSON parsing, sentiment validation, theme filtering, row conversion
-- All tests pass; no regressions
-
-### Verification
-- [x] TypeScript type-check passes
-- [x] Production build succeeds (805KB)
-- [x] 175 Rust tests pass (+17 new), 1 pre-existing file_parser failure
-
-### Next Session Should
-1. Continue with Session 2: Extraction Pipeline
-2. Implement `extract_highlights_for_review()` with Claude API
-3. Add Tauri commands for frontend integration
-4. Add TypeScript types to `types.ts` and `tauri-commands.ts`
-
----
-
-## Session 2025-12-22 (V2.2.1 Planning — Structured Data Extraction)
-
-**Phase:** V2.2 — Data Intelligence Pipeline
-**Focus:** Design comprehensive implementation plan for Review Highlights Pipeline
-
-### Summary
-Created detailed implementation plan for V2.2.1 Structured Data Extraction. This feature will extract structured entities (strengths, opportunities, themes, quotes, sentiment) from performance review prose using Claude API, and generate per-employee career summaries.
-
-### User Decisions
-| Decision | Choice |
-|----------|--------|
-| Extraction method | Claude API (accurate, handles nuance) |
-| Timing | Post-import batch (non-blocking, better UX) |
-| Summaries | Include employee career summaries |
-
-### Plan Created
-**Plan File:** `~/.claude/plans/atomic-bouncing-wind.md`
-
-| Aspect | Details |
-|--------|---------|
-| Est. LOC | ~1,250 across 10 files |
-| Sessions | 3 recommended |
-| API cost | ~$0.70 for test data (300 reviews) |
-
-**Session Breakdown:**
-1. **Session 1**: Schema + Core Module — Migration, `highlights.rs` with types/CRUD
-2. **Session 2**: Extraction Pipeline — Claude API calls, Tauri commands, context updates
-3. **Session 3**: Frontend Integration — Post-import hook, progress UI, cache invalidation
-
-### Key Design Decisions
-- New tables: `review_highlights` (per-review) + `employee_summaries` (per-employee)
-- JSON arrays for flexible structured data (strengths, opportunities, themes, quotes)
-- Graceful degradation if extraction fails
-- Max 10 concurrent extractions with retry logic
-
-### Verification
-- [x] TypeScript type-check passes
-- [x] Production build succeeds (805KB)
-- [x] 158 Rust tests pass (1 pre-existing file_parser failure)
-
-### Next Session Should
-1. Start implementation from plan: `~/.claude/plans/atomic-bouncing-wind.md`
-2. Begin with Session 1: Migration + `highlights.rs` types/CRUD
-3. Run `cargo test highlights` after adding module
-
----
-
-## Session 2025-12-22 (V2.1.4 — Answer Verification Mode)
-
-**Phase:** V2.1 — Quick Wins
-**Focus:** Trust-but-verify numeric answers with verification badges
-
-> **Post-session fix:** New Conversation now clears employee selection so users see general prompts instead of employee-specific ones. (3 files, +10/-4 lines)
-
-### Summary
-Implemented answer verification for aggregate queries. When Claude responds to numeric questions (headcount, averages, eNPS, turnover), the system extracts numbers from the response and compares them against SQL ground truth. A verification badge shows whether claims match actual data.
-
-### Files Created
-```
-src/components/chat/VerificationBadge.tsx   (~150 LOC) - Expandable badge with claim details + "Show SQL"
-```
-
-### Files Modified
-```
-src-tauri/src/context.rs          (+200 lines) - VerificationResult, NumericClaim types, verify_response(), extract_numeric_claims(), 11 unit tests
-src-tauri/src/chat.rs             (+15 lines)  - StreamChunk.verification field, pass aggregates/query_type to streaming
-src-tauri/src/lib.rs              (+10 lines)  - Updated command signatures for aggregates + query_type
-src/lib/types.ts                  (+60 lines)  - All verification types (VerificationResult, NumericClaim, ClaimType, etc.)
-src/lib/tauri-commands.ts         (+20 lines)  - Updated function signatures, SystemPromptResult type
-src/contexts/ConversationContext.tsx (+15 lines) - Handle verification in stream handler
-src/components/chat/MessageBubble.tsx (+10 lines) - Render VerificationBadge for assistant messages
-src/components/chat/MessageList.tsx (+1 line)   - Pass verification prop
-src/components/chat/index.ts      (+1 line)    - Export VerificationBadge
-```
-
-### Key Features Added
-
-| Feature | Implementation |
-|---------|----------------|
-| Numeric Extraction | Regex patterns for headcount, active count, ratings, eNPS, turnover rates |
-| Tolerance Matching | Counts: exact, Ratings: ±0.1, Percentages: ±1.0% |
-| Verification Badge | Clickable badge: ✓ Verified / ⚠ Check Manually |
-| Details Panel | Expandable list showing each claim vs. ground truth |
-| SQL Transparency | "Show SQL" toggle reveals ground truth queries |
-
-### Verification Status Types
-
-| Status | Condition |
-|--------|-----------|
-| Verified | All extracted claims match ground truth |
-| PartialMatch | Some claims match, some don't (or mismatch detected) |
-| Unverified | Aggregate query but no numbers extracted |
-| NotApplicable | Non-aggregate query (Individual, List, etc.) |
-
-### Verification
-- [x] TypeScript type-check passes
-- [x] Production build succeeds (805KB)
-- [x] 158 Rust tests pass (1 pre-existing file_parser failure)
-- [x] 11 new verification tests pass
-
-### Next Session Should
-1. Continue with V2.2.1 (Structured Data Extraction) for intelligence pipeline
-2. Or V2.3.1 (Org Chart) for visualization
-3. Or Phase 5.1 (Distribution) if ready for launch prep
-
----
-
-## Session 2025-12-21 (V2.1.3 — Persona Switcher)
-
-**Phase:** V2.1 — Quick Wins
-**Focus:** Add selectable HR personas with different communication styles
-
-### Summary
-Implemented persona switching feature allowing users to choose from 5 HR personas (Alex, Jordan, Sam, Morgan, Taylor) with distinct communication styles. Selection persists to settings and takes effect immediately on next message.
-
-### Files Created
-```
-src/components/settings/PersonaSelector.tsx   (~120 LOC) - Card-based persona selector with previews
-```
-
-### Files Modified
-```
-src-tauri/src/context.rs          (+110 lines) - Persona struct, PERSONAS const, get_persona(), build_system_prompt() persona param
-src-tauri/src/lib.rs              (+12 lines)  - get_personas Tauri command
-src/lib/tauri-commands.ts         (+20 lines)  - Persona interface, getPersonas() wrapper
-src/components/settings/SettingsPanel.tsx (+10 lines) - AI Assistant Style section
-src/components/settings/index.ts  (+1 line)   - Export PersonaSelector
-```
-
-### Key Features Added
-
-| Feature | Implementation |
-|---------|----------------|
-| 5 HR Personas | Alex (warm), Jordan (compliance), Sam (direct), Morgan (data-driven), Taylor (empathetic) |
-| Persona Selector | Card list with selection highlight, expandable sample previews |
-| Settings Integration | New "AI Assistant Style" section in Settings panel |
-| Immediate Effect | Persona read per-message from settings, no restart needed |
-
-### Personas
-
-| Persona | Style | Best For |
-|---------|-------|----------|
-| Alex (default) | Warm, practical | General HR leadership |
-| Jordan | Formal, compliance-focused | Regulated industries |
-| Sam | Startup-friendly, direct | Early-stage, lean HR |
-| Morgan | Data-driven, analytical | Metrics-focused users |
-| Taylor | Employee-advocate, empathetic | People-first cultures |
-
-### Verification
-- [x] TypeScript type-check passes
-- [x] Production build succeeds (802KB, up from 799KB)
-- [x] 147 Rust tests pass (1 pre-existing file_parser failure)
-- [x] 4 new persona tests pass
-
-### Next Session Should
-1. Continue with V2.1.4 (Answer Verification Mode)
-2. Or V2.2.1 (Structured Data Extraction) for the intelligence pipeline foundation
-3. Or Phase 5.1 (Distribution) if ready for launch prep
-
----
-
-## Session 2025-12-21 (V2.1.2 — Command Palette + Keyboard Shortcuts)
-
-**Phase:** V2.1 — Quick Wins
-**Focus:** Add Command Palette (⌘K) with fuzzy search and keyboard shortcuts
-
-### Summary
-Implemented a VS Code/Slack-style command palette with Fuse.js fuzzy search. Users can press ⌘K to search across actions, conversations, and employees. Added additional keyboard shortcuts for power users: ⌘/ (focus chat), ⌘E (show employees), ⌘, (settings).
-
-### Files Created
-```
-src/components/CommandPalette.tsx   (~320 LOC) - Fuzzy search modal
-src/hooks/useCommandPalette.ts      (~85 LOC)  - Global keyboard shortcuts
-```
-
-### Files Modified
-```
-src/App.tsx                         (+40 lines) - MainAppContent wrapper, palette integration
-src/components/chat/ChatInput.tsx   (+15 lines) - forwardRef for focus control
-src/components/chat/index.ts        (+1 line)   - Export ChatInputHandle
-src/components/layout/AppShell.tsx  (+25 lines) - ⌘K button, shortcut hints
-src/hooks/index.ts                  (+1 line)   - Export useCommandPalette
-package.json                        (+1 line)   - fuse.js dependency
-```
-
-### Key Features Added
-
-| Feature | Implementation |
-|---------|----------------|
-| Command Palette | Portal-based modal with search input and grouped results |
-| Fuzzy Search | Fuse.js with weighted keys (title: 0.7, subtitle: 0.3) |
-| Keyboard Navigation | Arrow keys, Enter to select, Escape to close |
-| Global Shortcuts | ⌘K (palette), ⌘/ (focus), ⌘E (employees), ⌘, (settings) |
-| Header Hints | ⌘K button visible in header, tooltips on icon buttons |
-
-### Design Decisions
-- **MainAppContent wrapper:** useCommandPalette needs useLayout(), so created inner component inside LayoutProvider
-- **forwardRef on ChatInput:** Exposes focus() method via useImperativeHandle for ⌘/ shortcut
-- **Synthetic events for actions:** "Open Settings" dispatches keyboard event to reuse existing handler
-
-### Verification
-- [x] TypeScript type-check passes
-- [x] Production build succeeds (799KB, up from 770KB due to Fuse.js)
-- [x] 143 Rust tests pass (1 pre-existing file_parser failure)
-
-### Next Session Should
-1. Continue with V2.1.3 (Persona Switcher) for another quick win
-2. Or V2.1.4 (Answer Verification Mode)
-3. Or V2.2.1 (Structured Data Extraction) for the intelligence pipeline foundation
-
----
-
-## Session 2025-12-21 (V2.1.1 — API Key Setup Guide)
-
-**Phase:** V2.1 — Quick Wins
-**Focus:** Beginner-friendly API key onboarding for non-technical HR users
-
-### Summary
-Enhanced the API key step in onboarding with plain-language explanations, step-by-step instructions, contextual error hints, cost information, and troubleshooting FAQ. All content uses collapsible sections to avoid overwhelming users.
-
-### Files Created
-```
-src/lib/api-key-errors.ts               (~50 LOC) - Error hint mapping
-```
-
-### Files Modified
-```
-src/components/settings/ApiKeyInput.tsx (+3 lines) - Import + contextual error hints
-src/components/onboarding/steps/ApiKeyStep.tsx (72 → 282 LOC) - Full guide content
-docs/ROADMAP.md                         - Marked V2.1.1a-e complete
-features.json                           - Added phase-v2 section (26 passing)
-```
-
-### Key Features Added
-
-| Feature | Implementation |
-|---------|----------------|
-| "What is an API key?" | Collapsible section with library card analogy |
-| Step-by-step guide | 4 numbered steps with external links |
-| Error detection | OpenAI vs Anthropic key detection ("This looks like an OpenAI key...") |
-| Cost info | Reassuring box: "$5-15/month, price of a coffee" |
-| Troubleshooting | 4-item FAQ accordion |
-
-### Design Decisions
-- **Content in ApiKeyStep, not ApiKeyInput:** Keeps compact mode clean for Settings panel
-- **Collapsible by default:** "What is an API key?" collapsed, "How to get your key" open for new users
-- **Smart defaults:** Step guide auto-collapses if user already has a key
-- **Amber for hints:** Changed error hint color from stone-500 to amber-600 for visibility
-
-### Verification
-- [x] TypeScript type-check passes
-- [x] Production build succeeds (770KB)
-- [x] Collapsible sections work correctly
-- [x] Compact mode in Settings unchanged
-
-### Next Session Should
-1. Continue with V2.2.1f (context builder update) or start Session 3 (frontend integration)
-2. Or continue to V2.2.2 (Query-Adaptive Retrieval v2)
 
 ---
 
