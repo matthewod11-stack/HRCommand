@@ -14,6 +14,54 @@
 Most recent session should be first.
 -->
 
+## Session 2025-12-28 (V2.2.2 Session 1 — Token Budgets + Metrics)
+
+**Phase:** V2.2 — Data Intelligence Pipeline
+**Focus:** Build measurement infrastructure for query-adaptive retrieval
+
+### Summary
+Implemented V2.2.2c and V2.2.2d — token budget definitions and retrieval metrics. Every query now tracks: token budget allocation per query type, actual token usage (estimated), employee/memory counts, and retrieval timing. This is pure instrumentation that doesn't change retrieval behavior yet.
+
+### Files Modified
+```
+src-tauri/src/context.rs  (+180 LOC) - TokenBudget, TokenUsage, RetrievalMetrics structs
+                                       TokenBudget::for_query_type() static configs
+                                       build_chat_context() timing + metrics tracking
+                                       8 new unit tests
+src/lib/types.ts          (+55 LOC)  - TypeScript interfaces for all new types
+```
+
+### Key Implementation Details
+
+| Component | Implementation |
+|-----------|----------------|
+| TokenBudget | Static per-QueryType allocations (employee, theme, memory context) |
+| TokenUsage | Runtime tracking of actual tokens per section |
+| RetrievalMetrics | Counts, timing, budget vs usage comparison |
+| Timing | `std::time::Instant` for retrieval_time_ms |
+
+### Token Budgets by QueryType
+
+| QueryType | Employee | Theme | Memory | Total |
+|-----------|----------|-------|--------|-------|
+| Aggregate | 0 | 500 | 500 | 1,000 |
+| Individual | 4,000 | 0 | 1,000 | 5,000 |
+| List | 2,000 | 0 | 500 | 2,500 |
+| Comparison | 3,000 | 0 | 500 | 3,500 |
+
+### Verification
+- [x] TypeScript type-check passes
+- [x] Production build succeeds (805KB)
+- [x] 195 Rust tests pass (1 pre-existing file_parser failure)
+- [x] 8 new token/metrics tests pass
+
+### Next Session Should
+1. Continue with V2.2.2a (Dynamic Excerpting) — `excerpting.rs` module
+2. Or V2.2.2b (Theme-Based Retrieval) — Theme QueryType
+3. Or V2.2.5a (Critical Accessibility Fixes) if prioritizing polish
+
+---
+
 ## Session 2025-12-28 (Docs — UI/UX Refinements Roadmap)
 
 **Phase:** V2.2 — Data Intelligence Pipeline

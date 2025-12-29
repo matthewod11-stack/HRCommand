@@ -154,12 +154,63 @@ export interface AttritionStats {
   turnover_rate_annualized: number | null;
 }
 
-/** Result from get_system_prompt command (V2.1.4) */
+/** Result from get_system_prompt command (V2.1.4, V2.2.2) */
 export interface SystemPromptResult {
   system_prompt: string;
   employee_ids_used: string[];
   aggregates: OrgAggregates | null;
   query_type: QueryType;
+  metrics: RetrievalMetrics; // V2.2.2: retrieval observability
+}
+
+// =============================================================================
+// Token Budget & Retrieval Metrics (V2.2.2)
+// =============================================================================
+
+/** Token budget allocation per query type */
+export interface TokenBudget {
+  /** Token budget for employee context (profiles or summaries) */
+  employee_context: number;
+  /** Token budget for theme context (future: V2.2.2b) */
+  theme_context: number;
+  /** Token budget for memory context (past conversations) */
+  memory_context: number;
+  /** Combined total budget */
+  total_context: number;
+}
+
+/** Actual token usage tracked during context retrieval */
+export interface TokenUsage {
+  /** Tokens used by employee context */
+  employee_tokens: number;
+  /** Tokens used by memory context */
+  memory_tokens: number;
+  /** Tokens used by organization aggregates */
+  aggregates_tokens: number;
+  /** Total tokens used (sum of all sections) */
+  total_tokens: number;
+}
+
+/** Comprehensive retrieval metrics for observability */
+export interface RetrievalMetrics {
+  /** Query type classification */
+  query_type: QueryType;
+  /** Number of employees matched by query */
+  employees_found: number;
+  /** Number of employees included in context */
+  employees_included: number;
+  /** Number of memories matched by query */
+  memories_found: number;
+  /** Number of memories included in context */
+  memories_included: number;
+  /** Whether organization aggregates were included */
+  aggregates_included: boolean;
+  /** Token budget allocation for this query type */
+  token_budget: TokenBudget;
+  /** Actual token usage */
+  token_usage: TokenUsage;
+  /** Total retrieval time in milliseconds */
+  retrieval_time_ms: number;
 }
 
 export interface Company {

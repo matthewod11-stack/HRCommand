@@ -275,6 +275,122 @@ pub struct SystemPromptResult {
     pub aggregates: Option<OrgAggregates>,
     /// Query classification (for verification)
     pub query_type: QueryType,
+    /// Retrieval metrics for observability (V2.2.2)
+    pub metrics: RetrievalMetrics,
+}
+
+// ============================================================================
+// Token Budget & Retrieval Metrics (V2.2.2)
+// ============================================================================
+
+/// Token budget allocation per query type
+/// Defines how many tokens to allocate for each context section
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TokenBudget {
+    /// Token budget for employee context (profiles or summaries)
+    pub employee_context: usize,
+    /// Token budget for theme context (future: V2.2.2b)
+    pub theme_context: usize,
+    /// Token budget for memory context (past conversations)
+    pub memory_context: usize,
+    /// Combined total budget
+    pub total_context: usize,
+}
+
+impl TokenBudget {
+    /// Get the token budget configuration for a query type
+    pub fn for_query_type(query_type: QueryType) -> Self {
+        match query_type {
+            QueryType::Aggregate => TokenBudget {
+                employee_context: 0,      // Aggregates don't need individual employees
+                theme_context: 500,       // Room for theme analysis
+                memory_context: 500,
+                total_context: 1_000,
+            },
+            QueryType::List => TokenBudget {
+                employee_context: 2_000,  // Lightweight summaries
+                theme_context: 0,
+                memory_context: 500,
+                total_context: 2_500,
+            },
+            QueryType::Individual => TokenBudget {
+                employee_context: 4_000,  // Full profiles
+                theme_context: 0,
+                memory_context: 1_000,    // More memory for context
+                total_context: 5_000,
+            },
+            QueryType::Comparison => TokenBudget {
+                employee_context: 3_000,  // Multiple full profiles
+                theme_context: 0,
+                memory_context: 500,
+                total_context: 3_500,
+            },
+            QueryType::Attrition => TokenBudget {
+                employee_context: 2_000,  // Termination details
+                theme_context: 0,
+                memory_context: 500,
+                total_context: 2_500,
+            },
+            QueryType::General => TokenBudget {
+                employee_context: 2_000,  // Balanced
+                theme_context: 0,
+                memory_context: 1_000,
+                total_context: 3_000,
+            },
+        }
+    }
+}
+
+/// Actual token usage tracked during context retrieval
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+pub struct TokenUsage {
+    /// Tokens used by employee context
+    pub employee_tokens: usize,
+    /// Tokens used by memory context
+    pub memory_tokens: usize,
+    /// Tokens used by organization aggregates
+    pub aggregates_tokens: usize,
+    /// Total tokens used (sum of all sections)
+    pub total_tokens: usize,
+}
+
+/// Comprehensive retrieval metrics for observability
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RetrievalMetrics {
+    /// Query type classification
+    pub query_type: QueryType,
+    /// Number of employees matched by query
+    pub employees_found: usize,
+    /// Number of employees included in context
+    pub employees_included: usize,
+    /// Number of memories matched by query
+    pub memories_found: usize,
+    /// Number of memories included in context
+    pub memories_included: usize,
+    /// Whether organization aggregates were included
+    pub aggregates_included: bool,
+    /// Token budget allocation for this query type
+    pub token_budget: TokenBudget,
+    /// Actual token usage
+    pub token_usage: TokenUsage,
+    /// Total retrieval time in milliseconds
+    pub retrieval_time_ms: u64,
+}
+
+impl Default for RetrievalMetrics {
+    fn default() -> Self {
+        RetrievalMetrics {
+            query_type: QueryType::General,
+            employees_found: 0,
+            employees_included: 0,
+            memories_found: 0,
+            memories_included: 0,
+            aggregates_included: false,
+            token_budget: TokenBudget::for_query_type(QueryType::General),
+            token_usage: TokenUsage::default(),
+            retrieval_time_ms: 0,
+        }
+    }
 }
 
 // ============================================================================
@@ -388,6 +504,7 @@ pub struct ChatContext {
     pub employee_summaries: Vec<EmployeeSummary>,   // Brief roster (for List queries)
     pub employee_ids_used: Vec<String>,
     pub memory_summaries: Vec<String>,
+    pub metrics: RetrievalMetrics,                  // V2.2.2: retrieval observability
 }
 
 // ============================================================================
@@ -2190,14 +2307,21 @@ const MAX_GENERAL_EMPLOYEES: usize = 5;
 /// 2. Always computes organization-wide aggregates for accurate stats
 /// 3. Routes to appropriate employee retrieval based on query type
 /// 4. If selected_employee_id is provided, that employee is always prioritized
+/// 5. Tracks retrieval metrics for observability (V2.2.2)
 pub async fn build_chat_context(
     pool: &DbPool,
     user_message: &str,
     selected_employee_id: Option<&str>,
 ) -> Result<ChatContext, ContextError> {
+    // V2.2.2: Start timing for retrieval metrics
+    let start_time = std::time::Instant::now();
+
     // Step 1: Extract mentions and classify query
     let mentions = extract_mentions(user_message);
     let query_type = classify_query(user_message, &mentions);
+
+    // V2.2.2: Get token budget for this query type
+    let token_budget = TokenBudget::for_query_type(query_type);
 
     // Step 2: Get company context
     let company = get_company_context(pool).await?;
@@ -2268,7 +2392,7 @@ pub async fn build_chat_context(
     employee_ids_used.extend(employee_summaries.iter().map(|e| e.id.clone()));
 
     // Step 5: Find relevant past conversation memories (resilient - don't fail if lookup errors)
-    let memory_summaries = match memory::find_relevant_memories(
+    let memory_summaries: Vec<String> = match memory::find_relevant_memories(
         pool,
         user_message,
         memory::DEFAULT_MEMORY_LIMIT,
@@ -2282,6 +2406,47 @@ pub async fn build_chat_context(
         }
     };
 
+    // V2.2.2: Calculate token usage for each section
+    let employees_included = employees.len() + employee_summaries.len();
+    let memories_included = memory_summaries.len();
+
+    // Estimate tokens for each section (using chars/4 approximation)
+    let employee_tokens = if !employees.is_empty() {
+        // Full profiles: estimate based on formatted content
+        employees.len() * 500 / CHARS_PER_TOKEN // ~500 chars per full profile
+    } else {
+        // Summaries: much smaller
+        employee_summaries.len() * 70 / CHARS_PER_TOKEN // ~70 chars per summary
+    };
+
+    let memory_tokens = memory_summaries
+        .iter()
+        .map(|m| m.len() / CHARS_PER_TOKEN)
+        .sum();
+
+    let aggregates_tokens = if aggregates.is_some() { 500 } else { 0 }; // ~2K chars formatted
+
+    let token_usage = TokenUsage {
+        employee_tokens,
+        memory_tokens,
+        aggregates_tokens,
+        total_tokens: employee_tokens + memory_tokens + aggregates_tokens,
+    };
+
+    // V2.2.2: Build retrieval metrics
+    let retrieval_time_ms = start_time.elapsed().as_millis() as u64;
+    let metrics = RetrievalMetrics {
+        query_type,
+        employees_found: employees_included, // Currently same as included; future: track pre-limit count
+        employees_included,
+        memories_found: memories_included, // Currently same as included
+        memories_included,
+        aggregates_included: aggregates.is_some(),
+        token_budget,
+        token_usage,
+        retrieval_time_ms,
+    };
+
     Ok(ChatContext {
         company,
         aggregates,
@@ -2290,6 +2455,7 @@ pub async fn build_chat_context(
         employee_summaries,
         employee_ids_used,
         memory_summaries,
+        metrics,
     })
 }
 
@@ -2297,6 +2463,7 @@ pub async fn build_chat_context(
 /// If selected_employee_id is provided, that employee is always included first
 ///
 /// V2.1.4: Now returns SystemPromptResult with aggregates and query_type for verification
+/// V2.2.2: Now includes retrieval metrics for observability
 pub async fn get_system_prompt_for_message(
     pool: &DbPool,
     user_message: &str,
@@ -2341,6 +2508,7 @@ pub async fn get_system_prompt_for_message(
         employee_ids_used: context.employee_ids_used,
         aggregates: context.aggregates,
         query_type: context.query_type,
+        metrics: context.metrics, // V2.2.2: Include retrieval metrics
     })
 }
 
@@ -3812,5 +3980,77 @@ mod tests {
         assert!(!formatted.contains("Career Summary:"));
         assert!(!formatted.contains("Key Strengths:"));
         assert!(!formatted.contains("Recent Review Highlights:"));
+    }
+
+    // =========================================================================
+    // Token Budget & Metrics Tests (V2.2.2)
+    // =========================================================================
+
+    #[test]
+    fn test_token_budget_for_aggregate_query() {
+        let budget = TokenBudget::for_query_type(QueryType::Aggregate);
+        assert_eq!(budget.employee_context, 0); // No individual employees needed
+        assert_eq!(budget.theme_context, 500);
+        assert_eq!(budget.memory_context, 500);
+        assert_eq!(budget.total_context, 1_000);
+    }
+
+    #[test]
+    fn test_token_budget_for_individual_query() {
+        let budget = TokenBudget::for_query_type(QueryType::Individual);
+        assert_eq!(budget.employee_context, 4_000); // Full profiles
+        assert_eq!(budget.theme_context, 0);
+        assert_eq!(budget.memory_context, 1_000);
+        assert_eq!(budget.total_context, 5_000);
+    }
+
+    #[test]
+    fn test_token_budget_for_list_query() {
+        let budget = TokenBudget::for_query_type(QueryType::List);
+        assert_eq!(budget.employee_context, 2_000); // Lightweight summaries
+        assert_eq!(budget.total_context, 2_500);
+    }
+
+    #[test]
+    fn test_token_budget_for_comparison_query() {
+        let budget = TokenBudget::for_query_type(QueryType::Comparison);
+        assert_eq!(budget.employee_context, 3_000); // Multiple full profiles
+        assert_eq!(budget.total_context, 3_500);
+    }
+
+    #[test]
+    fn test_token_budget_for_attrition_query() {
+        let budget = TokenBudget::for_query_type(QueryType::Attrition);
+        assert_eq!(budget.employee_context, 2_000);
+        assert_eq!(budget.total_context, 2_500);
+    }
+
+    #[test]
+    fn test_token_budget_for_general_query() {
+        let budget = TokenBudget::for_query_type(QueryType::General);
+        assert_eq!(budget.employee_context, 2_000);
+        assert_eq!(budget.memory_context, 1_000);
+        assert_eq!(budget.total_context, 3_000);
+    }
+
+    #[test]
+    fn test_token_usage_default() {
+        let usage = TokenUsage::default();
+        assert_eq!(usage.employee_tokens, 0);
+        assert_eq!(usage.memory_tokens, 0);
+        assert_eq!(usage.aggregates_tokens, 0);
+        assert_eq!(usage.total_tokens, 0);
+    }
+
+    #[test]
+    fn test_retrieval_metrics_default() {
+        let metrics = RetrievalMetrics::default();
+        assert_eq!(metrics.query_type, QueryType::General);
+        assert_eq!(metrics.employees_found, 0);
+        assert_eq!(metrics.employees_included, 0);
+        assert_eq!(metrics.memories_found, 0);
+        assert_eq!(metrics.memories_included, 0);
+        assert!(!metrics.aggregates_included);
+        assert_eq!(metrics.retrieval_time_ms, 0);
     }
 }

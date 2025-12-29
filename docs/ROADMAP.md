@@ -433,8 +433,8 @@ Enhance V1's query classification with smarter context selection.
 
 - [ ] V2.2.2a Add dynamic excerpting for long content (pull relevant sentences)
 - [ ] V2.2.2b Implement theme-based retrieval ("common concerns" → mine themes)
-- [ ] V2.2.2c Add measurable token budgets by query type
-- [ ] V2.2.2d Add retrieval metrics (track what context was used)
+- [x] V2.2.2c Add measurable token budgets by query type
+- [x] V2.2.2d Add retrieval metrics (track what context was used)
 
 ### Pause Point V2.2
 **Verification Required:**
