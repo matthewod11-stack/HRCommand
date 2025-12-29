@@ -436,6 +436,23 @@ Enhance V1's query classification with smarter context selection.
 - [x] V2.2.2c Add measurable token budgets by query type
 - [x] V2.2.2d Add retrieval metrics (track what context was used)
 
+**V2.2.2a Implementation Plan (Ready to Execute):**
+> **Scope:** Career summary + dynamic highlight limits
+> **Approach:** Inline functions in `context.rs`, `unicode-segmentation` for sentences, upfront budget calculation
+
+| Decision | Choice |
+|----------|--------|
+| Excerpting targets | Career summary + recent_highlights cycle limits |
+| Module location | Inline in `context.rs` (co-located with usage) |
+| Sentence splitting | `unicode-segmentation` crate for accuracy |
+| Budget integration | Calculate excerpt limits upfront based on employee count |
+
+**Integration Points:**
+1. `format_single_employee()` — Add `token_budget: Option<usize>` parameter
+2. `format_employee_context()` — Pass per-employee budget from `TokenBudget::employee_context`
+3. New helper: `excerpt_to_sentences(text, max_sentences)` using unicode segmentation
+4. Dynamic `recent_highlights` limit: 3 cycles at full budget, 1-2 at reduced
+
 ### Pause Point V2.2
 **Verification Required:**
 - [ ] Imported reviews generate structured highlights

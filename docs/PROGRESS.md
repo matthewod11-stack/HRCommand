@@ -14,6 +14,49 @@
 Most recent session should be first.
 -->
 
+## Session 2025-12-28 (V2.2.2a Planning — Dynamic Excerpting)
+
+**Phase:** V2.2 — Data Intelligence Pipeline
+**Focus:** Plan implementation for dynamic excerpting to respect token budgets
+
+### Summary
+Explored codebase to understand context builder integration points for dynamic excerpting. Identified key functions (`format_single_employee()`, `format_employee_context()`) and content types that need excerpting (`career_summary`, `recent_highlights`). Made design decisions with user approval.
+
+### Design Decisions Made
+
+| Question | Decision |
+|----------|----------|
+| Excerpting scope | Career summary + dynamic highlight limits (not all content) |
+| Module location | Inline in `context.rs` (co-located with usage) |
+| Sentence splitting | `unicode-segmentation` crate for accuracy |
+| Budget integration | Calculate excerpt limits upfront based on employee count |
+
+### Key Integration Points Identified
+1. `format_single_employee()` (lines 2022-2131) — Add `token_budget` parameter
+2. `format_employee_context()` (lines 1954-1977) — Pass per-employee budget
+3. New helper: `excerpt_to_sentences(text, max_sentences)`
+4. Dynamic `recent_highlights` limit: 3 cycles at full budget, 1-2 at reduced
+
+### Files to Modify (Next Session)
+```
+src-tauri/Cargo.toml      — Add unicode-segmentation = "1.10"
+src-tauri/src/context.rs  — Add excerpt helpers, update format functions
+```
+
+### Verification
+- [x] Exploration complete
+- [x] Clarifying questions answered
+- [x] Plan saved to ROADMAP.md
+
+### Next Session Should
+1. Add `unicode-segmentation` crate to Cargo.toml
+2. Implement `excerpt_to_sentences()` helper
+3. Add `token_budget` parameter to `format_single_employee()`
+4. Update `format_employee_context()` to calculate per-employee budgets
+5. Add 6-8 unit tests for excerpting logic
+
+---
+
 ## Session 2025-12-28 (V2.2.2 Session 1 — Token Budgets + Metrics)
 
 **Phase:** V2.2 — Data Intelligence Pipeline
