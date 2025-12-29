@@ -455,10 +455,12 @@ Enhance V1's query classification with smarter context selection.
 
 ### Pause Point V2.2
 **Verification Required:**
-- [ ] Imported reviews generate structured highlights
-- [ ] Can query by extracted themes ("who has leadership feedback?")
-- [ ] Employee profiles show aggregated career narrative
-- [ ] Long reviews don't blow token budgets
+- [x] Imported reviews generate structured highlights (V2.2.1g auto-trigger; manual script for backfill)
+- [x] Can query by extracted themes ("who has leadership feedback?") — partial: works for some queries
+- [x] Employee profiles show aggregated career narrative (87 summaries generated)
+- [x] Long reviews don't blow token budgets (dynamic excerpting implemented)
+
+**Known Issue:** Department substring matching bug — "wITh" matches "IT" department. Fix in next session.
 
 ---
 

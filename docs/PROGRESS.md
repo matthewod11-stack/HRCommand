@@ -15,6 +15,61 @@
 Most recent session should be first.
 -->
 
+## Session 2025-12-29 (V2.2.2 Debugging — Theme Retrieval Fixes)
+
+**Phase:** V2.2 — Data Intelligence Pipeline
+**Focus:** Debug and fix theme-based retrieval that wasn't working in production
+
+### Summary
+Diagnosed and fixed multiple issues preventing theme-based queries from working:
+1. **Empty extraction tables** — `review_highlights` and `employee_summaries` were empty because test data was imported before V2.2.1g auto-trigger existed. Created manual extraction script and ran it on 237 reviews.
+2. **Name detection false positive** — "Employees" was being detected as a person's name, causing queries to be classified as `Individual` instead of `Comparison`. Added common HR nouns to skip_words list.
+3. **Wrong SQL column search** — `ThemeTarget::Strengths` was searching `rh.strengths` column for theme names, but that column contains textual descriptions, not theme tags. Fixed to always search `themes` column.
+
+### Files Created
+```
+scripts/run-extraction.ts      (~200 LOC) - Manual extraction script for backfilling data
+```
+
+### Files Modified
+```
+src-tauri/src/context.rs       (+15/-20 LOC) -
+                                - Added HR nouns to name detection skip_words
+                                - Fixed find_employees_by_theme SQL to always search themes column
+                                - Added 3 diagnostic tests (can be removed later)
+package.json                   - Added better-sqlite3 dev dependency
+```
+
+### Bugs Fixed
+
+| Bug | Root Cause | Fix |
+|-----|------------|-----|
+| Theme queries return no employees | `review_highlights` table empty | Ran manual extraction on 237 reviews |
+| "Employees strong in X" → Individual | "Employees" detected as name | Added to skip_words list |
+| `ThemeTarget::Strengths` returns 0 | SQL searched wrong column | Always search `themes` column |
+
+### Data Extraction Results
+- 235 review highlights extracted (2 API errors skipped)
+- 87 employee summaries generated
+- Top themes: execution (37), communication+execution (28), collaboration+execution (23)
+
+### Known Issues Discovered
+- "Show me people with teamwork feedback" incorrectly detects `dept=Some("IT")` — substring match bug for next session
+
+### Verification
+- [x] TypeScript type-check passes
+- [x] Production build succeeds
+- [x] 220 Rust tests pass (1 pre-existing file_parser failure)
+- [x] "Employees strong in collaboration" returns employees ✓
+- [ ] "Show me people with teamwork feedback" — has spurious IT department filter (bug for next session)
+
+### Next Session Should
+1. Fix department substring matching bug ("IT" in "wITh")
+2. Continue with V2.2.5 (UI/UX Refinements) or V2.3.1 (Org Chart)
+3. Consider adding "Run Extraction" button to Settings for future data backfills
+
+---
+
 ## Session 2025-12-28 (V2.2.2b — Theme-Based Retrieval)
 
 **Phase:** V2.2 — Data Intelligence Pipeline

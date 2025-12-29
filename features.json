@@ -2,7 +2,7 @@
   "$schema": "./features.schema.json",
   "_meta": {
     "description": "Feature tracking for HR Command Center. Status: not-started | in-progress | pass | fail | blocked",
-    "lastUpdated": "2025-12-28",
+    "lastUpdated": "2025-12-29",
     "project": "HR Command Center",
     "totalFeatures": 38,
     "passing": 31,
@@ -130,7 +130,7 @@
     },
     "query-adaptive-retrieval-v2": {
       "status": "pass",
-      "notes": "V2.2.2 complete (all 4 subtasks): Dynamic excerpting, theme-based retrieval with dept filtering + strength/opportunity targeting, token budgets per QueryType, retrieval metrics tracking. 22 new tests, ~330 LOC."
+      "notes": "V2.2.2 complete + debugging session: Dynamic excerpting, theme-based retrieval (fixed SQL column search), token budgets, retrieval metrics. Fixed name detection for HR nouns. 235 reviews extracted, 87 summaries generated. Known bug: dept substring matching ('wITh' → 'IT')."
     }
   },
   "phase-5": {

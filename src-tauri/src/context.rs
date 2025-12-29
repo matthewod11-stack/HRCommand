@@ -703,6 +703,10 @@ pub fn extract_mentions(query: &str) -> QueryMentions {
             "Tell", "Show", "List", "Give", "Help", "Please", "Hello",
             // HR acronyms and terms
             "HR", "HR's", "PIP", "Q1", "Q2", "Q3", "Q4", "FY", "YTD",
+            // Common HR nouns (not person names)
+            "Employees", "Employee", "People", "Team", "Teams", "Staff",
+            "Manager", "Managers", "Worker", "Workers", "Member", "Members",
+            "Performer", "Performers", "Hire", "Hires", "Candidate", "Candidates",
             // Days and months
             "Monday", "Tuesday", "Wednesday", "Thursday", "Friday",
             "January", "February", "March", "April", "May", "June",
@@ -1523,25 +1527,14 @@ pub async fn find_employees_by_theme(
     }
 
     // Build dynamic WHERE clause for theme matching
-    // SQLite JSON functions: themes are stored as JSON arrays like '["leadership", "mentoring"]'
+    // Theme tags are stored in the `themes` column as JSON arrays like '["leadership", "mentoring"]'
+    // Note: `strengths` and `opportunities` columns contain textual descriptions, not theme tags,
+    // so we always search the `themes` column. ThemeTarget is metadata for context interpretation.
     let mut theme_conditions = Vec::new();
     for theme in themes {
-        // Match theme in the appropriate field(s) based on target
         let pattern = format!("%\"{}%", theme); // Matches "theme" in JSON array
-        match target {
-            ThemeTarget::Any => {
-                theme_conditions.push(format!(
-                    "(rh.themes LIKE '{}' OR rh.strengths LIKE '{}' OR rh.opportunities LIKE '{}')",
-                    pattern, pattern, pattern
-                ));
-            }
-            ThemeTarget::Strengths => {
-                theme_conditions.push(format!("rh.strengths LIKE '{}'", pattern));
-            }
-            ThemeTarget::Opportunities => {
-                theme_conditions.push(format!("rh.opportunities LIKE '{}'", pattern));
-            }
-        }
+        // Always search the themes column - that's where theme tags are stored
+        theme_conditions.push(format!("rh.themes LIKE '{}'", pattern));
     }
 
     // Combine theme conditions with OR (match any requested theme)
@@ -1585,8 +1578,8 @@ pub async fn find_employees_by_theme(
 
     // Fetch full employee context for each match
     let mut employees = Vec::new();
-    for (id, _match_count) in rows {
-        if let Ok(emp) = get_employee_context(pool, &id).await {
+    for (id, _match_count) in &rows {
+        if let Ok(emp) = get_employee_context(pool, id).await {
             employees.push(emp);
         }
     }
@@ -4544,5 +4537,53 @@ mod tests {
     #[test]
     fn test_theme_target_default() {
         assert_eq!(ThemeTarget::default(), ThemeTarget::Any);
+    }
+
+    #[test]
+    fn test_failing_query_collaboration() {
+        let query = "Employees strong in collaboration";
+        let mentions = extract_mentions(query);
+        println!("Query: '{}'", query);
+        println!("  is_theme_query: {}", mentions.is_theme_query);
+        println!("  requested_themes: {:?}", mentions.requested_themes);
+        println!("  theme_target: {:?}", mentions.theme_target);
+        assert!(mentions.is_theme_query);
+        assert!(mentions.requested_themes.contains(&"collaboration".to_string()));
+        assert_eq!(mentions.theme_target, ThemeTarget::Strengths);
+    }
+
+    #[test]
+    fn test_failing_query_teamwork() {
+        let query = "Show me people with teamwork feedback";
+        let mentions = extract_mentions(query);
+        println!("Query: '{}'", query);
+        println!("  is_theme_query: {}", mentions.is_theme_query);
+        println!("  requested_themes: {:?}", mentions.requested_themes);
+        println!("  theme_target: {:?}", mentions.theme_target);
+        assert!(mentions.is_theme_query);
+        // "teamwork" should map to "collaboration"
+        assert!(mentions.requested_themes.contains(&"collaboration".to_string()));
+    }
+
+    #[test]
+    fn test_classify_failing_queries() {
+        // Test query classification for the failing queries
+        let query1 = "Employees strong in collaboration";
+        let mentions1 = extract_mentions(query1);
+        let type1 = classify_query(query1, &mentions1);
+        println!("Query1: '{}' -> {:?}", query1, type1);
+        println!("  names: {:?}", mentions1.names);
+        println!("  is_theme_query: {}", mentions1.is_theme_query);
+
+        let query2 = "Show me people with teamwork feedback";
+        let mentions2 = extract_mentions(query2);
+        let type2 = classify_query(query2, &mentions2);
+        println!("Query2: '{}' -> {:?}", query2, type2);
+        println!("  names: {:?}", mentions2.names);
+        println!("  is_theme_query: {}", mentions2.is_theme_query);
+
+        // Both should be Comparison (theme queries)
+        assert_eq!(type1, QueryType::Comparison, "Query1 should be Comparison");
+        assert_eq!(type2, QueryType::Comparison, "Query2 should be Comparison");
     }
 }
