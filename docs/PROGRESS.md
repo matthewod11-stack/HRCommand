@@ -14,6 +14,60 @@
 Most recent session should be first.
 -->
 
+## Session 2025-12-28 (Docs — UI/UX Refinements Roadmap)
+
+**Phase:** V2.2 — Data Intelligence Pipeline
+**Focus:** Add UI/UX Refinements section to roadmap from design review
+
+### Summary
+Incorporated comprehensive UI/UX design review feedback into the roadmap as a new phase (V2.2.5). The design review scored the app 7.8/10, identifying opportunities to elevate from "very good" to "excellent" through accessibility fixes, design token completion, and component consistency work.
+
+### Files Created
+```
+docs/UI-UX-FEEDBACK.md     (399 lines) - Comprehensive design review with:
+                                         - Color system analysis (8.5/10)
+                                         - Typography review (7.8/10)
+                                         - Accessibility audit (7.0/10) with critical fixes
+                                         - Component consistency gaps
+                                         - Specific code recommendations by file
+```
+
+### Files Modified
+```
+docs/ROADMAP.md            (+48 lines) - New V2.2.5 section with 14 tasks:
+                                         - V2.2.5a Critical Accessibility (3 tasks)
+                                         - V2.2.5b Design Token Completion (4 tasks)
+                                         - V2.2.5c Component Consistency (4 tasks)
+                                         - V2.2.5d Motion & Reduced Motion (3 tasks)
+                                         - Linear checklist updated (165 → 179 tasks)
+```
+
+### Key Findings from Design Review
+
+| Category | Score | Critical Issues |
+|----------|-------|-----------------|
+| Color System | 8.5/10 | Missing primary shades, potential contrast failures |
+| Typography | 7.8/10 | Missing type scale sizes (2xl-4xl) |
+| Accessibility | 7.0/10 | Icon buttons 24x24 (need 40px), stone-400 contrast |
+| Components | 7.6/10 | No shared UI primitives, inconsistent hover states |
+
+### Why V2.2.5 Before V2.3
+1. Design tokens needed for Org Chart/Analytics components
+2. Shared UI primitives prevent pattern duplication
+3. Accessibility easier to fix globally before adding complex UI
+
+### Verification
+- [x] Roadmap structure maintained
+- [x] Linear checklist updated
+- [x] Commit successful
+
+### Next Session Should
+1. Continue with V2.2.2 (Query-Adaptive Retrieval v2)
+2. Or start V2.2.5a (Critical Accessibility Fixes)
+3. Or V2.3.1 (Org Chart) if skipping UI polish
+
+---
+
 ## Session 2025-12-23 (V2.2.1g — Auto-Trigger Extraction)
 
 **Phase:** V2.2 — Data Intelligence Pipeline
