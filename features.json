@@ -130,7 +130,7 @@
     },
     "query-adaptive-retrieval-v2": {
       "status": "pass",
-      "notes": "V2.2.2 complete + debugging session: Dynamic excerpting, theme-based retrieval (fixed SQL column search), token budgets, retrieval metrics. Fixed name detection for HR nouns. 235 reviews extracted, 87 summaries generated. Known bug: dept substring matching ('wITh' → 'IT')."
+      "notes": "V2.2.2 complete: Dynamic excerpting, theme-based retrieval, token budgets, retrieval metrics. Fixed name detection for HR nouns, SQL column search, and dept substring matching (word boundary fix). 235 reviews extracted, 87 summaries generated."
     }
   },
   "phase-5": {

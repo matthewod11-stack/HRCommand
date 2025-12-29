@@ -15,6 +15,43 @@
 Most recent session should be first.
 -->
 
+## Session 2025-12-29 (V2.2.2 Bug Fix — Department Substring Matching)
+
+**Phase:** V2.2 — Data Intelligence Pipeline
+**Focus:** Fix department substring matching false positive
+
+### Summary
+Fixed bug where department detection incorrectly matched "IT" inside words like "with". Query "Show me people with teamwork feedback" was falsely detecting `dept=IT` because `.contains("it")` matched the substring.
+
+### Files Modified
+```
+src-tauri/src/context.rs       (+60 LOC)
+  - matches_word_boundary() helper function (lines 898-931)
+  - Updated department detection to use word boundaries
+  - test_extract_mentions_department_word_boundary test
+  - test_matches_word_boundary test
+```
+
+### Bug Fixed
+
+| Bug | Root Cause | Fix |
+|-----|------------|-----|
+| "wITh" matches "IT" department | Simple `.contains()` substring matching | Word boundary checking (non-alphanumeric chars or string edges) |
+
+### Verification
+- [x] TypeScript type-check passes
+- [x] Production build succeeds (805KB)
+- [x] 222 Rust tests pass (1 pre-existing file_parser failure)
+- [x] "Show me people with teamwork feedback" no longer detects IT dept
+- [x] "How is IT doing?" still correctly detects IT dept
+
+### Next Session Should
+1. Continue with V2.2.5a (Critical Accessibility Fixes)
+2. Or V2.3.1 (Org Chart View)
+3. Or Phase 5.1 (Distribution)
+
+---
+
 ## Session 2025-12-29 (V2.2.2 Debugging — Theme Retrieval Fixes)
 
 **Phase:** V2.2 — Data Intelligence Pipeline

@@ -743,14 +743,16 @@ pub fn extract_mentions(query: &str) -> QueryMentions {
     mentions.names.dedup();
 
     // Extract department mentions (common department names)
+    // Must match at word boundaries to avoid false positives (e.g., "wITh" matching "IT")
     let department_names = [
         "Engineering", "Marketing", "Sales", "Finance", "HR", "Human Resources",
         "Operations", "Product", "Design", "Legal", "Customer Support",
         "Customer Success", "IT", "Research", "Development", "R&D",
     ];
 
+    let query_lower = query.to_lowercase();
     for dept in department_names {
-        if query.to_lowercase().contains(&dept.to_lowercase()) {
+        if matches_word_boundary(&query_lower, &dept.to_lowercase()) {
             mentions.departments.push(dept.to_string());
         }
     }
@@ -888,6 +890,44 @@ pub fn classify_query(message: &str, mentions: &QueryMentions) -> QueryType {
 
     // Fallback
     QueryType::General
+}
+
+/// Check if a term appears at word boundaries in the text
+/// Returns true if the term is surrounded by non-alphanumeric chars or string start/end
+/// This prevents false positives like "wITh" matching "IT"
+fn matches_word_boundary(text: &str, term: &str) -> bool {
+    let mut search_start = 0;
+    while let Some(pos) = text[search_start..].find(term) {
+        let abs_pos = search_start + pos;
+        let term_end = abs_pos + term.len();
+
+        // Check character before match (or start of string)
+        let valid_start = abs_pos == 0
+            || !text[..abs_pos]
+                .chars()
+                .last()
+                .map(|c| c.is_alphanumeric())
+                .unwrap_or(false);
+
+        // Check character after match (or end of string)
+        let valid_end = term_end >= text.len()
+            || !text[term_end..]
+                .chars()
+                .next()
+                .map(|c| c.is_alphanumeric())
+                .unwrap_or(false);
+
+        if valid_start && valid_end {
+            return true;
+        }
+
+        // Continue searching from next position
+        search_start = abs_pos + 1;
+        if search_start >= text.len() {
+            break;
+        }
+    }
+    false
 }
 
 /// Check if query is attrition/turnover focused
@@ -3067,6 +3107,55 @@ mod tests {
         let mentions = extract_mentions(query);
         assert!(mentions.departments.contains(&"Engineering".to_string()));
         assert!(mentions.is_aggregate_query);
+    }
+
+    #[test]
+    fn test_extract_mentions_department_word_boundary() {
+        // Bug fix: "IT" should NOT match when it's part of another word like "with"
+        let query = "Show me people with teamwork feedback";
+        let mentions = extract_mentions(query);
+        assert!(
+            !mentions.departments.contains(&"IT".to_string()),
+            "Should not detect 'IT' in 'with' - departments found: {:?}",
+            mentions.departments
+        );
+
+        // But actual IT department mentions should work
+        let query2 = "How is IT doing?";
+        let mentions2 = extract_mentions(query2);
+        assert!(mentions2.departments.contains(&"IT".to_string()));
+
+        // IT at start of string
+        let query3 = "IT team needs help";
+        let mentions3 = extract_mentions(query3);
+        assert!(mentions3.departments.contains(&"IT".to_string()));
+
+        // IT at end of string
+        let query4 = "show me IT";
+        let mentions4 = extract_mentions(query4);
+        assert!(mentions4.departments.contains(&"IT".to_string()));
+    }
+
+    #[test]
+    fn test_matches_word_boundary() {
+        // Basic word boundary cases
+        assert!(matches_word_boundary("hello world", "hello"));
+        assert!(matches_word_boundary("hello world", "world"));
+        assert!(matches_word_boundary("hello", "hello")); // exact match
+
+        // Should NOT match substrings
+        assert!(!matches_word_boundary("within", "it")); // "it" inside "within"
+        assert!(!matches_word_boundary("with", "it")); // "it" at end of "with"
+        assert!(!matches_word_boundary("item", "it")); // "it" at start of "item"
+
+        // Should match with punctuation boundaries
+        assert!(matches_word_boundary("hello, it works", "it"));
+        assert!(matches_word_boundary("it's working", "it")); // apostrophe is not alphanumeric
+        assert!(matches_word_boundary("(it)", "it"));
+
+        // Case sensitivity (our function expects lowercase input)
+        assert!(matches_word_boundary("the it team", "it"));
+        assert!(!matches_word_boundary("the item", "it"));
     }
 
     #[test]

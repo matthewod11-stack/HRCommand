@@ -453,14 +453,13 @@ Enhance V1's query classification with smarter context selection.
 3. New helper: `excerpt_to_sentences(text, max_sentences)` using unicode segmentation
 4. Dynamic `recent_highlights` limit: 3 cycles at full budget, 1-2 at reduced
 
-### Pause Point V2.2
+### Pause Point V2.2 ✓ VERIFIED
 **Verification Required:**
 - [x] Imported reviews generate structured highlights (V2.2.1g auto-trigger; manual script for backfill)
-- [x] Can query by extracted themes ("who has leadership feedback?") — partial: works for some queries
+- [x] Can query by extracted themes ("who has leadership feedback?")
 - [x] Employee profiles show aggregated career narrative (87 summaries generated)
 - [x] Long reviews don't blow token budgets (dynamic excerpting implemented)
-
-**Known Issue:** Department substring matching bug — "wITh" matches "IT" department. Fix in next session.
+- [x] Department detection uses word boundaries (fixed "wITh" → "IT" bug)
 
 ---
 
