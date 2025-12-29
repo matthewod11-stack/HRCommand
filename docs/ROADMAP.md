@@ -445,6 +445,54 @@ Enhance V1's query classification with smarter context selection.
 
 ---
 
+### V2.2.5 UI/UX Refinements
+
+> **Reference:** [UI-UX-FEEDBACK.md](./UI-UX-FEEDBACK.md) — Comprehensive design review with specific file references and code recommendations.
+> **Impact:** 🔥 High | **Est. Sessions:** 2-3
+> **Overall Score:** 7.8/10 — Strong foundations, opportunities to elevate to excellent
+
+Polish the visual design and accessibility before adding major new UI features.
+
+#### V2.2.5a Critical Accessibility Fixes
+> **Severity:** Critical | Must fix before launch
+
+- [ ] Audit and fix color contrast ratios (stone-400 → stone-500 for text)
+- [ ] Increase icon button touch targets to 40x40px minimum
+- [ ] Add visible focus styles meeting 3:1 contrast ratio
+
+#### V2.2.5b Design Token Completion
+> **Severity:** High | Enables consistent component styling
+
+- [ ] Complete primary color scale (add shades 200-400, 700-900)
+- [ ] Add custom easing curves (smooth-out, smooth-in, smooth-in-out)
+- [ ] Complete shadow scale (add lg, xl, 2xl)
+- [ ] Add letter-spacing tokens (tight, wide, wider)
+
+#### V2.2.5c Component Consistency
+> **Severity:** High | Foundation for V2.3 visualization components
+
+- [ ] Extract shared UI primitives (Button, Badge, Avatar, Card) to `/components/ui/`
+- [ ] Standardize button hover states (hover:scale-105 active:scale-95)
+- [ ] Standardize card hover states (unified pattern)
+- [ ] Decompose EmployeeDetail.tsx (619 lines → focused components)
+
+#### V2.2.5d Motion & Reduced Motion Support
+> **Severity:** Medium | Accessibility + polish
+
+- [ ] Add `prefers-reduced-motion` media query support
+- [ ] Replace button scale transforms with shadow/brightness
+- [ ] Slow loading spinner to 1.5s rotation
+
+### Pause Point V2.2.5
+**Verification Required:**
+- [ ] All text passes WCAG AA contrast (4.5:1 ratio)
+- [ ] Icon buttons are 40x40px minimum
+- [ ] Focus rings visible on all interactive elements
+- [ ] Shared Button/Badge/Avatar/Card components exist
+- [ ] Reduced motion mode disables animations
+
+---
+
 ### V2.3 Visualization Layer
 
 Visual analytics that transforms answers into artifacts.
@@ -693,6 +741,11 @@ PHASE V2 - INTELLIGENCE & VISUALIZATION
 [ ] V2.2.1a-f Structured Data Extraction (6 tasks)
 [ ] V2.2.2a-d Query-Adaptive Retrieval v2 (4 tasks)
 [ ] PAUSE V2.2: Data Intelligence Pipeline verified
+[ ] V2.2.5a Critical Accessibility Fixes (3 tasks)
+[ ] V2.2.5b Design Token Completion (4 tasks)
+[ ] V2.2.5c Component Consistency (4 tasks)
+[ ] V2.2.5d Motion & Reduced Motion (3 tasks)
+[ ] PAUSE V2.2.5: UI/UX Refinements verified
 [ ] V2.3.1a-j Org Chart + Heatmap (10 tasks)
 [ ] V2.3.2a-l Analytics Panel + Insight Canvas (12 tasks)
 [ ] PAUSE V2.3: Visualization Layer verified
@@ -712,7 +765,7 @@ PHASE 5 - LAUNCH
 [ ] PAUSE 5B: Launch ready
 ```
 
-**Total: ~165 discrete tasks across 6 phases (0-4 + V2 + 5)**
+**Total: ~179 discrete tasks across 6 phases (0-4 + V2 + 5)**
 
 ---
 
