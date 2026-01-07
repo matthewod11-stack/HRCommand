@@ -162,7 +162,7 @@ export function MondayDigest({
                   <span className="text-stone-500">
                     {emp.years_tenure ? formatTenure(emp.years_tenure) : ''}
                     {emp.department && (
-                      <span className="text-stone-400 ml-1">
+                      <span className="text-stone-500 ml-1">
                         · {emp.department}
                       </span>
                     )}
@@ -209,7 +209,7 @@ export function MondayDigest({
                       ? formatDaysSinceStart(emp.days_since_start)
                       : ''}
                     {emp.department && (
-                      <span className="text-stone-400 ml-1">
+                      <span className="text-stone-500 ml-1">
                         · {emp.department}
                       </span>
                     )}

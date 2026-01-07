@@ -65,7 +65,7 @@ export function WelcomeStep({ onContinue }: WelcomeStepProps) {
       </button>
 
       {/* Time estimate */}
-      <p className="mt-4 text-xs text-stone-400">
+      <p className="mt-4 text-xs text-stone-500">
         Setup takes about 2 minutes
       </p>
     </div>

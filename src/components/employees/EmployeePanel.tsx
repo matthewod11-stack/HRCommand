@@ -19,7 +19,7 @@ function SearchInput({
   return (
     <div className="relative">
       <svg
-        className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400"
+        className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-500"
         fill="none"
         viewBox="0 0 24 24"
         stroke="currentColor"
@@ -48,7 +48,7 @@ function SearchInput({
       {value && (
         <button
           onClick={() => onChange('')}
-          className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-stone-400 hover:text-stone-600"
+          className="absolute right-1 top-1/2 -translate-y-1/2 p-2 text-stone-500 hover:text-stone-700 rounded-md"
           aria-label="Clear search"
         >
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -95,7 +95,7 @@ function StatusFilterTabs({
           `}
         >
           {tab.label}
-          <span className="ml-1 text-stone-400">
+          <span className="ml-1 text-stone-500">
             {counts[tab.key]}
           </span>
         </button>
@@ -237,7 +237,7 @@ function EmployeeCard({
 
           <div className="flex items-center gap-2 mt-1.5">
             {department && (
-              <span className="text-xs text-stone-400 truncate">
+              <span className="text-xs text-stone-500 truncate">
                 {department}
               </span>
             )}
@@ -421,7 +421,7 @@ export function EmployeePanel() {
 
       {/* Employee count + Import button */}
       <div className="mt-4 mb-2 flex items-center justify-between">
-        <p className="text-xs font-medium text-stone-400 uppercase tracking-wider">
+        <p className="text-xs font-medium text-stone-500 uppercase tracking-wider">
           {filteredEmployees.length} {filteredEmployees.length === 1 ? 'Employee' : 'Employees'}
         </p>
         <button
@@ -453,7 +453,7 @@ export function EmployeePanel() {
               />
             </svg>
             <p className="text-stone-500 text-sm">No employees found</p>
-            <p className="text-stone-400 text-xs mt-1">
+            <p className="text-stone-500 text-xs mt-1">
               {searchQuery ? 'Try a different search' : 'Import employees to get started'}
             </p>
           </div>

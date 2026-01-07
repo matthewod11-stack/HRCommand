@@ -136,7 +136,7 @@ export function ConversationSidebar() {
 
       {/* Conversation count */}
       <div className="mt-4 mb-2">
-        <p className="text-xs font-medium text-stone-400 uppercase tracking-wider">
+        <p className="text-xs font-medium text-stone-500 uppercase tracking-wider">
           {searchQuery
             ? `${conversations.length} ${conversations.length === 1 ? 'result' : 'results'}`
             : `${conversations.length} ${conversations.length === 1 ? 'conversation' : 'conversations'}`
@@ -164,7 +164,7 @@ export function ConversationSidebar() {
             <p className="text-stone-500 text-sm">
               {searchQuery ? 'No conversations found' : 'No conversations yet'}
             </p>
-            <p className="text-stone-400 text-xs mt-1">
+            <p className="text-stone-500 text-xs mt-1">
               {searchQuery ? 'Try a different search' : 'Start a new conversation to begin'}
             </p>
           </div>
@@ -183,7 +183,7 @@ export function ConversationSidebar() {
 
       {/* Keyboard shortcut hint */}
       <div className="mt-3 pt-3 border-t border-stone-200/60">
-        <p className="text-xs text-stone-400 text-center">
+        <p className="text-xs text-stone-500 text-center">
           <kbd className="px-1.5 py-0.5 bg-stone-100 rounded text-stone-500 font-mono">
             Cmd+N
           </kbd>

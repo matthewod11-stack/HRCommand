@@ -119,7 +119,7 @@ export function PersonaSelector({ compact = false }: PersonaSelectorProps) {
               <button
                 type="button"
                 onClick={(e) => handleTogglePreview(e, persona.id)}
-                className="p-1.5 text-stone-400 hover:text-stone-600 hover:bg-stone-200 rounded-lg transition-colors flex-shrink-0"
+                className="p-2.5 text-stone-500 hover:text-stone-700 hover:bg-stone-200 rounded-lg transition-colors flex-shrink-0"
                 aria-label="Preview response style"
                 title="Preview response style"
               >

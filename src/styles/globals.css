@@ -26,3 +26,60 @@ body {
 .no-select {
   user-select: none;
 }
+
+/* ============================================
+   ACCESSIBILITY: Focus Styles (WCAG 2.1 AA)
+   ============================================ */
+
+/* Global focus-visible ring for all interactive elements */
+@layer base {
+  /* Default focus ring for buttons and interactive elements */
+  button:focus-visible,
+  [role="button"]:focus-visible,
+  a:focus-visible,
+  input:focus-visible,
+  textarea:focus-visible,
+  select:focus-visible,
+  [tabindex]:focus-visible:not([tabindex="-1"]) {
+    outline: 2px solid #0D9488; /* primary-500 */
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  /* Remove default outline since we're using custom focus ring */
+  button:focus,
+  [role="button"]:focus,
+  a:focus,
+  [tabindex]:focus:not([tabindex="-1"]) {
+    outline: none;
+  }
+}
+
+/* ============================================
+   ACCESSIBILITY: Touch Target Minimum Size
+   ============================================ */
+@layer components {
+  /* Icon button utility - ensures 40x40px minimum touch target */
+  .icon-btn {
+    @apply min-w-[40px] min-h-[40px] flex items-center justify-center;
+  }
+
+  /* Small icon button with adequate touch target via padding */
+  .icon-btn-sm {
+    @apply p-2; /* 8px padding provides buffer around icons */
+  }
+}
+
+/* ============================================
+   ACCESSIBILITY: Reduced Motion Support
+   ============================================ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

@@ -160,7 +160,7 @@ export function FileDropzone({
             <p className="mt-1 text-sm text-stone-500">
               or <span className="text-primary-600 hover:underline">browse</span> to choose
             </p>
-            <p className="mt-3 text-xs text-stone-400">
+            <p className="mt-3 text-xs text-stone-500">
               Supported: {acceptedExtensions.map((e) => `.${e.toUpperCase()}`).join(', ')}
             </p>
           </>
@@ -188,7 +188,7 @@ function UploadIcon({ isDragOver, hasError }: { isDragOver: boolean; hasError: b
     ? 'text-error'
     : isDragOver
       ? 'text-primary-500'
-      : 'text-stone-400';
+      : 'text-stone-500';
 
   return (
     <div

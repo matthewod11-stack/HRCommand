@@ -195,7 +195,7 @@ function ResultGroup({
 
   return (
     <div className="py-2">
-      <p className="px-4 pb-1.5 text-xs font-medium text-stone-400 uppercase tracking-wide">
+      <p className="px-4 pb-1.5 text-xs font-medium text-stone-500 uppercase tracking-wide">
         {title}
       </p>
       {items.map((item, i) => (
@@ -419,7 +419,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
       >
         {/* Search input */}
         <div className="flex items-center gap-3 px-4 py-3 border-b border-stone-200">
-          <div className="text-stone-400">
+          <div className="text-stone-500">
             <SearchIcon />
           </div>
           <input
@@ -439,7 +439,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
             aria-controls="command-results"
             aria-activedescendant={flatResults[selectedIndex]?.id}
           />
-          <kbd className="px-1.5 py-0.5 text-xs font-mono bg-stone-100 text-stone-400 border border-stone-200 rounded">
+          <kbd className="px-1.5 py-0.5 text-xs font-mono bg-stone-100 text-stone-500 border border-stone-200 rounded">
             esc
           </kbd>
         </div>
@@ -486,7 +486,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
 
         {/* Footer hint */}
         <div className="px-4 py-2 border-t border-stone-100 bg-stone-50">
-          <p className="text-xs text-stone-400">
+          <p className="text-xs text-stone-500">
             <kbd className="px-1 py-0.5 font-mono bg-white border border-stone-200 rounded text-stone-500">↑↓</kbd>
             {' '}to navigate
             <span className="mx-2">·</span>

@@ -83,7 +83,7 @@ export function FirstPromptStep({ onStart }: FirstPromptStepProps) {
           <div className="w-full border-t border-stone-200" />
         </div>
         <div className="relative flex justify-center">
-          <span className="bg-white px-4 text-sm text-stone-400">or</span>
+          <span className="bg-white px-4 text-sm text-stone-500">or</span>
         </div>
       </div>
 

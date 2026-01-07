@@ -420,7 +420,7 @@ function ImportResultView({ result, onDone }: { result: ImportResult; onDone: ()
             <div className="text-stone-500">Ratings Created</div>
           </div>
           <div className="text-center">
-            <div className="text-2xl font-bold text-stone-400">{result.skipped}</div>
+            <div className="text-2xl font-bold text-stone-500">{result.skipped}</div>
             <div className="text-stone-500">Skipped</div>
           </div>
           {hasErrors && (

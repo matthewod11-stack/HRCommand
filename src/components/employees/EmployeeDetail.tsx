@@ -102,9 +102,9 @@ function InfoRow({ label, value }: { label: string; value?: string | null }) {
 function SectionHeader({ title, count }: { title: string; count?: number }) {
   return (
     <div className="flex items-center gap-2 mb-2">
-      <h4 className="text-xs font-medium text-stone-400 uppercase tracking-wider">{title}</h4>
+      <h4 className="text-xs font-medium text-stone-500 uppercase tracking-wider">{title}</h4>
       {count !== undefined && (
-        <span className="text-xs text-stone-400">({count})</span>
+        <span className="text-xs text-stone-500">({count})</span>
       )}
     </div>
   );
@@ -129,7 +129,7 @@ function RatingCard({
           {rating.overall_rating.toFixed(1)}
         </span>
       </div>
-      <p className="text-xs text-stone-400">
+      <p className="text-xs text-stone-500">
         {RATING_LABELS[Math.round(rating.overall_rating)] ?? 'Rating'}
       </p>
     </button>
@@ -156,7 +156,7 @@ function EnpsCard({
           {response.score}
         </span>
       </div>
-      <p className="text-xs text-stone-400 capitalize">{category}</p>
+      <p className="text-xs text-stone-500 capitalize">{category}</p>
       {response.feedback_text && (
         <p className="text-xs text-stone-500 mt-2 line-clamp-2">{response.feedback_text}</p>
       )}
@@ -181,7 +181,7 @@ function EmptyState() {
         />
       </svg>
       <p className="text-stone-500 text-sm">Select an employee</p>
-      <p className="text-stone-400 text-xs mt-1">to view their details</p>
+      <p className="text-stone-500 text-xs mt-1">to view their details</p>
     </div>
   );
 }
@@ -274,7 +274,7 @@ export function EmployeeDetail() {
                 {statusBadge.label}
               </span>
               {selectedEmployee.department && (
-                <span className="text-xs text-stone-400">{selectedEmployee.department}</span>
+                <span className="text-xs text-stone-500">{selectedEmployee.department}</span>
               )}
             </div>
           </div>
@@ -283,7 +283,7 @@ export function EmployeeDetail() {
           {openEditModal && (
             <button
               onClick={openEditModal}
-              className="p-2 text-stone-400 hover:text-stone-600 hover:bg-stone-100 rounded-lg transition-colors"
+              className="p-2.5 text-stone-500 hover:text-stone-700 hover:bg-stone-100 rounded-lg transition-colors"
               aria-label="Edit employee"
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -300,7 +300,7 @@ export function EmployeeDetail() {
               <div className={`text-lg font-semibold ${getRatingColor(latestRating.overall_rating).split(' ')[0]}`}>
                 {latestRating.overall_rating.toFixed(1)}
               </div>
-              <div className="text-xs text-stone-400">Rating</div>
+              <div className="text-xs text-stone-500">Rating</div>
             </div>
           )}
           {latestEnps && (
@@ -308,14 +308,14 @@ export function EmployeeDetail() {
               <div className={`text-lg font-semibold ${getEnpsBadgeStyle(latestEnps.score).split(' ')[0]}`}>
                 {latestEnps.score}
               </div>
-              <div className="text-xs text-stone-400">eNPS</div>
+              <div className="text-xs text-stone-500">eNPS</div>
             </div>
           )}
           <div className="text-center">
             <div className="text-lg font-semibold text-stone-700">
               {calculateTenure(selectedEmployee.hire_date)}
             </div>
-            <div className="text-xs text-stone-400">Tenure</div>
+            <div className="text-xs text-stone-500">Tenure</div>
           </div>
         </div>
       </div>
@@ -453,7 +453,7 @@ export function EmployeeDetail() {
                 d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25z"
               />
             </svg>
-            <p className="text-xs text-stone-400">No performance data</p>
+            <p className="text-xs text-stone-500">No performance data</p>
           </div>
         )}
       </div>
@@ -546,7 +546,7 @@ export function EmployeeDetail() {
               <button
                 onClick={() => setSelectedReviewIndex(Math.max(0, selectedReviewIndex - 1))}
                 disabled={selectedReviewIndex === 0}
-                className="p-1.5 rounded-lg text-stone-400 hover:text-stone-600 hover:bg-stone-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                className="p-2.5 rounded-lg text-stone-500 hover:text-stone-700 hover:bg-stone-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                 aria-label="Previous review"
               >
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -559,7 +559,7 @@ export function EmployeeDetail() {
               <button
                 onClick={() => setSelectedReviewIndex(Math.min(reviews.length - 1, selectedReviewIndex + 1))}
                 disabled={selectedReviewIndex === reviews.length - 1}
-                className="p-1.5 rounded-lg text-stone-400 hover:text-stone-600 hover:bg-stone-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                className="p-2.5 rounded-lg text-stone-500 hover:text-stone-700 hover:bg-stone-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                 aria-label="Next review"
               >
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>

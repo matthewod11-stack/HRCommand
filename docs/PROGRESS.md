@@ -15,6 +15,70 @@
 Most recent session should be first.
 -->
 
+## Session 2026-01-07 (V2.2.5a — Critical Accessibility Fixes)
+
+**Phase:** V2.2.5 — UI/UX Refinements
+**Focus:** WCAG 2.1 AA compliance for color contrast, touch targets, and focus styles
+
+### Summary
+Completed V2.2.5a Critical Accessibility Fixes. Updated 26 component files to improve color contrast (stone-400 → stone-500), increase icon button touch targets to 40px minimum, add global focus-visible ring system, and support prefers-reduced-motion.
+
+### Files Modified
+```
+src/styles/globals.css                    (+50 LOC) — Global focus-visible, icon-btn, reduced-motion
+src/components/employees/EmployeePanel.tsx
+src/components/employees/EmployeeDetail.tsx
+src/components/employees/EmployeeEdit.tsx
+src/components/layout/AppShell.tsx
+src/components/shared/Modal.tsx
+src/components/conversations/ConversationCard.tsx
+src/components/conversations/ConversationSearch.tsx
+src/components/conversations/ConversationSidebar.tsx
+src/components/chat/MessageBubble.tsx
+src/components/chat/MondayDigest.tsx
+src/components/chat/PromptSuggestions.tsx
+src/components/company/CompanySetup.tsx
+src/components/settings/ApiKeyInput.tsx
+src/components/settings/PersonaSelector.tsx
+src/components/import/ImportWizard.tsx
+src/components/import/FileDropzone.tsx
+src/components/import/ImportPreview.tsx
+src/components/import/RatingsImport.tsx
+src/components/import/ReviewsImport.tsx
+src/components/import/EnpsImport.tsx
+src/components/onboarding/steps/WelcomeStep.tsx
+src/components/onboarding/steps/ApiKeyStep.tsx
+src/components/onboarding/steps/EmployeeImportStep.tsx
+src/components/onboarding/steps/FirstPromptStep.tsx
+src/components/CommandPalette.tsx
+```
+
+### Accessibility Improvements
+
+| Category | Before | After |
+|----------|--------|-------|
+| Color Contrast | stone-400 (~2.7:1) | stone-500 (~4.7:1) ✓ |
+| Touch Targets | 24-32px | 40px minimum ✓ |
+| Focus Styles | Inconsistent | Global focus-visible ring ✓ |
+| Reduced Motion | None | prefers-reduced-motion ✓ |
+
+### WCAG Exceptions (Acceptable)
+- Placeholder text: `placeholder:text-stone-400` (WCAG exempts placeholders)
+- Disabled states: `text-stone-400 cursor-not-allowed` (WCAG exempts disabled elements)
+
+### Verification
+- [x] TypeScript type-check passes
+- [x] Production build succeeds
+- [x] 222 Rust tests pass (1 pre-existing file_parser failure)
+- [x] Remaining 13 stone-400 instances are all WCAG-exempt (placeholders/disabled)
+
+### Next Session Should
+1. Continue with V2.2.5b (Design Token Completion)
+2. Or V2.2.5c (Component Consistency)
+3. Or V2.3.1 (Org Chart View)
+
+---
+
 ## Session 2025-12-29 (V2.2.2 Bug Fix — Department Substring Matching)
 
 **Phase:** V2.2 — Data Intelligence Pipeline

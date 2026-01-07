@@ -85,7 +85,7 @@ function InlineVariant({
 }) {
   return (
     <div className={`flex flex-wrap items-center gap-x-3 gap-y-1 ${className}`}>
-      <span className="text-xs text-stone-400 uppercase tracking-wide">
+      <span className="text-xs text-stone-500 uppercase tracking-wide">
         Try:
       </span>
       {suggestions.map((suggestion, i) => (

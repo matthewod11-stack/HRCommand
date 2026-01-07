@@ -81,7 +81,7 @@ export function ConversationCard({
         `}>
           {title}
         </p>
-        <span className="text-xs text-stone-400 flex-shrink-0 mt-0.5">
+        <span className="text-xs text-stone-500 flex-shrink-0 mt-0.5">
           {timestamp}
         </span>
       </div>
@@ -94,7 +94,7 @@ export function ConversationCard({
       {/* Message count */}
       {conversation.message_count > 0 && (
         <div className="flex items-center gap-2 mt-2">
-          <span className="text-xs text-stone-400">
+          <span className="text-xs text-stone-500">
             {conversation.message_count} {conversation.message_count === 1 ? 'message' : 'messages'}
           </span>
         </div>
@@ -108,10 +108,10 @@ export function ConversationCard({
             onDelete();
           }}
           className={`
-            absolute top-2 right-2
-            w-6 h-6 rounded-md
+            absolute top-1 right-1
+            w-10 h-10 rounded-md
             flex items-center justify-center
-            text-stone-400 hover:text-red-500 hover:bg-red-50
+            text-stone-500 hover:text-red-500 hover:bg-red-50
             opacity-0 group-hover:opacity-100
             transition-all duration-200
           `}

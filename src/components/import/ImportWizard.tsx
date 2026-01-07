@@ -232,7 +232,7 @@ export function ImportWizard({ isOpen, onClose, onComplete }: ImportWizardProps)
           </div>
           <button
             onClick={handleClose}
-            className="p-1 text-stone-400 hover:text-stone-600 rounded-lg hover:bg-stone-100 transition-colors"
+            className="p-2.5 text-stone-500 hover:text-stone-700 rounded-lg hover:bg-stone-100 transition-colors"
             aria-label="Close"
           >
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -282,7 +282,7 @@ export function ImportWizard({ isOpen, onClose, onComplete }: ImportWizardProps)
         {/* Footer - only show on select step */}
         {step === 'select' && (
           <div className="px-6 py-4 border-t border-stone-200 flex items-center justify-between bg-stone-50 flex-shrink-0">
-            <p className="text-xs text-stone-400">
+            <p className="text-xs text-stone-500">
               Supports CSV, Excel (.xlsx, .xls), and TSV files
             </p>
             <div className="flex gap-3">

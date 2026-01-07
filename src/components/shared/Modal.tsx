@@ -87,7 +87,7 @@ export function Modal({
             </h2>
             <button
               onClick={onClose}
-              className="p-1.5 text-stone-400 hover:text-stone-600 hover:bg-stone-100 rounded-lg transition-colors"
+              className="p-2.5 text-stone-500 hover:text-stone-700 hover:bg-stone-100 rounded-lg transition-colors"
               aria-label="Close modal"
             >
               <svg
@@ -116,7 +116,7 @@ export function Modal({
         {!title && (
           <button
             onClick={onClose}
-            className="absolute top-3 right-3 p-1.5 text-stone-400 hover:text-stone-600 hover:bg-stone-100 rounded-lg transition-colors"
+            className="absolute top-3 right-3 p-2.5 text-stone-500 hover:text-stone-700 hover:bg-stone-100 rounded-lg transition-colors"
             aria-label="Close modal"
           >
             <svg

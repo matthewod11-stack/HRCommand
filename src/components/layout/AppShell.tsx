@@ -26,9 +26,9 @@ function ToggleButton({
       onClick={onClick}
       aria-label={label}
       className="
-        w-6 h-6 flex items-center justify-center
-        text-stone-400 hover:text-stone-600
-        hover:bg-stone-200/50 rounded
+        w-10 h-10 flex items-center justify-center
+        text-stone-500 hover:text-stone-700
+        hover:bg-stone-200/50 rounded-md
         transition-colors duration-200
       "
     >
@@ -118,7 +118,7 @@ export function AppShell({ children, contextPanel, onSettingsClick }: AppShellPr
             className="
               hidden sm:flex items-center gap-1.5
               px-2 py-1 mr-1
-              text-xs text-stone-400 hover:text-stone-600
+              text-xs text-stone-500 hover:text-stone-700
               bg-stone-100 hover:bg-stone-200/80
               border border-stone-200/60
               rounded-md
@@ -233,7 +233,7 @@ export function AppShell({ children, contextPanel, onSettingsClick }: AppShellPr
 function ContextPanelPlaceholder() {
   return (
     <div className="h-full flex flex-col p-4">
-      <p className="text-xs font-medium text-stone-400 uppercase tracking-wider mb-3">
+      <p className="text-xs font-medium text-stone-500 uppercase tracking-wider mb-3">
         Employee Context
       </p>
 
@@ -283,7 +283,7 @@ function ContextPanelPlaceholder() {
           transition-colors duration-200
           cursor-pointer
         ">
-          <svg className="w-6 h-6 mx-auto text-stone-400 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+          <svg className="w-6 h-6 mx-auto text-stone-500 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
           </svg>
           <p className="text-sm text-stone-500">Import CSV</p>

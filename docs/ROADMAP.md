@@ -471,12 +471,12 @@ Enhance V1's query classification with smarter context selection.
 
 Polish the visual design and accessibility before adding major new UI features.
 
-#### V2.2.5a Critical Accessibility Fixes
+#### V2.2.5a Critical Accessibility Fixes ✓ COMPLETE
 > **Severity:** Critical | Must fix before launch
 
-- [ ] Audit and fix color contrast ratios (stone-400 → stone-500 for text)
-- [ ] Increase icon button touch targets to 40x40px minimum
-- [ ] Add visible focus styles meeting 3:1 contrast ratio
+- [x] Audit and fix color contrast ratios (stone-400 → stone-500 for text)
+- [x] Increase icon button touch targets to 40x40px minimum
+- [x] Add visible focus styles meeting 3:1 contrast ratio
 
 #### V2.2.5b Design Token Completion
 > **Severity:** High | Enables consistent component styling
@@ -497,7 +497,7 @@ Polish the visual design and accessibility before adding major new UI features.
 #### V2.2.5d Motion & Reduced Motion Support
 > **Severity:** Medium | Accessibility + polish
 
-- [ ] Add `prefers-reduced-motion` media query support
+- [x] Add `prefers-reduced-motion` media query support
 - [ ] Replace button scale transforms with shadow/brightness
 - [ ] Slow loading spinner to 1.5s rotation
 
@@ -759,7 +759,7 @@ PHASE V2 - INTELLIGENCE & VISUALIZATION
 [ ] V2.2.1a-f Structured Data Extraction (6 tasks)
 [ ] V2.2.2a-d Query-Adaptive Retrieval v2 (4 tasks)
 [ ] PAUSE V2.2: Data Intelligence Pipeline verified
-[ ] V2.2.5a Critical Accessibility Fixes (3 tasks)
+[x] V2.2.5a Critical Accessibility Fixes (3 tasks)
 [ ] V2.2.5b Design Token Completion (4 tasks)
 [ ] V2.2.5c Component Consistency (4 tasks)
 [ ] V2.2.5d Motion & Reduced Motion (3 tasks)

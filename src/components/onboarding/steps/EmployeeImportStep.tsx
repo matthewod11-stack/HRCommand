@@ -173,7 +173,7 @@ export function EmployeeImportStep({ onContinue }: EmployeeImportStepProps) {
             Continue
           </button>
 
-          <p className="mt-4 text-xs text-stone-400">
+          <p className="mt-4 text-xs text-stone-500">
             You can import your own data later from the People tab
           </p>
         </div>

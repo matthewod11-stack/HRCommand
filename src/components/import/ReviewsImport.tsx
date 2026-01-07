@@ -356,7 +356,7 @@ function ImportResultView({ result, onDone, entityName }: { result: ImportResult
         <h3 className="text-xl font-semibold text-stone-900">{hasErrors ? 'Import Completed with Warnings' : 'Import Successful'}</h3>
         <div className="mt-6 flex justify-center gap-8 text-sm">
           <div><div className="text-2xl font-bold text-primary-600">{result.created}</div><div className="text-stone-500">{entityName} Created</div></div>
-          <div><div className="text-2xl font-bold text-stone-400">{result.skipped}</div><div className="text-stone-500">Skipped</div></div>
+          <div><div className="text-2xl font-bold text-stone-500">{result.skipped}</div><div className="text-stone-500">Skipped</div></div>
           {hasErrors && <div><div className="text-2xl font-bold text-warning">{result.errors.length}</div><div className="text-stone-500">Errors</div></div>}
         </div>
         {hasErrors && (

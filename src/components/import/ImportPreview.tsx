@@ -235,7 +235,7 @@ function PreviewRow({
                 {value}
               </span>
             ) : (
-              <span className="text-stone-400 italic">—</span>
+              <span className="text-stone-500 italic">—</span>
             )}
           </td>
         );

@@ -201,7 +201,7 @@ export function CompanySetup({
         {/* Your Name */}
         <div>
           <label htmlFor="user-name" className="block text-sm font-medium text-stone-700 mb-1.5">
-            Your Name <span className="text-stone-400">(how Alex should address you)</span>
+            Your Name <span className="text-stone-500">(how Alex should address you)</span>
           </label>
           <input
             id="user-name"
@@ -295,7 +295,7 @@ export function CompanySetup({
         {/* Industry (Optional) */}
         <div>
           <label htmlFor="company-industry" className="block text-sm font-medium text-stone-700 mb-1.5">
-            Industry <span className="text-stone-400">(optional)</span>
+            Industry <span className="text-stone-500">(optional)</span>
           </label>
           <input
             id="company-industry"

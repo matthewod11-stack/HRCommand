@@ -19,7 +19,7 @@ export function ConversationSearch({
       {/* Search icon or spinner */}
       {isSearching ? (
         <svg
-          className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400 animate-spin"
+          className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-500 animate-spin"
           fill="none"
           viewBox="0 0 24 24"
         >
@@ -39,7 +39,7 @@ export function ConversationSearch({
         </svg>
       ) : (
         <svg
-          className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400"
+          className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-500"
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
@@ -72,7 +72,7 @@ export function ConversationSearch({
       {value && (
         <button
           onClick={() => onChange('')}
-          className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-stone-400 hover:text-stone-600"
+          className="absolute right-1 top-1/2 -translate-y-1/2 p-2 text-stone-500 hover:text-stone-700 rounded-md"
           aria-label="Clear search"
         >
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>

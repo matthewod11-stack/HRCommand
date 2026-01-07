@@ -109,7 +109,7 @@ export function MessageBubble({
           <span
             className={`
               block text-right text-xs mt-2
-              ${isUser ? 'text-white/70' : 'text-stone-400'}
+              ${isUser ? 'text-white/70' : 'text-stone-500'}
             `}
             aria-label={`Sent at ${formattedTime}`}
           >
