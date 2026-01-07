@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { useEmployees } from '../../contexts/EmployeeContext';
 import { RATING_LABELS } from '../../lib/types';
 import { getDepartments } from '../../lib/tauri-commands';
+import { Avatar, getStatusIndicator, getRatingColor } from '../ui';
 
 // =============================================================================
 // Helper Components
@@ -142,34 +143,7 @@ function FilterDropdown({
   );
 }
 
-function getInitials(name: string): string {
-  return name
-    .split(' ')
-    .map((part) => part[0])
-    .join('')
-    .toUpperCase()
-    .slice(0, 2);
-}
-
-function getRatingColor(rating: number): string {
-  if (rating >= 4.5) return 'bg-emerald-100 text-emerald-700';
-  if (rating >= 3.5) return 'bg-blue-100 text-blue-700';
-  if (rating >= 2.5) return 'bg-amber-100 text-amber-700';
-  return 'bg-red-100 text-red-700';
-}
-
-function getStatusIndicator(status: string) {
-  switch (status) {
-    case 'active':
-      return { color: 'bg-emerald-500', label: 'Active' };
-    case 'terminated':
-      return { color: 'bg-stone-400', label: 'Terminated' };
-    case 'leave':
-      return { color: 'bg-amber-500', label: 'On Leave' };
-    default:
-      return { color: 'bg-stone-300', label: status };
-  }
-}
+// Helper functions imported from ../ui: getStatusIndicator, getRatingColor
 
 interface EmployeeCardProps {
   name: string;
@@ -191,7 +165,6 @@ function EmployeeCard({
   onClick,
 }: EmployeeCardProps) {
   const statusIndicator = getStatusIndicator(status);
-  const initials = getInitials(name);
 
   return (
     <button
@@ -209,16 +182,11 @@ function EmployeeCard({
     >
       <div className="flex items-start gap-3">
         {/* Avatar */}
-        <div
-          className={`
-            w-10 h-10 rounded-full flex-shrink-0
-            flex items-center justify-center
-            text-sm font-medium
-            ${isSelected ? 'bg-primary-100 text-primary-700' : 'bg-stone-100 text-stone-600'}
-          `}
-        >
-          {initials}
-        </div>
+        <Avatar
+          name={name}
+          size="md"
+          variant={isSelected ? 'primary' : 'default'}
+        />
 
         {/* Info */}
         <div className="flex-1 min-w-0">

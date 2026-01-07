@@ -15,6 +15,73 @@
 Most recent session should be first.
 -->
 
+## Session 2026-01-07 (V2.2.5b+c — Design Tokens & Component Consistency)
+
+**Phase:** V2.2.5 — UI/UX Refinements
+**Focus:** Design token completion and shared UI primitives extraction
+
+### Summary
+Completed V2.2.5b (Design Token Completion) and V2.2.5c (Component Consistency). Extended Tailwind config with complete primary color scale, custom easing curves, shadow scale, and letter-spacing tokens. Created reusable UI primitives library and decomposed EmployeeDetail.tsx from 619 to 192 lines.
+
+### Files Created
+```
+src/components/ui/                    # NEW: 6 files, ~640 LOC
+├── index.ts                          # Barrel exports
+├── utils.ts                          # Shared helpers (getInitials, formatDate, etc.)
+├── Avatar.tsx                        # Size variants with initials
+├── Badge.tsx                         # Status, Rating, eNPS badges
+├── Card.tsx                          # Interactive, selected, data variants
+└── Button.tsx                        # Primary, secondary, ghost, icon, link
+
+src/components/employees/detail/      # NEW: 8 files
+├── index.ts
+├── EmployeeHeader.tsx
+├── InfoSection.tsx
+├── PerformanceSection.tsx
+└── modals/
+    ├── index.ts
+    ├── RatingDetailModal.tsx
+    ├── EnpsDetailModal.tsx
+    └── ReviewDetailModal.tsx
+```
+
+### Files Modified
+```
+tailwind.config.js                    (+31 LOC) — Design tokens
+src/components/employees/EmployeeDetail.tsx  (619→192 lines) — Decomposed
+src/components/employees/EmployeePanel.tsx   (-28 LOC) — Uses Avatar, removed duplicates
+```
+
+### Design Tokens Added (V2.2.5b)
+
+| Token | Values |
+|-------|--------|
+| Primary colors | 200, 300, 400, 700, 800, 900 |
+| Easing curves | smooth-out, smooth-in, smooth-in-out |
+| Shadows | lg, xl, 2xl |
+| Letter spacing | tight, wide, wider |
+
+### UI Primitives Created (V2.2.5c)
+
+| Component | Variants | Props |
+|-----------|----------|-------|
+| Avatar | sm/md/lg, default/primary | name, size, variant |
+| Badge | default/success/warning/error/info | variant, size, pill |
+| Card | default/interactive/selected/data | variant, padding, as, isSelected |
+| Button | primary/secondary/ghost/icon/link | variant, size, fullWidth, isLoading |
+
+### Verification
+- [x] TypeScript type-check passes
+- [x] Production build succeeds (366 modules)
+- [x] 222 Rust tests pass (1 pre-existing file_parser failure)
+
+### Next Session Should
+1. Continue with V2.2.5d (Motion — remaining tasks)
+2. Or V2.3.1 (Org Chart View)
+3. Or begin V2.3.2 (Analytics Panel)
+
+---
+
 ## Session 2026-01-07 (V2.2.5a — Critical Accessibility Fixes)
 
 **Phase:** V2.2.5 — UI/UX Refinements
