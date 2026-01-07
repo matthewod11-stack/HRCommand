@@ -59,9 +59,10 @@ src/components/employees/EmployeeEdit.tsx         — Updated loading spinner
 - [x] V2.2.5 complete (all 4 subtasks done)
 
 ### Next Session Should
-1. V2.3.1 (Org Chart View) — Interactive hierarchy visualization
-2. Or V2.3.2 (Analytics Panel) — Natural language → charts
-3. Or Phase 5.1 (Distribution) — App signing and notarization
+1. **V2.3.2 (Analytics Panel)** — Natural language → charts with insight canvas
+2. Or Phase 5.1 (Distribution) — App signing and notarization
+
+**Note:** V2.3.1 (Org Chart View) deferred to parking lot — focus on Analytics Panel for launch.
 
 ---
 

@@ -515,29 +515,11 @@ Polish the visual design and accessibility before adding major new UI features.
 
 Visual analytics that transforms answers into artifacts.
 
-#### V2.3.1 Org Chart View + Heatmap Overlay
-> **Impact:** 🔥 High | **Est. Sessions:** 3-4
+#### ~~V2.3.1 Org Chart View + Heatmap Overlay~~ → DEFERRED
+> **Status:** Moved to parking lot for post-launch consideration
+> **Reason:** Focus on Analytics Panel for V1 launch; Org Chart adds complexity without core value
 
-Interactive hierarchy visualization with signal overlays.
-
-**Core Org Chart:**
-- [ ] V2.3.1a Create OrgChart component with tree visualization
-- [ ] V2.3.1b Implement expand/collapse for direct reports
-- [ ] V2.3.1c Add click-to-select (syncs with People panel)
-- [ ] V2.3.1d Add search/filter within tree
-- [ ] V2.3.1e Add zoom/pan for large orgs
-- [ ] V2.3.1f Add department color coding
-
-**Heatmap Overlay (connects to Attrition Signals):**
-- [ ] V2.3.1g Create "attention score" composite calculation
-- [ ] V2.3.1h Implement heatmap coloring by team/department
-- [ ] V2.3.1i Add click-to-drill into anonymized themes
-- [ ] V2.3.1j Add overlay toggle (off by default)
-
-**Attention Score Factors:**
-- High turnover (YTD terminations / headcount)
-- Low eNPS (team average below org average)
-- Negative review themes (from V2.2.1 extraction)
+*See [KNOWN_ISSUES.md](./KNOWN_ISSUES.md) → V2 Parking Lot → Visualization for details.*
 
 #### V2.3.2 Interactive Analytics Panel + Insight Canvas
 > **Impact:** 🔥 Very High | **Est. Sessions:** 5-6
@@ -573,9 +555,8 @@ Natural language → charts with persistent insights.
 
 ### Pause Point V2.3
 **Verification Required:**
-- [ ] Org chart renders full hierarchy from manager_id relationships
-- [ ] Can navigate tree, expand/collapse branches
-- [ ] Heatmap overlay shows team "attention scores"
+- [x] ~~Org chart renders full hierarchy~~ (DEFERRED)
+- [x] ~~Heatmap overlay shows team "attention scores"~~ (DEFERRED)
 - [ ] Natural language query generates appropriate chart
 - [ ] Can pin chart to named board
 - [ ] Can export board as 1-page report
@@ -588,7 +569,7 @@ Proactive insights with appropriate guardrails.
 
 #### V2.4.1 Attrition & Sentiment Signals
 > **Impact:** 🔥 High | **Est. Sessions:** 2-3
-> **Depends on:** V2.2.1 (Structured Extraction), V2.3.1 (Org Chart Heatmap)
+> **Depends on:** V2.2.1 (Structured Extraction)
 
 Systemic risk identification with strong disclaimers.
 
@@ -596,7 +577,7 @@ Systemic risk identification with strong disclaimers.
 - [ ] V2.4.1b Create theme mining from extracted review data
 - [ ] V2.4.1c Implement team-level aggregation (never individual predictions)
 - [ ] V2.4.1d Add "Attention Areas" summary in analytics panel
-- [ ] V2.4.1e Wire to Org Chart heatmap overlay
+- [x] ~~V2.4.1e Wire to Org Chart heatmap overlay~~ (DEFERRED with Org Chart)
 - [ ] V2.4.1f Add opt-in toggle in Settings
 - [ ] V2.4.1g Add prominent disclaimers ("heuristic, not prediction")
 
@@ -764,10 +745,10 @@ PHASE V2 - INTELLIGENCE & VISUALIZATION
 [x] V2.2.5c Component Consistency (4 tasks)
 [x] V2.2.5d Motion & Reduced Motion (3 tasks)
 [x] PAUSE V2.2.5: UI/UX Refinements verified
-[ ] V2.3.1a-j Org Chart + Heatmap (10 tasks)
+[x] V2.3.1a-j Org Chart + Heatmap (DEFERRED to parking lot)
 [ ] V2.3.2a-l Analytics Panel + Insight Canvas (12 tasks)
 [ ] PAUSE V2.3: Visualization Layer verified
-[ ] V2.4.1a-g Attrition & Sentiment Signals (7 tasks)
+[ ] V2.4.1a-f Attrition & Sentiment Signals (6 tasks, V2.4.1e deferred)
 [ ] V2.4.2a-f DEI & Fairness Lens (6 tasks)
 [ ] PAUSE V2.4: Intelligence Layer verified
 [ ] V2.5.1a-f Data Quality Center (6 tasks)

@@ -137,6 +137,12 @@ Features deferred until demand is established. Track user requests.
 | HRIS Templates | ⚡ Medium | Medium | BambooHR, Gusto, Rippling mappings |
 | Bulk Actions & Backfills | ⚡ Medium | Medium | Post-import fix workflows |
 
+#### Visualization
+
+| Feature | Impact | Complexity | Notes |
+|---------|--------|------------|-------|
+| Org Chart View + Heatmap | 🔥 High | Medium | Deferred from V2.3.1 — tree visualization, expand/collapse, attention scores |
+
 #### UX & Accessibility
 
 | Feature | Impact | Complexity | Notes |
@@ -295,6 +301,34 @@ Pre-built mappings for common HRIS exports.
 - Standardize titles ("Sr. Engineer" → "Senior Engineer")
 - Normalize locations ("CA" → "California")
 - Fix date format inconsistencies
+
+</details>
+
+<details>
+<summary><strong>Org Chart View + Heatmap Overlay</strong> (🔥 High impact, Medium complexity)</summary>
+
+Interactive hierarchy visualization with signal overlays. Deferred from V2.3.1 to focus on Analytics Panel for launch.
+
+**Core Features:**
+- Tree visualization from manager_id relationships
+- Expand/collapse for direct reports
+- Click-to-select (syncs with People panel)
+- Search/filter within tree
+- Zoom/pan for large orgs
+- Department color coding
+
+**Heatmap Overlay:**
+- "Attention score" composite calculation
+- Team/department coloring based on risk signals
+- Click-to-drill into anonymized themes
+- Toggle off by default
+
+**Attention Score Factors:**
+- High turnover (YTD terminations / headcount)
+- Low eNPS (team average below org average)
+- Negative review themes (from structured extraction)
+
+**Why Deferred:** Adds visual complexity without core query/analytics value. Can be added post-launch based on user demand.
 
 </details>
 
