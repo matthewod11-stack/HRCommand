@@ -59,7 +59,7 @@ export function WelcomeStep({ onContinue }: WelcomeStepProps) {
       <button
         type="button"
         onClick={onContinue}
-        className="w-full px-6 py-3 bg-primary-500 hover:bg-primary-600 text-white font-medium rounded-xl transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-primary-200"
+        className="w-full px-6 py-3 bg-primary-500 hover:bg-primary-600 text-white font-medium rounded-xl transition-all duration-200 shadow-lg shadow-primary-200 hover:shadow-xl hover:brightness-110 active:brightness-95"
       >
         Get Started
       </button>

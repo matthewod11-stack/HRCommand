@@ -88,6 +88,7 @@ export default {
       },
       animation: {
         'fade-in': 'fadeIn 0.2s ease-out',
+        'spin-slow': 'spin 1.5s linear infinite',  // Calmer loading spinner (default is 1s)
       },
       keyframes: {
         fadeIn: {

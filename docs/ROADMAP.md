@@ -494,12 +494,12 @@ Polish the visual design and accessibility before adding major new UI features.
 - [x] Standardize card hover states (unified pattern)
 - [x] Decompose EmployeeDetail.tsx (619 lines → focused components)
 
-#### V2.2.5d Motion & Reduced Motion Support
+#### V2.2.5d Motion & Reduced Motion Support ✓ COMPLETE
 > **Severity:** Medium | Accessibility + polish
 
 - [x] Add `prefers-reduced-motion` media query support
-- [ ] Replace button scale transforms with shadow/brightness
-- [ ] Slow loading spinner to 1.5s rotation
+- [x] Replace button scale transforms with shadow/brightness
+- [x] Slow loading spinner to 1.5s rotation
 
 ### Pause Point V2.2.5
 **Verification Required:**
@@ -760,10 +760,10 @@ PHASE V2 - INTELLIGENCE & VISUALIZATION
 [ ] V2.2.2a-d Query-Adaptive Retrieval v2 (4 tasks)
 [ ] PAUSE V2.2: Data Intelligence Pipeline verified
 [x] V2.2.5a Critical Accessibility Fixes (3 tasks)
-[ ] V2.2.5b Design Token Completion (4 tasks)
-[ ] V2.2.5c Component Consistency (4 tasks)
-[ ] V2.2.5d Motion & Reduced Motion (3 tasks)
-[ ] PAUSE V2.2.5: UI/UX Refinements verified
+[x] V2.2.5b Design Token Completion (4 tasks)
+[x] V2.2.5c Component Consistency (4 tasks)
+[x] V2.2.5d Motion & Reduced Motion (3 tasks)
+[x] PAUSE V2.2.5: UI/UX Refinements verified
 [ ] V2.3.1a-j Org Chart + Heatmap (10 tasks)
 [ ] V2.3.2a-l Analytics Panel + Insight Canvas (12 tasks)
 [ ] PAUSE V2.3: Visualization Layer verified

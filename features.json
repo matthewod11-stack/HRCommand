@@ -4,8 +4,8 @@
     "description": "Feature tracking for HR Command Center. Status: not-started | in-progress | pass | fail | blocked",
     "lastUpdated": "2026-01-07",
     "project": "HR Command Center",
-    "totalFeatures": 41,
-    "passing": 34,
+    "totalFeatures": 42,
+    "passing": 35,
     "failing": 0,
     "inProgress": 0
   },
@@ -143,6 +143,10 @@
     "component-consistency": {
       "status": "pass",
       "notes": "V2.2.5c complete: UI primitives (/components/ui/) with Button, Badge, Card, Avatar. EmployeeDetail decomposed (619→192 lines). EmployeePanel migrated to use Avatar. ~640 LOC new, ~380 LOC removed."
+    },
+    "motion-refinements": {
+      "status": "pass",
+      "notes": "V2.2.5d complete: Replaced button scale transforms with shadow/brightness for smoother hover effects. Slowed loading spinners from 1s to 1.5s (animate-spin-slow). 16 files updated. OfflineIndicator kept fast for quick status checks."
     }
   },
   "phase-5": {

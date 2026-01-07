@@ -15,6 +15,56 @@
 Most recent session should be first.
 -->
 
+## Session 2026-01-07 (V2.2.5d — Motion Refinements)
+
+**Phase:** V2.2.5 — UI/UX Refinements
+**Focus:** Complete motion refinements — button hover transforms and spinner animation
+
+### Summary
+Completed V2.2.5d Motion & Reduced Motion Support. Replaced button scale transforms with shadow/brightness for smoother hover effects (avoiding janky border rendering). Slowed loading spinners from 1s to 1.5s rotation for a calmer loading experience.
+
+### Files Modified
+```
+tailwind.config.js                                (+1 LOC) — Added animate-spin-slow animation
+src/components/ui/Button.tsx                      — Replaced scale-[1.02]/scale-[0.98] with shadow/brightness
+src/components/company/CompanySetup.tsx           — Updated button hover and spinner
+src/components/conversations/ConversationSidebar.tsx — Updated button hover and spinner
+src/components/onboarding/steps/FirstPromptStep.tsx  — Updated button hover
+src/components/chat/ChatInput.tsx                 — Updated button hover
+src/components/settings/ApiKeyInput.tsx           — Updated button hover and spinner
+src/components/onboarding/steps/WelcomeStep.tsx   — Updated button hover
+src/components/layout/AppShell.tsx                — Updated icon button hover
+src/App.tsx                                       — Updated loading spinner
+src/components/onboarding/OnboardingFlow.tsx      — Updated loading spinner
+src/components/onboarding/steps/EmployeeImportStep.tsx — Updated loading spinner
+src/components/import/FileDropzone.tsx            — Updated loading spinner
+src/components/conversations/ConversationSearch.tsx — Updated loading spinner
+src/components/import/ImportPreview.tsx           — Updated loading spinner
+src/components/employees/EmployeeEdit.tsx         — Updated loading spinner
+```
+
+### Motion Changes
+
+| Change | Before | After |
+|--------|--------|-------|
+| Button hover | `hover:scale-[1.02] active:scale-[0.98]` | `hover:shadow-md hover:brightness-110 active:brightness-95` |
+| Icon button hover | `hover:scale-105 active:scale-95` | `hover:brightness-110 active:brightness-90` |
+| Loading spinners | `animate-spin` (1s) | `animate-spin-slow` (1.5s) |
+| OfflineIndicator | `animate-spin` | Kept fast (brief status check) |
+
+### Verification
+- [x] TypeScript type-check passes
+- [x] Production build succeeds (366 modules)
+- [x] 222 Rust tests pass (1 pre-existing file_parser failure)
+- [x] V2.2.5 complete (all 4 subtasks done)
+
+### Next Session Should
+1. V2.3.1 (Org Chart View) — Interactive hierarchy visualization
+2. Or V2.3.2 (Analytics Panel) — Natural language → charts
+3. Or Phase 5.1 (Distribution) — App signing and notarization
+
+---
+
 ## Session 2026-01-07 (V2.2.5b+c — Design Tokens & Component Consistency)
 
 **Phase:** V2.2.5 — UI/UX Refinements

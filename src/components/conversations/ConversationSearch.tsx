@@ -19,7 +19,7 @@ export function ConversationSearch({
       {/* Search icon or spinner */}
       {isSearching ? (
         <svg
-          className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-500 animate-spin"
+          className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-500 animate-spin-slow"
           fill="none"
           viewBox="0 0 24 24"
         >

@@ -27,15 +27,16 @@ const variantClasses = {
   primary: `
     bg-primary-500 hover:bg-primary-600 active:bg-primary-700
     text-white font-medium
-    shadow-sm hover:shadow-md
-    hover:scale-[1.02] active:scale-[0.98]
+    shadow-sm hover:shadow-md active:shadow-sm
+    hover:brightness-110 active:brightness-95
     transition-all duration-200 ease-smooth-out
   `,
   secondary: `
     bg-white border border-stone-200
     text-stone-700 hover:text-stone-800 font-medium
     hover:bg-stone-50 hover:border-stone-300
-    hover:scale-[1.02] active:scale-[0.98]
+    shadow-sm hover:shadow-md active:shadow-sm
+    hover:brightness-105 active:brightness-95
     transition-all duration-200 ease-smooth-out
   `,
   ghost: `
@@ -46,7 +47,7 @@ const variantClasses = {
   icon: `
     text-stone-500 hover:text-stone-700
     hover:bg-stone-200/60
-    hover:scale-105 active:scale-95
+    hover:brightness-110 active:brightness-90
     transition-all duration-200
   `,
   link: `
@@ -170,7 +171,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 function LoadingSpinner() {
   return (
     <svg
-      className="animate-spin h-4 w-4"
+      className="animate-spin-slow h-4 w-4"
       xmlns="http://www.w3.org/2000/svg"
       fill="none"
       viewBox="0 0 24 24"

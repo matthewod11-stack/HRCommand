@@ -222,7 +222,7 @@ function LoadingState() {
     <div className="flex flex-col items-center">
       <div className="w-14 h-14 flex items-center justify-center">
         <svg
-          className="w-8 h-8 text-primary-500 animate-spin"
+          className="w-8 h-8 text-primary-500 animate-spin-slow"
           fill="none"
           viewBox="0 0 24 24"
         >

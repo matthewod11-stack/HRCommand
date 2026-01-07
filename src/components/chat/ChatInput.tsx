@@ -155,7 +155,7 @@ export const ChatInput = forwardRef<ChatInputHandle, ChatInputProps>(function Ch
             ${
               isSubmitDisabled
                 ? 'bg-stone-200 text-stone-400 cursor-not-allowed'
-                : 'bg-primary-500 hover:bg-primary-600 text-white hover:scale-105 active:scale-95'
+                : 'bg-primary-500 hover:bg-primary-600 text-white shadow-sm hover:shadow-md hover:brightness-110 active:brightness-95'
             }
           `}
         >

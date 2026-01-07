@@ -66,7 +66,7 @@ function IconButton({
         text-stone-500 hover:text-stone-700
         hover:bg-stone-200/60 rounded-md
         transition-all duration-200
-        hover:scale-105
+        hover:brightness-110 active:brightness-90
       "
     >
       {children}
