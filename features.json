@@ -2,10 +2,10 @@
   "$schema": "./features.schema.json",
   "_meta": {
     "description": "Feature tracking for HR Command Center. Status: not-started | in-progress | pass | fail | blocked",
-    "lastUpdated": "2026-01-07",
+    "lastUpdated": "2026-01-13",
     "project": "HR Command Center",
-    "totalFeatures": 42,
-    "passing": 35,
+    "totalFeatures": 44,
+    "passing": 37,
     "failing": 0,
     "inProgress": 0
   },
@@ -147,6 +147,14 @@
     "motion-refinements": {
       "status": "pass",
       "notes": "V2.2.5d complete: Replaced button scale transforms with shadow/brightness for smoother hover effects. Slowed loading spinners from 1s to 1.5s (animate-spin-slow). 16 files updated. OfflineIndicator kept fast for quick status checks."
+    },
+    "analytics-panel": {
+      "status": "pass",
+      "notes": "V2.3.2a-f complete: Analytics request schema, NL→SQL templates, Recharts rendering (bar/pie), filter captions, fallback handling. Fixed PascalCase→snake_case mismatch in context.rs. ~1,100 LOC across 10 files."
+    },
+    "insight-canvas-foundation": {
+      "status": "pass",
+      "notes": "V2.3.2g complete: Database schema (3 tables), insight_canvas.rs CRUD (~540 LOC), TypeScript types, 13 Tauri commands. Foundation for persistent chart storage."
     }
   },
   "phase-5": {

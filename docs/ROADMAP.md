@@ -526,16 +526,16 @@ Visual analytics that transforms answers into artifacts.
 
 Natural language → charts with persistent insights.
 
-**Core Analytics Panel:**
-- [ ] V2.3.2a Design analytics request schema (intent + filters + grouping)
-- [ ] V2.3.2b Create whitelisted NL→SQL templates (safe, deterministic)
-- [ ] V2.3.2c Implement chart rendering (bar, pie, line)
-- [ ] V2.3.2d Add "Filters applied" caption for explainability
-- [ ] V2.3.2e Add graceful fallback to text for non-chartable queries
-- [ ] V2.3.2f Wire Claude to emit structured analytics requests
+**Core Analytics Panel:** ✓ COMPLETE
+- [x] V2.3.2a Design analytics request schema (intent + filters + grouping)
+- [x] V2.3.2b Create whitelisted NL→SQL templates (safe, deterministic)
+- [x] V2.3.2c Implement chart rendering (bar, pie, line)
+- [x] V2.3.2d Add "Filters applied" caption for explainability
+- [x] V2.3.2e Add graceful fallback to text for non-chartable queries
+- [x] V2.3.2f Wire Claude to emit structured analytics requests
 
 **Insight Canvas (persistent workspace):**
-- [ ] V2.3.2g Create InsightCanvas component (persistent chart storage)
+- [x] V2.3.2g Create InsightCanvas foundation (database schema, Rust CRUD, TS types)
 - [ ] V2.3.2h Add "Pin to Canvas" action from analytics panel
 - [ ] V2.3.2i Create named boards ("Q3 Review", "Leadership Dashboard")
 - [ ] V2.3.2j Add chart annotation capability
@@ -746,7 +746,8 @@ PHASE V2 - INTELLIGENCE & VISUALIZATION
 [x] V2.2.5d Motion & Reduced Motion (3 tasks)
 [x] PAUSE V2.2.5: UI/UX Refinements verified
 [x] V2.3.1a-j Org Chart + Heatmap (DEFERRED to parking lot)
-[ ] V2.3.2a-l Analytics Panel + Insight Canvas (12 tasks)
+[x] V2.3.2a-f Analytics Panel (6 tasks)
+[~] V2.3.2g-l Insight Canvas (V2.3.2g complete, 5 remaining)
 [ ] PAUSE V2.3: Visualization Layer verified
 [ ] V2.4.1a-f Attrition & Sentiment Signals (6 tasks, V2.4.1e deferred)
 [ ] V2.4.2a-f DEI & Fairness Lens (6 tasks)

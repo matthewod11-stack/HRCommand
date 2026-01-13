@@ -1545,3 +1545,134 @@ export async function invalidateReviewHighlight(
 ): Promise<void> {
   return invoke('invalidate_review_highlight', { reviewId, employeeId });
 }
+
+// =============================================================================
+// V2.3.2g-l - Insight Canvas
+// =============================================================================
+
+import type {
+  InsightBoard,
+  InsightBoardListItem,
+  CreateBoardInput,
+  UpdateBoardInput,
+  PinnedChart,
+  PinChartInput,
+  UpdatePinnedChartInput,
+  ChartAnnotation,
+  CreateAnnotationInput,
+} from './insight-canvas-types';
+
+// Re-export types for convenience
+export type {
+  InsightBoard,
+  InsightBoardListItem,
+  CreateBoardInput,
+  UpdateBoardInput,
+  PinnedChart,
+  PinChartInput,
+  UpdatePinnedChartInput,
+  ChartAnnotation,
+  CreateAnnotationInput,
+};
+
+/**
+ * Create a new insight board
+ */
+export async function createInsightBoard(input: CreateBoardInput): Promise<InsightBoard> {
+  return invoke('create_insight_board', { input });
+}
+
+/**
+ * Get an insight board by ID
+ */
+export async function getInsightBoard(id: string): Promise<InsightBoard> {
+  return invoke('get_insight_board', { id });
+}
+
+/**
+ * Update an insight board
+ */
+export async function updateInsightBoard(
+  id: string,
+  input: UpdateBoardInput
+): Promise<InsightBoard> {
+  return invoke('update_insight_board', { id, input });
+}
+
+/**
+ * Delete an insight board (and all its charts)
+ */
+export async function deleteInsightBoard(id: string): Promise<void> {
+  return invoke('delete_insight_board', { id });
+}
+
+/**
+ * List all insight boards
+ */
+export async function listInsightBoards(): Promise<InsightBoardListItem[]> {
+  return invoke('list_insight_boards');
+}
+
+/**
+ * Pin a chart to a board
+ */
+export async function pinChart(input: PinChartInput): Promise<PinnedChart> {
+  return invoke('pin_chart', { input });
+}
+
+/**
+ * Get all charts for a board
+ */
+export async function getChartsForBoard(boardId: string): Promise<PinnedChart[]> {
+  return invoke('get_charts_for_board', { boardId });
+}
+
+/**
+ * Update a pinned chart
+ */
+export async function updatePinnedChart(
+  id: string,
+  input: UpdatePinnedChartInput
+): Promise<PinnedChart> {
+  return invoke('update_pinned_chart', { id, input });
+}
+
+/**
+ * Remove a chart from a board
+ */
+export async function unpinChart(id: string): Promise<void> {
+  return invoke('unpin_chart', { id });
+}
+
+/**
+ * Create an annotation on a chart
+ */
+export async function createChartAnnotation(
+  input: CreateAnnotationInput
+): Promise<ChartAnnotation> {
+  return invoke('create_chart_annotation', { input });
+}
+
+/**
+ * Get all annotations for a chart
+ */
+export async function getAnnotationsForChart(chartId: string): Promise<ChartAnnotation[]> {
+  return invoke('get_annotations_for_chart', { chartId });
+}
+
+/**
+ * Update an annotation
+ */
+export async function updateChartAnnotation(
+  id: string,
+  content: string
+): Promise<ChartAnnotation> {
+  return invoke('update_chart_annotation', { id, content });
+}
+
+/**
+ * Delete an annotation
+ */
+export async function deleteChartAnnotation(id: string): Promise<void> {
+  return invoke('delete_chart_annotation', { id });
+}

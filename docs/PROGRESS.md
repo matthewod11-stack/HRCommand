@@ -15,6 +15,62 @@
 Most recent session should be first.
 -->
 
+## Session 2026-01-13 (V2.3.2g — Insight Canvas Database + Rust Foundation)
+
+**Phase:** V2.3.2 — Interactive Analytics Panel + Insight Canvas
+**Focus:** Database schema, Rust CRUD, TypeScript types for persistent chart storage
+
+### Summary
+Implemented V2.3.2g (Insight Canvas Session 1) — the database and Rust foundation for persistent chart storage. Also fixed the chart rendering bug where Claude was emitting PascalCase JSON but Rust expected snake_case.
+
+### Chart Rendering Bug Fix
+- **Root cause:** System prompt instructed Claude to emit `"HeadcountBy"` but Rust `#[serde(rename_all = "snake_case")]` expected `"headcount_by"`
+- **Fix:** Updated `context.rs:2593-2631` analytics instructions to use snake_case format
+- **Result:** Charts now render correctly from natural language queries
+
+### Files Created
+```
+src-tauri/migrations/004_insight_canvas.sql  (~60 LOC) — 3 tables + indexes
+src-tauri/src/insight_canvas.rs              (~540 LOC) — Full CRUD module
+src/lib/insight-canvas-types.ts              (~150 LOC) — TypeScript types + helpers
+```
+
+### Files Modified
+```
+src-tauri/src/db.rs        — Added migration 004 to migration list
+src-tauri/src/lib.rs       — Added mod insight_canvas + 13 Tauri commands
+src/lib/tauri-commands.ts  — Added 13 command wrappers + type exports
+src-tauri/src/context.rs   — Fixed analytics JSON format (snake_case)
+```
+
+### Database Schema
+| Table | Purpose |
+|-------|---------|
+| `insight_boards` | Named collections ("Q3 Review", "Leadership Dashboard") |
+| `pinned_charts` | Charts saved to boards with position + dimensions |
+| `chart_annotations` | Notes/callouts attached to pinned charts |
+
+### Tauri Commands Added (13)
+```rust
+create_insight_board, get_insight_board, update_insight_board,
+delete_insight_board, list_insight_boards, pin_chart,
+get_charts_for_board, update_pinned_chart, unpin_chart,
+create_chart_annotation, get_annotations_for_chart,
+update_chart_annotation, delete_chart_annotation
+```
+
+### Verification
+- [x] 3 new insight_canvas tests pass
+- [x] TypeScript type-check passes
+- [x] All Rust tests pass (239 total, 1 pre-existing file_parser failure)
+
+### Next Session Should
+1. Continue with V2.3.2h — Create InsightCanvasContext.tsx and InsightsSidebar
+2. Add "Insights" tab to TabSwitcher
+3. Test chart pinning flow end-to-end
+
+---
+
 ## Session 2026-01-13 (V2.3.2 — Analytics Panel Implementation)
 
 **Phase:** V2.3.2 — Interactive Analytics Panel

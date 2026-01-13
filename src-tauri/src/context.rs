@@ -2599,33 +2599,35 @@ Your response format MUST be:
 
 <analytics_request>
 {
-  "intent": "<ChartIntent>",
-  "group_by": "<GroupBy>",
+  "intent": "<intent>",
+  "group_by": "<group_by>",
   "filters": {},
   "description": "<Brief description>"
 }
 </analytics_request>
 
-ChartIntent options (use exactly as shown):
-- HeadcountBy → for headcount/employee counts
-- RatingDistribution → for performance ratings
-- EnpsBreakdown → for eNPS scores
-- AttritionAnalysis → for turnover/attrition
-- TenureDistribution → for tenure analysis
+Intent options (use exactly as shown, lowercase with underscores):
+- headcount_by → for headcount/employee counts
+- rating_distribution → for performance ratings
+- enps_breakdown → for eNPS scores
+- attrition_analysis → for turnover/attrition
+- tenure_distribution → for tenure analysis
 
-GroupBy options (use exactly as shown):
-- Department → group by department
-- Status → group by active/terminated/leave
-- Gender → group by gender
-- RatingBucket → group by rating level
-- TenureBucket → group by tenure range
-- Quarter → group by time period
+GroupBy options (use exactly as shown, lowercase with underscores):
+- department → group by department
+- status → group by active/terminated/leave
+- gender → group by gender
+- ethnicity → group by ethnicity
+- work_state → group by work state
+- rating_bucket → group by rating level
+- tenure_bucket → group by tenure range
+- quarter → group by time period
 
 Example for "show me headcount by department":
 Here's the department breakdown for your organization.
 
 <analytics_request>
-{"intent": "HeadcountBy", "group_by": "Department", "filters": {}, "description": "Headcount by department"}
+{"intent": "headcount_by", "group_by": "department", "filters": {}, "description": "Headcount by department"}
 </analytics_request>
 
 DO NOT explain how to create charts. DO NOT suggest tools. Just emit the analytics_request block and the system will render the chart automatically."#.to_string()
