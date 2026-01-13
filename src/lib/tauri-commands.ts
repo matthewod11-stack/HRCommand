@@ -692,6 +692,20 @@ export async function getAggregateEnps(): Promise<EnpsAggregate> {
 }
 
 // =============================================================================
+// V2.3.2 - Analytics
+// =============================================================================
+
+import type { AnalyticsRequest, ChartResult } from './analytics-types';
+
+/**
+ * Execute an analytics request and return chart data.
+ * @param request - The analytics request from Claude's response
+ */
+export async function executeAnalytics(request: AnalyticsRequest): Promise<ChartResult> {
+  return invoke('execute_analytics', { request });
+}
+
+// =============================================================================
 // Phase 2.3 - Settings
 // =============================================================================
 

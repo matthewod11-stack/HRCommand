@@ -8,12 +8,15 @@
  * User messages are rendered as plain text to preserve what they typed.
  *
  * V2.1.4: Now supports verification badges for aggregate query responses.
+ * V2.3.2: Now supports chart visualization for analytics queries.
  */
 
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { VerificationBadge } from './VerificationBadge';
+import { AnalyticsChart } from '../analytics';
 import type { VerificationResult } from '../../lib/types';
+import type { ChartData } from '../../lib/analytics-types';
 
 /**
  * Formats an ISO timestamp string to a user-friendly time display
@@ -44,6 +47,8 @@ interface MessageBubbleProps {
   showTimestamp?: boolean;
   /** V2.1.4: Verification result for aggregate queries */
   verification?: VerificationResult;
+  /** V2.3.2: Chart data for analytics visualization */
+  chartData?: ChartData;
 }
 
 export function MessageBubble({
@@ -52,6 +57,7 @@ export function MessageBubble({
   timestamp,
   showTimestamp = true,
   verification,
+  chartData,
 }: MessageBubbleProps) {
   const isUser = role === 'user';
   const formattedTime = timestamp ? formatTime(timestamp) : null;
@@ -117,6 +123,13 @@ export function MessageBubble({
           </span>
         )}
       </div>
+
+      {/* V2.3.2: Analytics chart visualization (rendered outside bubble for wider display) */}
+      {!isUser && chartData && (
+        <div className="w-full max-w-[90%] mt-2">
+          <AnalyticsChart data={chartData} />
+        </div>
+      )}
     </div>
   );
 }

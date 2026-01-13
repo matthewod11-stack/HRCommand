@@ -3,6 +3,8 @@
 
 use tauri::Manager;
 
+mod analytics;
+mod analytics_templates;
 mod audit;
 mod backup;
 mod bulk_import;
@@ -829,6 +831,21 @@ async fn get_aggregate_enps(
 }
 
 // ============================================================================
+// Analytics Commands (V2.3.2)
+// ============================================================================
+
+/// Execute an analytics request and return chart data
+#[tauri::command]
+async fn execute_analytics(
+    state: tauri::State<'_, Database>,
+    request: analytics::AnalyticsRequest,
+) -> Result<analytics::ChartResult, String> {
+    analytics_templates::execute_analytics(&state.pool, &request)
+        .await
+        .map_err(|e| e.to_string())
+}
+
+// ============================================================================
 // Monday Digest Commands
 // ============================================================================
 
@@ -1226,6 +1243,8 @@ pub fn run() {
             get_employee_context,
             get_company_context,
             get_aggregate_enps,
+            // Analytics (V2.3.2)
+            execute_analytics,
             // Monday Digest
             get_digest_data,
             // Memory (cross-conversation)

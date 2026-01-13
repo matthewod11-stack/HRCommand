@@ -14,6 +14,11 @@ import { listen, UnlistenFn } from '@tauri-apps/api/event';
 import type { Message } from '../lib/types';
 import { categorizeError } from '../lib/error-utils';
 import {
+  parseAnalyticsRequest,
+  stripAnalyticsBlock,
+  isChartSuccess,
+} from '../lib/analytics-types';
+import {
   listConversations,
   getConversation,
   updateConversation,
@@ -26,6 +31,7 @@ import {
   saveConversationSummary,
   scanPii,
   createAuditEntry,
+  executeAnalytics,
   type ConversationListItem,
   type ChatMessage,
   type StreamChunk,
@@ -321,6 +327,40 @@ export function ConversationProvider({ children }: ConversationProviderProps) {
                   : msg
               )
             );
+          }
+
+          // V2.3.2: Check for analytics request and execute if present
+          const analyticsRequest = parseAnalyticsRequest(fullResponse);
+          if (analyticsRequest) {
+            // Strip analytics block from displayed content
+            const cleanContent = stripAnalyticsBlock(fullResponse);
+            setMessages((prev) =>
+              prev.map((msg) =>
+                msg.id === assistantId
+                  ? { ...msg, content: cleanContent }
+                  : msg
+              )
+            );
+
+            // Execute analytics query and attach chart data
+            executeAnalytics(analyticsRequest)
+              .then((result) => {
+                if (isChartSuccess(result)) {
+                  setMessages((prev) =>
+                    prev.map((msg) =>
+                      msg.id === assistantId
+                        ? { ...msg, chartData: result.data }
+                        : msg
+                    )
+                  );
+                  console.log('[Analytics] Chart generated:', result.data.title);
+                } else {
+                  console.log('[Analytics] Fallback:', result);
+                }
+              })
+              .catch((err) => {
+                console.error('[Analytics] Execution failed:', err);
+              });
           }
 
           // Create audit entry (fire-and-forget, don't block on errors)

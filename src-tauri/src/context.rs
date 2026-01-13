@@ -12,6 +12,7 @@ use sqlx::{FromRow, Row};
 use thiserror::Error;
 use unicode_segmentation::UnicodeSegmentation;
 
+use crate::analytics;
 use crate::db::DbPool;
 use crate::highlights;
 use crate::memory;
@@ -506,6 +507,7 @@ pub struct ChatContext {
     pub employee_ids_used: Vec<String>,
     pub memory_summaries: Vec<String>,
     pub metrics: RetrievalMetrics,                  // V2.2.2: retrieval observability
+    pub is_chart_query: bool,                       // V2.3.2: analytics/visualization request
 }
 
 // ============================================================================
@@ -565,6 +567,10 @@ pub struct QueryMentions {
     pub requested_themes: Vec<String>,
     /// V2.2.2b: Target field for theme search (strengths vs opportunities vs any)
     pub theme_target: ThemeTarget,
+    /// V2.3.2: Whether query requests a chart/visualization
+    pub is_chart_query: bool,
+    /// V2.3.2: Chart keywords found in query (for debugging/logging)
+    pub chart_keywords: Vec<String>,
 }
 
 /// Extract potential employee names and departments from a query
@@ -836,6 +842,10 @@ pub fn extract_mentions(query: &str) -> QueryMentions {
             break;
         }
     }
+
+    // V2.3.2: Chart/visualization query detection
+    mentions.is_chart_query = analytics::is_chart_query(query);
+    mentions.chart_keywords = analytics::find_chart_keywords(query);
 
     mentions
 }
@@ -2532,6 +2542,7 @@ pub fn build_system_prompt(
     memory_summaries: &[String],
     user_name: Option<&str>,
     persona_id: Option<&str>,
+    is_chart_query: bool,
 ) -> String {
     let persona = get_persona(persona_id);
     let company_name = company.map(|c| c.name.as_str()).unwrap_or("your company");
@@ -2574,6 +2585,54 @@ pub fn build_system_prompt(
         format!("\nRELEVANT EMPLOYEES:\n{}", employee_context)
     };
 
+    // V2.3.2: Analytics instructions for chart queries
+    let analytics_section = if is_chart_query {
+        eprintln!("[Analytics] Chart query detected - including visualization instructions");
+        r#"
+
+CRITICAL - CHART GENERATION REQUIRED:
+The user is requesting a chart or visualization. You MUST include an analytics_request block at the END of your response. This is MANDATORY for chart queries.
+
+Your response format MUST be:
+1. First, provide a brief text explanation (2-3 sentences max)
+2. Then, emit the analytics_request block EXACTLY as shown below
+
+<analytics_request>
+{
+  "intent": "<ChartIntent>",
+  "group_by": "<GroupBy>",
+  "filters": {},
+  "description": "<Brief description>"
+}
+</analytics_request>
+
+ChartIntent options (use exactly as shown):
+- HeadcountBy → for headcount/employee counts
+- RatingDistribution → for performance ratings
+- EnpsBreakdown → for eNPS scores
+- AttritionAnalysis → for turnover/attrition
+- TenureDistribution → for tenure analysis
+
+GroupBy options (use exactly as shown):
+- Department → group by department
+- Status → group by active/terminated/leave
+- Gender → group by gender
+- RatingBucket → group by rating level
+- TenureBucket → group by tenure range
+- Quarter → group by time period
+
+Example for "show me headcount by department":
+Here's the department breakdown for your organization.
+
+<analytics_request>
+{"intent": "HeadcountBy", "group_by": "Department", "filters": {}, "description": "Headcount by department"}
+</analytics_request>
+
+DO NOT explain how to create charts. DO NOT suggest tools. Just emit the analytics_request block and the system will render the chart automatically."#.to_string()
+    } else {
+        String::new()
+    };
+
     format!(
 r#"{preamble}
 
@@ -2601,6 +2660,7 @@ BOUNDARIES:
 
 RELEVANT PAST CONVERSATIONS:
 {memories}
+{analytics_section}
 
 Answer questions as {persona_name} would—{persona_style}."#,
         preamble = preamble,
@@ -2611,6 +2671,7 @@ Answer questions as {persona_name} would—{persona_style}."#,
         org_data = org_data,
         employee_section = employee_section,
         memories = memories,
+        analytics_section = analytics_section,
         persona_name = persona.name,
         persona_style = persona.style.to_lowercase(),
     )
@@ -2805,6 +2866,7 @@ pub async fn build_chat_context(
         employee_ids_used,
         memory_summaries,
         metrics,
+        is_chart_query: mentions.is_chart_query,
     })
 }
 
@@ -2850,6 +2912,7 @@ pub async fn get_system_prompt_for_message(
         &context.memory_summaries,
         user_name.as_deref(),
         persona_id.as_deref(),
+        context.is_chart_query,
     );
 
     Ok(SystemPromptResult {

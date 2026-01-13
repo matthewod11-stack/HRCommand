@@ -15,6 +15,80 @@
 Most recent session should be first.
 -->
 
+## Session 2026-01-13 (V2.3.2 — Analytics Panel Implementation)
+
+**Phase:** V2.3.2 — Interactive Analytics Panel
+**Focus:** Chart generation from natural language queries
+
+### Summary
+Implemented the Analytics Panel feature (V2.3.2a-f) that transforms natural language queries into visual charts. The system uses keyword detection to identify chart requests, Claude emits structured JSON, Rust executes whitelisted SQL templates, and React renders charts using Recharts.
+
+### Files Created
+```
+src-tauri/src/analytics.rs              (~300 LOC) — Type definitions, JSON parsing, keyword detection
+src-tauri/src/analytics_templates.rs    (~380 LOC) — SQL template registry, query execution
+src/lib/analytics-types.ts              (~140 LOC) — TypeScript types mirroring Rust
+src/components/analytics/AnalyticsChart.tsx  — Main chart component using Recharts
+src/components/analytics/FilterCaption.tsx   — "Filters applied" caption
+src/components/analytics/ChartFallback.tsx   — Fallback for non-chartable queries
+src/components/analytics/index.ts            — Component exports
+```
+
+### Files Modified
+```
+src-tauri/src/lib.rs                    — Added mod analytics, execute_analytics command
+src-tauri/src/context.rs                — Added is_chart_query detection, analytics prompt instructions
+src/lib/tauri-commands.ts               — Added executeAnalytics() wrapper
+src/lib/types.ts                        — Added chartData to Message interface
+src/components/chat/MessageBubble.tsx   — Integrated AnalyticsChart rendering
+src/components/chat/MessageList.tsx     — Pass chartData prop
+src/contexts/ConversationContext.tsx    — Parse analytics responses, execute queries
+```
+
+### Architecture
+```
+User: "Show me headcount by department"
+  ↓
+Keyword detection → is_chart_query = true
+  ↓
+System prompt includes analytics instructions
+  ↓
+Claude emits: <analytics_request>{"intent":"HeadcountBy"...}</analytics_request>
+  ↓
+Frontend parses → calls executeAnalytics → Rust executes whitelisted SQL
+  ↓
+MessageBubble renders Recharts visualization
+```
+
+### Supported Chart Types
+| Intent | GroupBy Options | Chart Type |
+|--------|-----------------|------------|
+| HeadcountBy | Department, Status, Gender | Pie/Bar |
+| RatingDistribution | RatingBucket | Bar |
+| EnpsBreakdown | (categories) | Pie |
+| AttritionAnalysis | Quarter | Line |
+| TenureDistribution | TenureBucket | Bar |
+
+### In Progress
+- Charts not yet rendering in production use — Claude not emitting `<analytics_request>` block consistently
+- Strengthened prompt instructions with "CRITICAL - CHART GENERATION REQUIRED"
+- Expanded keyword detection to include more patterns
+
+### Verification
+- [x] TypeScript type-check passes
+- [x] 234 Rust tests pass (1 pre-existing file_parser failure)
+- [x] All 12 analytics tests pass
+- [x] All 120 context tests pass
+- [ ] End-to-end chart rendering needs further testing
+
+### Next Session Should
+1. Debug why Claude isn't emitting `<analytics_request>` — may need prompt engineering
+2. Test with explicit "generate a pie chart of headcount by department"
+3. Consider adding a "chart" mode toggle in UI as fallback
+4. Verify chart rendering once JSON is emitted correctly
+
+---
+
 ## Session 2026-01-07 (V2.2.5d — Motion Refinements)
 
 **Phase:** V2.2.5 — UI/UX Refinements

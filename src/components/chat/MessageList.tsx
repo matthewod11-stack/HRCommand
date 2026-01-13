@@ -194,6 +194,7 @@ export function MessageList({
                 role={message.role}
                 timestamp={message.timestamp}
                 verification={message.verification}
+                chartData={message.chartData}
               />
             )}
           </div>
