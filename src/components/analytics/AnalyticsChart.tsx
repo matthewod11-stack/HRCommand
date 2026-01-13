@@ -3,8 +3,10 @@
  *
  * Renders chart data from analytics requests using Recharts.
  * Supports Bar, Pie, Line, and HorizontalBar chart types.
+ * V2.3.2h: Adds "Pin to Canvas" for persistent chart storage.
  */
 
+import { useState, useCallback } from 'react';
 import {
   BarChart,
   Bar,
@@ -20,8 +22,13 @@ import {
   ResponsiveContainer,
   CartesianGrid,
 } from 'recharts';
-import type { ChartData, ChartType } from '../../lib/analytics-types';
+import type { ChartData, ChartType, AnalyticsRequest } from '../../lib/analytics-types';
 import { FilterCaption } from './FilterCaption';
+import { BoardSelectorModal } from './BoardSelectorModal';
+import { Button } from '../ui/Button';
+import { useConversations } from '../../contexts/ConversationContext';
+import { pinChart } from '../../lib/tauri-commands';
+import { createPinChartInput } from '../../lib/insight-canvas-types';
 
 // Design tokens matching Tailwind config
 const CHART_COLORS = [
@@ -37,9 +44,24 @@ const CHART_COLORS = [
 
 interface AnalyticsChartProps {
   data: ChartData;
+  /** V2.3.2h: Analytics request for pinning */
+  analyticsRequest?: AnalyticsRequest;
+  /** V2.3.2h: Message ID for pinning */
+  messageId?: string;
 }
 
-export function AnalyticsChart({ data }: AnalyticsChartProps) {
+export function AnalyticsChart({
+  data,
+  analyticsRequest,
+  messageId,
+}: AnalyticsChartProps) {
+  const { conversationId } = useConversations();
+
+  // Modal and pin state
+  const [showBoardModal, setShowBoardModal] = useState(false);
+  const [isPinning, setIsPinning] = useState(false);
+  const [pinSuccess, setPinSuccess] = useState<string | null>(null);
+
   // Transform data for Recharts (needs 'name' key for labels)
   const chartData = data.data.map((point) => ({
     name: point.label,
@@ -47,9 +69,79 @@ export function AnalyticsChart({ data }: AnalyticsChartProps) {
     percentage: point.percentage ?? 0,
   }));
 
+  // Handle pin to board
+  const handlePinToBoard = useCallback(
+    async (boardId: string, boardName: string) => {
+      if (!analyticsRequest) {
+        console.warn('[AnalyticsChart] No analytics request available for pinning');
+        return;
+      }
+
+      setIsPinning(true);
+      try {
+        const input = createPinChartInput(
+          boardId,
+          data,
+          analyticsRequest,
+          conversationId,
+          messageId
+        );
+        await pinChart(input);
+        setPinSuccess(boardName);
+        // Auto-clear success message after 3 seconds
+        setTimeout(() => setPinSuccess(null), 3000);
+        console.log('[AnalyticsChart] Chart pinned to board:', boardName);
+      } catch (err) {
+        console.error('[AnalyticsChart] Failed to pin chart:', err);
+      } finally {
+        setIsPinning(false);
+      }
+    },
+    [data, analyticsRequest, conversationId, messageId]
+  );
+
+  // Only show pin button if we have the analytics request
+  const canPin = !!analyticsRequest;
+
   return (
     <div className="mt-4 p-4 bg-white rounded-xl border border-stone-200/60 shadow-sm">
-      <h4 className="text-sm font-semibold text-stone-900 mb-3">{data.title}</h4>
+      {/* Header with title and pin button */}
+      <div className="flex items-center justify-between mb-3">
+        <h4 className="text-sm font-semibold text-stone-900">{data.title}</h4>
+
+        {canPin && (
+          <div className="flex items-center gap-2">
+            {pinSuccess && (
+              <span className="text-xs text-green-600 animate-fade-in">
+                Pinned to {pinSuccess}
+              </span>
+            )}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowBoardModal(true)}
+              disabled={isPinning}
+              leftIcon={
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"
+                  />
+                </svg>
+              }
+            >
+              {isPinning ? 'Pinning...' : 'Pin'}
+            </Button>
+          </div>
+        )}
+      </div>
 
       <div className="h-64">
         <ResponsiveContainer width="100%" height="100%">
@@ -58,6 +150,14 @@ export function AnalyticsChart({ data }: AnalyticsChartProps) {
       </div>
 
       <FilterCaption filters={data.filters_applied} total={data.total} />
+
+      {/* Board selector modal */}
+      <BoardSelectorModal
+        isOpen={showBoardModal}
+        onClose={() => setShowBoardModal(false)}
+        onSelect={handlePinToBoard}
+        chartTitle={data.title}
+      />
     </div>
   );
 }

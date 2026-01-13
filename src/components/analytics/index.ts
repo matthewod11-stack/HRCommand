@@ -2,3 +2,4 @@
 export { AnalyticsChart } from './AnalyticsChart';
 export { FilterCaption } from './FilterCaption';
 export { ChartFallback } from './ChartFallback';
+export { BoardSelectorModal } from './BoardSelectorModal';

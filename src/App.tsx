@@ -11,6 +11,7 @@ import { SettingsPanel } from './components/settings';
 import { CommandPalette } from './components/CommandPalette';
 import { TestDataImporter } from './components/dev/TestDataImporter';
 import { OnboardingProvider, OnboardingFlow, useOnboarding } from './components/onboarding';
+import { InsightBoardView } from './components/insights';
 import { useEmployees } from './contexts/EmployeeContext';
 import { useNetwork, useCommandPalette } from './hooks';
 
@@ -213,6 +214,7 @@ function TestDataModal({
 function MainAppContent() {
   const [isTestDataModalOpen, setIsTestDataModalOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [selectedBoardId, setSelectedBoardId] = useState<string | null>(null);
   const chatInputRef = useRef<ChatInputHandle>(null);
 
   // Command palette hook (uses useLayout internally)
@@ -239,6 +241,7 @@ function MainAppContent() {
       <AppShell
         contextPanel={<EmployeeDetail />}
         onSettingsClick={() => setIsSettingsOpen(true)}
+        onBoardSelect={setSelectedBoardId}
       >
         <ChatArea chatInputRef={chatInputRef} />
       </AppShell>
@@ -255,6 +258,10 @@ function MainAppContent() {
       <CommandPalette
         isOpen={isPaletteOpen}
         onClose={closePalette}
+      />
+      <InsightBoardView
+        boardId={selectedBoardId}
+        onClose={() => setSelectedBoardId(null)}
       />
     </>
   );

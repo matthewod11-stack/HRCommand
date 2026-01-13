@@ -536,8 +536,8 @@ Natural language → charts with persistent insights.
 
 **Insight Canvas (persistent workspace):**
 - [x] V2.3.2g Create InsightCanvas foundation (database schema, Rust CRUD, TS types)
-- [ ] V2.3.2h Add "Pin to Canvas" action from analytics panel
-- [ ] V2.3.2i Create named boards ("Q3 Review", "Leadership Dashboard")
+- [x] V2.3.2h Add "Pin to Canvas" action from analytics panel
+- [x] V2.3.2i Create named boards ("Q3 Review", "Leadership Dashboard")
 - [ ] V2.3.2j Add chart annotation capability
 - [ ] V2.3.2k Add 1-page report export (combine pinned charts)
 - [ ] V2.3.2l Add drilldown from chart → employee list
@@ -557,8 +557,8 @@ Natural language → charts with persistent insights.
 **Verification Required:**
 - [x] ~~Org chart renders full hierarchy~~ (DEFERRED)
 - [x] ~~Heatmap overlay shows team "attention scores"~~ (DEFERRED)
-- [ ] Natural language query generates appropriate chart
-- [ ] Can pin chart to named board
+- [x] Natural language query generates appropriate chart
+- [x] Can pin chart to named board
 - [ ] Can export board as 1-page report
 
 ---

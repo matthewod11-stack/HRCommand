@@ -39,7 +39,7 @@ export interface Conversation {
   updated_at: string;
 }
 
-import type { ChartData } from './analytics-types';
+import type { ChartData, AnalyticsRequest } from './analytics-types';
 
 export interface Message {
   id: string;
@@ -51,6 +51,8 @@ export interface Message {
   verification?: VerificationResult;
   /** V2.3.2: Chart data for analytics visualization */
   chartData?: ChartData;
+  /** V2.3.2h: Analytics request for pinning to insight canvas */
+  analyticsRequest?: AnalyticsRequest;
 }
 
 // =============================================================================

@@ -16,7 +16,7 @@ import remarkGfm from 'remark-gfm';
 import { VerificationBadge } from './VerificationBadge';
 import { AnalyticsChart } from '../analytics';
 import type { VerificationResult } from '../../lib/types';
-import type { ChartData } from '../../lib/analytics-types';
+import type { ChartData, AnalyticsRequest } from '../../lib/analytics-types';
 
 /**
  * Formats an ISO timestamp string to a user-friendly time display
@@ -49,6 +49,10 @@ interface MessageBubbleProps {
   verification?: VerificationResult;
   /** V2.3.2: Chart data for analytics visualization */
   chartData?: ChartData;
+  /** V2.3.2h: Analytics request for pinning to insight canvas */
+  analyticsRequest?: AnalyticsRequest;
+  /** V2.3.2h: Message ID for pinning to insight canvas */
+  messageId?: string;
 }
 
 export function MessageBubble({
@@ -58,6 +62,8 @@ export function MessageBubble({
   showTimestamp = true,
   verification,
   chartData,
+  analyticsRequest,
+  messageId,
 }: MessageBubbleProps) {
   const isUser = role === 'user';
   const formattedTime = timestamp ? formatTime(timestamp) : null;
@@ -127,7 +133,11 @@ export function MessageBubble({
       {/* V2.3.2: Analytics chart visualization (rendered outside bubble for wider display) */}
       {!isUser && chartData && (
         <div className="w-full max-w-[90%] mt-2">
-          <AnalyticsChart data={chartData} />
+          <AnalyticsChart
+            data={chartData}
+            analyticsRequest={analyticsRequest}
+            messageId={messageId}
+          />
         </div>
       )}
     </div>

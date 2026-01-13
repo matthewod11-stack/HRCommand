@@ -4,12 +4,15 @@ import { useNetwork } from '../../hooks';
 import { OfflineIndicator } from '../shared';
 import { TabSwitcher, ConversationSidebar } from '../conversations';
 import { EmployeePanel } from '../employees';
+import { InsightBoardPanel } from '../insights';
 
 interface AppShellProps {
   children: ReactNode;
   contextPanel?: ReactNode;
   /** Handler for settings button click */
   onSettingsClick?: () => void;
+  /** Handler for board selection (opens board view modal) */
+  onBoardSelect?: (boardId: string) => void;
 }
 
 function ToggleButton({
@@ -74,7 +77,7 @@ function IconButton({
   );
 }
 
-export function AppShell({ children, contextPanel, onSettingsClick }: AppShellProps) {
+export function AppShell({ children, contextPanel, onSettingsClick, onBoardSelect }: AppShellProps) {
   const { sidebarOpen, contextPanelOpen, sidebarTab, toggleSidebar, toggleContextPanel, setSidebarTab } = useLayout();
   const { isOnline, errorMessage, checkNow, isChecking } = useNetwork();
 
@@ -185,8 +188,10 @@ export function AppShell({ children, contextPanel, onSettingsClick }: AppShellPr
             <div className="flex-1 overflow-hidden">
               {sidebarTab === 'conversations' ? (
                 <ConversationSidebar />
-              ) : (
+              ) : sidebarTab === 'employees' ? (
                 <EmployeePanel />
+              ) : (
+                <InsightBoardPanel onBoardSelect={onBoardSelect ?? (() => {})} />
               )}
             </div>
           </div>

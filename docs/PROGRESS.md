@@ -15,6 +15,71 @@
 Most recent session should be first.
 -->
 
+## Session 2026-01-13 (V2.3.2h-i — Pin to Canvas + Named Boards UI)
+
+**Phase:** V2.3.2 — Interactive Analytics Panel + Insight Canvas
+**Focus:** Connect analytics to persistence layer, create boards management UI
+
+### Summary
+Implemented V2.3.2h (Pin to Canvas action) and V2.3.2i (Named boards UI) — completing the full flow from generating charts in chat to persisting and viewing them in named boards.
+
+### V2.3.2h: Pin to Canvas Action
+- Added `analyticsRequest` field to Message type
+- Updated ConversationContext to store analytics request alongside chart data
+- Created `BoardSelectorModal` component for choosing/creating target board
+- Added "Pin" button to `AnalyticsChart` header with success feedback
+- Wired `pinChart()` command to persist charts
+
+### V2.3.2i: Named Boards UI
+- Extended `SidebarTab` type to include `'boards'`
+- Added Boards tab to `TabSwitcher` with chart icon
+- Created `InsightBoardPanel` for sidebar (list boards, create, delete)
+- Created `InsightBoardView` modal (responsive chart grid, rename, unpin)
+- Wired board selection through AppShell → App.tsx modal system
+
+### Files Created
+```
+src/components/analytics/BoardSelectorModal.tsx  (~210 LOC)
+src/components/insights/InsightBoardPanel.tsx    (~215 LOC)
+src/components/insights/InsightBoardView.tsx     (~230 LOC)
+src/components/insights/index.ts                 (~3 LOC)
+```
+
+### Files Modified
+```
+src/lib/types.ts                    — Added analyticsRequest to Message
+src/contexts/ConversationContext.tsx — Store analyticsRequest with chartData
+src/contexts/LayoutContext.tsx      — Added 'boards' to SidebarTab
+src/components/chat/MessageList.tsx — Pass analyticsRequest + messageId
+src/components/chat/MessageBubble.tsx — Forward props to AnalyticsChart
+src/components/analytics/AnalyticsChart.tsx — Pin button + modal
+src/components/analytics/index.ts   — Export BoardSelectorModal
+src/components/conversations/TabSwitcher.tsx — Added Boards tab
+src/components/conversations/index.ts — Updated exports
+src/components/layout/AppShell.tsx  — Added InsightBoardPanel to sidebar
+src/App.tsx                         — Added InsightBoardView modal
+```
+
+### User Flow
+1. Ask analytics question → Chart renders in chat
+2. Click "Pin" → BoardSelectorModal opens
+3. Select/create board → Chart persisted via pinChart()
+4. Click Boards tab → See list of saved boards
+5. Click board → InsightBoardView modal with chart grid
+6. Manage: rename board, unpin charts, delete boards
+
+### Verification
+- [x] TypeScript passes
+- [x] 3 insight_canvas Rust tests pass
+- [x] Cargo compiles successfully
+
+### Next Session Should
+1. V2.3.2j — Add chart annotation capability (notes on pinned charts)
+2. V2.3.2k — Add 1-page report export (combine pinned charts)
+3. V2.3.2l — Add drilldown from chart → employee list
+
+---
+
 ## Session 2026-01-13 (V2.3.2g — Insight Canvas Database + Rust Foundation)
 
 **Phase:** V2.3.2 — Interactive Analytics Panel + Insight Canvas

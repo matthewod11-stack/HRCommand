@@ -342,14 +342,14 @@ export function ConversationProvider({ children }: ConversationProviderProps) {
               )
             );
 
-            // Execute analytics query and attach chart data
+            // Execute analytics query and attach chart data + request (for pinning)
             executeAnalytics(analyticsRequest)
               .then((result) => {
                 if (isChartSuccess(result)) {
                   setMessages((prev) =>
                     prev.map((msg) =>
                       msg.id === assistantId
-                        ? { ...msg, chartData: result.data }
+                        ? { ...msg, chartData: result.data, analyticsRequest }
                         : msg
                     )
                   );

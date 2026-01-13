@@ -4,8 +4,8 @@
     "description": "Feature tracking for HR Command Center. Status: not-started | in-progress | pass | fail | blocked",
     "lastUpdated": "2026-01-13",
     "project": "HR Command Center",
-    "totalFeatures": 44,
-    "passing": 37,
+    "totalFeatures": 46,
+    "passing": 39,
     "failing": 0,
     "inProgress": 0
   },
@@ -155,6 +155,14 @@
     "insight-canvas-foundation": {
       "status": "pass",
       "notes": "V2.3.2g complete: Database schema (3 tables), insight_canvas.rs CRUD (~540 LOC), TypeScript types, 13 Tauri commands. Foundation for persistent chart storage."
+    },
+    "pin-to-canvas": {
+      "status": "pass",
+      "notes": "V2.3.2h complete: Pin button in AnalyticsChart, BoardSelectorModal for selecting/creating boards, analyticsRequest stored on Message, pinChart() integration. ~210 LOC new."
+    },
+    "named-boards-ui": {
+      "status": "pass",
+      "notes": "V2.3.2i complete: Boards sidebar tab, InsightBoardPanel (list/create/delete), InsightBoardView modal (chart grid, rename, unpin). ~450 LOC across 4 new files."
     }
   },
   "phase-5": {
